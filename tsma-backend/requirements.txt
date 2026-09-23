@@ -1,0 +1,97 @@
+# ============================================================================
+# TSMA Backend — requirements.txt
+# ============================================================================
+# Kanuni zilizotumika kuchagua packages hizi:
+#   1. Zote ni maktaba zinazotunzwa kikamilifu (active maintenance) na
+#      historia nzuri ya kujibu vulnerabilities haraka.
+#   2. Pinned kwa version MAALUM (siyo ">=") ili deployment isibadilike
+#      bila wewe kujua — sasisha kwa makusudi baada ya kusoma changelog.
+#   3. Django LTS (Long Term Support) inatumika badala ya toleo la hivi
+#      punde kabisa — LTS inapata security patches kwa muda mrefu zaidi.
+#   4. Baadhi ya packages ni za ZIADA (siyo za lazima kiutendaji) lakini
+#      zinaongeza tabaka za ulinzi moja kwa moja zinazoshughulikia
+#      matokeo ya security audit: django-axes (brute-force login),
+#      argon2-cffi (password hashing imara zaidi ya default),
+#      sentry-sdk (monitoring/alerting), django-storages (private file
+#      storage kwa paid publications).
+#
+# Sakinisha: pip install -r requirements.txt --break-system-packages
+# (au ndani ya virtualenv: pip install -r requirements.txt)
+# ============================================================================
+
+# ---- Core Framework ----
+# MUHIMU: Django 4.2.x ndiyo toleo la LTS (Long Term Support) la sasa
+# (msaada wa usalama hadi Aprili 2026) — 5.0/5.1 SI LTS (audit sahihi
+# kunisahihisha hapa; awali niliandika 5.0.9 kama "LTS" kimakosa).
+# Kabla ya deployment, angalia https://www.djangoproject.com/download/
+# kuthibitisha toleo la hivi punde la usalama la mstari wa 4.2.x.
+Django==4.2.16
+djangorestframework==3.15.2
+django-cors-headers==4.4.0
+
+# ---- Authentication (JWT) ----
+djangorestframework-simplejwt==5.3.1   # inajumuisha token_blacklist app
+PyJWT==2.9.0                            # dependency ya simplejwt, pin ya moja kwa moja
+
+# ---- Password Hashing IMARA zaidi ya default ----
+# Argon2 ndiyo mshindi wa Password Hashing Competition (2015) na
+# inapendekezwa na OWASP kuliko PBKDF2 ya default ya Django. Baada ya
+# kusakinisha, ongeza kwenye settings.py:
+#   PASSWORD_HASHERS = [
+#       "django.contrib.auth.hashers.Argon2PasswordHasher",
+#       "django.contrib.auth.hashers.PBKDF2PasswordHasher",  # fallback
+#   ]
+argon2-cffi==23.1.0
+
+# ---- Brute-Force / Account Takeover Protection ----
+# django-axes inazuia/inapunguza mashambulizi ya "credential stuffing" na
+# brute-force kwa kufunga (lockout) akaunti/IP baada ya majaribio
+# yasiyofanikiwa mfululizo — inashughulikia moja kwa moja "monitoring ya
+# failed logins" iliyotajwa kwenye audit.
+django-axes==6.5.1
+
+# ---- 2FA (TOTP) kwa Security Dashboard ----
+# Inatumika na `security` app (dashibodi ya self-healing/monitoring
+# yenye login yake tofauti + 2FA ya lazima).
+pyotp==2.9.0
+
+# ---- Database ----
+psycopg2-binary==2.9.9                 # PostgreSQL adapter (tumia toleo la binary kwa urahisi wa deployment)
+
+# ---- Secrets / Environment Management ----
+# ZISIWEKE secrets (SECRET_KEY, Selcom keys, DB password) moja kwa moja
+# kwenye code au Git — zote zinasomwa kutoka environment variables.
+django-environ==0.11.2
+
+# ---- Rate Limiting (ziada ya DRF throttling iliyopo tayari) ----
+django-ratelimit==4.1.0
+
+# ---- Security Headers (CSP, HSTS-related helpers) ----
+# django-csp inaongeza Content-Security-Policy header — inapunguza sana
+# uwezekano wa XSS kuiba JWT kutoka localStorage/DOM hata kama XSS
+# itapatikana mahali fulani kwenye frontend.
+django-csp==3.8
+
+# ---- File/Image Processing ----
+Pillow==10.4.0                          # kadi za wanachama, e-receipts, vyeti (QR generation)
+qrcode==7.4.2
+
+# ---- HTTP Client (Selcom API) ----
+requests==2.32.3
+
+# ---- Private/Secure File Storage (kwa paid publications) ----
+# Kama audit ilivyoainisha, faili za PAID hazipaswi kukaa kwenye MEDIA_ROOT
+# ya kawaida. django-storages + boto3 zinawezesha S3 (au S3-compatible
+# storage) yenye signed URLs za muda mfupi.
+django-storages==1.14.4
+boto3==1.35.24
+
+# ---- Production Web Server ----
+gunicorn==23.0.0
+whitenoise==6.7.0                       # kuhudumia static files kwa usalama bila kuhitaji nginx ya ziada kwa static/
+
+# ---- Error Monitoring / Alerting ----
+# Sentry inakupa arifa za moja kwa moja za makosa ya production (ikiwemo
+# payment webhook failures) - inashughulikia "monitoring + alerts"
+# iliyotajwa kwenye Phase 2 ya audit.
+sentry-sdk==2.14.0

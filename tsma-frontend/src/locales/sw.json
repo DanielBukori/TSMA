@@ -1,0 +1,111 @@
+{
+  "nav": {
+    "tagline": "CHAMA CHA USIMAMIZI WA MICHEZO TANZANIA",
+    "home": "Nyumbani",
+    "about": "Kuhusu Sisi",
+    "board": "Bodi",
+    "publications": "Machapisho",
+    "teaching": "Kozi na Mafunzo",
+    "conferences": "Mikutano",
+    "members": "Uanachama",
+    "news": "Habari",
+    "gallery": "Picha",
+    "contact": "Mawasiliano",
+    "registerNow": "Jiunge Nasi",
+    "management": "Management",
+    "directory": "Wataalamu",
+    "careers": "Ajira"
+  },
+  "topbar": {
+    "notice": " Usajili wa Mkutano wa 2026 unaendelea — nafasi ni chache",
+    "event": "🏆 MKUTANO WA TSMA 2026 — Dar es Salaam, 12–13 Novemba",
+    "eventCta": "Jisajili Sasa"
+  },
+  "hero": {
+    "badge": "MKUTANO MKUU WA KITAIFA",
+    "titleLine1": "Tanzania Sports",
+    "titleLine2": "Management Association",
+    "lede": "Tunajenga uchumi wa michezo wenye tija, ajira na uendelevu — tukiunganisha wataalamu, wanachama, wadhamini na wawekezaji kote nchini.",
+    "ctaPrimary": "Jisajili kwa Mkutano",
+    "ctaSecondary": "Wasilisha Utafiti"
+  },
+  "stats": {
+    "members": "Wanachama",
+    "regions": "Mikoa",
+    "award": "Tuzo ya Utafiti",
+    "nextConference": "Mkutano Ujao"
+  },
+  "quickLinks": {
+    "eyebrow": "ANZA HAPA",
+    "title": "Njia za Haraka",
+    "about": {
+      "title": "Kuhusu TSMA",
+      "desc": "Historia, dira na uongozi wetu."
+    },
+    "membership": {
+      "title": "Uanachama",
+      "desc": "Jiunge na madaraja yetu ya uanachama."
+    },
+    "conferences": {
+      "title": "Mikutano",
+      "desc": "Ratiba na usajili wa mikutano ijayo."
+    },
+    "publications": {
+      "title": "Machapisho",
+      "desc": "Tafiti na machapisho ya kitaaluma."
+    }
+  },
+  "about": {
+    "eyebrow": "TSMA NI NANI",
+    "title": "Uongozi Uliojikita Kitaaluma",
+    "p1": "Tanzania Sports Management Association (TSMA) ni chombo cha kitaifa kinachosimamia maendeleo ya taaluma ya usimamizi wa michezo, elimu, na sera nchini Tanzania.",
+    "p2": "TSMA inaunganisha watunga sera, wawekezaji, vyama vya michezo, wasomi na wajasiriamali kujenga uchumi wa michezo unaojiendesha wenyewe, wenye kutengeneza ajira na kuchochea maendeleo.",
+    "cta": "Soma Zaidi Kuhusu Sisi"
+  },
+  "infoBox": {
+    "bigLabel": "Mikoa ya Tanzania Iliyounganishwa na TSMA",
+    "tile1": "Wanachama",
+    "tile2": "Tuzo ya Utafiti Bora",
+    "tile3": "Kategoria za Machapisho",
+    "tile4": "Makao Makuu"
+  },
+  "news": {
+    "eyebrow": "TAARIFA ZA HIVI KARIBUNI",
+    "title": "Habari na Matukio",
+    "viewAll": "Angalia Habari Zote",
+    "readMore": "Soma Zaidi"
+  },
+  "conference": {
+    "eyebrow": "TUKIO LINALOFUATA",
+    "title": "Mkutano Mkuu wa TSMA 2026",
+    "desc": "Jiunge na wataalamu wa usimamizi wa michezo kutoka kote nchini kwa mkutano wa mwaka huu — usajili, malipo na uthibitisho wa QR kwenye mlango wa tukio.",
+    "cta": "Jisajili Sasa",
+    "date": "Tarehe",
+    "location": "Eneo"
+  },
+  "testimonials": {
+    "eyebrow": "WANACHAMA WANASEMA",
+    "title": "Maoni ya Washirika Wetu"
+  },
+  "footer": {
+    "about": "TSMA inaunganisha wataalamu wa usimamizi wa michezo kujenga uchumi wa michezo Tanzania.",
+    "quickLinks": "Njia za Haraka",
+    "contact": "Mawasiliano",
+    "followUs": "Tufuatilie",
+    "rights": "Haki zote zimehifadhiwa.",
+    "contactLoading": "Inapakua taarifa za mawasiliano...",
+    "socialComingSoon": "Mitandao ya kijamii inakuja hivi karibuni."
+  },
+  "common": {
+    "loading": "Inapakia...",
+    "error": "Hitilafu imetokea. Jaribu tena.",
+    "login": "Ingia",
+    "logout": "Toka",
+    "dashboard": "Dashibodi Yangu"
+  },
+  "notFound": {
+    "title": "Ukurasa Haukupatikana",
+    "message": "Samahani, mpira umetoka nje ya uwanja! Ukurasa unaoutafuta haupo au umehamishwa.",
+    "backHome": "⚽ Rudi Ukurasa wa Mwanzo"
+  }
+}

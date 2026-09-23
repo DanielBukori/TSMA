@@ -1,0 +1,112 @@
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import apiClient from '../api/client.js'
+import { useAuth } from '../context/AuthContext.jsx'
+
+export default function CourseDetail() {
+  const { slug } = useParams()
+  const { i18n } = useTranslation()
+  const isSw = i18n.language?.startsWith('sw')
+  const { isAuthenticated } = useAuth()
+
+  const [course, setCourse] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [enrolling, setEnrolling] = useState(false)
+
+  useEffect(() => {
+    fetchCourse()
+  }, [slug])
+
+  function fetchCourse() {
+    apiClient
+      .get(`/teaching/courses/${slug}/`)
+      .then((res) => setCourse(res.data))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }
+
+  async function handleEnroll() {
+    setEnrolling(true)
+    try {
+      await apiClient.post(`/teaching/courses/${slug}/enroll/`)
+      fetchCourse()
+    } catch {
+      // no-op
+    } finally {
+      setEnrolling(false)
+    }
+  }
+
+  if (loading) return <div className="py-24 text-center text-ink-muted text-sm">{isSw ? 'Inapakia...' : 'Loading...'}</div>
+  if (!course) return <div className="py-24 text-center text-ink-muted text-sm">{isSw ? 'Kozi haikupatikana.' : 'Course not found.'}</div>
+
+  return (
+    <>
+      <section className="bg-navy-deep bg-track-lines text-white text-center py-14 md:py-16 px-5">
+        <h1 className="font-serif font-bold text-2xl md:text-4xl max-w-2xl mx-auto">{course.title}</h1>
+        <p className="text-white/70 text-sm mt-3 max-w-xl mx-auto">{course.description}</p>
+      </section>
+
+      <section className="max-w-3xl mx-auto px-5 md:px-8 py-10">
+        {isAuthenticated ? (
+          course.is_enrolled ? (
+            <div className="bg-cream rounded-xl p-5 mb-8">
+              <div className="flex justify-between text-sm font-bold text-navy mb-2">
+                <span>{isSw ? 'Maendeleo Yako' : 'Your Progress'}</span>
+                <span>{course.progress_percent || 0}%</span>
+              </div>
+              <div className="h-2.5 bg-white rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gold transition-all"
+                  style={{ width: `${course.progress_percent || 0}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={handleEnroll}
+              disabled={enrolling}
+              className="mb-8 bg-gold hover:bg-gold-dark text-navy-deep font-extrabold text-sm px-7 py-3.5 rounded-md disabled:opacity-60"
+            >
+              {enrolling ? (isSw ? 'Inajiunga...' : 'Enrolling...') : isSw ? 'Jiunge na Kozi Hii →' : 'Enroll in This Course →'}
+            </button>
+          )
+        ) : (
+          <div className="mb-8 border border-dashed border-black/20 rounded-xl p-5 text-center">
+            <p className="text-sm text-ink-muted mb-3">
+              {isSw ? 'Ingia kuweza kujiunga na kozi hii.' : 'Sign in to enroll in this course.'}
+            </p>
+            <Link to="/login" className="text-sm font-bold text-navy border-b-2 border-gold">
+              {isSw ? 'Ingia →' : 'Sign In →'}
+            </Link>
+          </div>
+        )}
+
+        <h2 className="font-serif font-bold text-lg text-navy mb-4">
+          {isSw ? 'Vikao vya Kozi' : 'Course Sessions'}
+        </h2>
+        <div className="space-y-3">
+          {course.sessions?.map((session, i) => (
+            <Link
+              key={session.id}
+              to={`/teaching/sessions/${session.slug}`}
+              className="flex items-center gap-4 bg-white border border-black/10 rounded-xl p-4 hover:shadow-md transition-shadow"
+            >
+              <div className="w-9 h-9 rounded-full bg-navy text-gold flex items-center justify-center text-xs font-bold shrink-0">
+                {i + 1}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-sm text-navy truncate">{session.title}</h3>
+                <p className="text-xs text-ink-muted mt-0.5">
+                  {session.session_type === 'live' ? '🔴 Live' : '▶️ Recorded'}
+                  {session.instructor_name && ` · ${session.instructor_name}`}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+    </>
+  )
+}

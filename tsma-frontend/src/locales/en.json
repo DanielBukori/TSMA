@@ -1,0 +1,111 @@
+{
+  "nav": {
+    "tagline": "TANZANIA SPORTS MANAGEMENT ASSOCIATION",
+    "home": "Home",
+    "about": "About Us",
+    "board": "Board",
+    "publications": "Publications",
+    "teaching": "Courses and Training",
+    "conferences": "Conferences",
+    "members": "Membership",
+    "news": "News",
+    "gallery": "Gallery",
+    "contact": "Contact",
+    "registerNow": "Join Us",
+    "management": "Management",
+    "directory": "Directory",
+    "careers": "Careers"
+  },
+  "topbar": {
+    "notice": " Registration for the 2026 Conference is open — limited spots",
+    "event": "🏆 TSMA CONFERENCE 2026 — Dar es Salaam, 12–13 November",
+    "eventCta": "Register Now"
+  },
+  "hero": {
+    "badge": "NATIONAL FLAGSHIP CONFERENCE",
+    "titleLine1": "Tanzania Sports",
+    "titleLine2": "Management Association",
+    "lede": "We're building a productive, job-creating, sustainable sports economy — connecting professionals, members, sponsors and investors nationwide.",
+    "ctaPrimary": "Register for Conference",
+    "ctaSecondary": "Submit Abstract"
+  },
+  "stats": {
+    "members": "Members",
+    "regions": "Regions",
+    "award": "Research Award",
+    "nextConference": "Next Conference"
+  },
+  "quickLinks": {
+    "eyebrow": "START HERE",
+    "title": "Quick Links",
+    "about": {
+      "title": "About TSMA",
+      "desc": "Our history, vision and leadership."
+    },
+    "membership": {
+      "title": "Membership",
+      "desc": "Join one of our membership tiers."
+    },
+    "conferences": {
+      "title": "Conferences",
+      "desc": "Schedules and registration for upcoming events."
+    },
+    "publications": {
+      "title": "Publications",
+      "desc": "Academic research and publications."
+    }
+  },
+  "about": {
+    "eyebrow": "WHO WE ARE",
+    "title": "Leadership Rooted in Professionalism",
+    "p1": "The Tanzania Sports Management Association (TSMA) is the national body overseeing the development of sports management, education, and policy in Tanzania.",
+    "p2": "TSMA connects policymakers, investors, sports federations, academics and entrepreneurs to build a self-financing sports economy that creates jobs and drives development.",
+    "cta": "Read More About Us"
+  },
+  "infoBox": {
+    "bigLabel": "Tanzanian Regions Connected by TSMA",
+    "tile1": "Members",
+    "tile2": "Best Research Award",
+    "tile3": "Publication Categories",
+    "tile4": "Headquarters"
+  },
+  "news": {
+    "eyebrow": "LATEST UPDATES",
+    "title": "News & Events",
+    "viewAll": "View All News",
+    "readMore": "Read More"
+  },
+  "conference": {
+    "eyebrow": "UPCOMING EVENT",
+    "title": "TSMA Flagship Conference 2026",
+    "desc": "Join sports management professionals from across the country for this year's conference — registration, payment and QR verification at the venue entrance.",
+    "cta": "Register Now",
+    "date": "Date",
+    "location": "Location"
+  },
+  "testimonials": {
+    "eyebrow": "MEMBERS SPEAK",
+    "title": "What Our Partners Say"
+  },
+  "footer": {
+    "about": "TSMA connects sports management professionals to build Tanzania's sports economy.",
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "followUs": "Follow Us",
+    "rights": "All rights reserved.",
+    "contactLoading": "Loading contact details...",
+    "socialComingSoon": "Social media links coming soon."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong. Please try again.",
+    "login": "Login",
+    "logout": "Logout",
+    "dashboard": "My Dashboard"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "message": "Whoops — that one went out of bounds! The page you're looking for doesn't exist or has moved.",
+    "backHome": "⚽ Back to Home"
+  }
+}

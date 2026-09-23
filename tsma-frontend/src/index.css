@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Nunito Sans', system-ui, sans-serif;
+  color: #1B211D;
+  background: #FFFFFF;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Frank Ruhl Libre', Georgia, serif;
+}
+
+/* Lane-line divider motif (reused across sections) */
+.lane-divider {
+  width: 64px;
+  height: 4px;
+  background: theme('colors.terracotta.DEFAULT');
+  position: relative;
+}
+.lane-divider::after {
+  content: '';
+  position: absolute;
+  left: 76px;
+  top: 0;
+  width: 16px;
+  height: 4px;
+  background: theme('colors.gold.DEFAULT');
+}

@@ -1,0 +1,27 @@
+# ============================================================================
+# TSMA Backend — requirements-dev.txt
+# Zana za usalama za MAENDELEO pekee (siyo za production runtime).
+# Sakinisha: pip install -r requirements-dev.txt --break-system-packages
+# ============================================================================
+
+-r requirements.txt
+
+# ---- Dependency Vulnerability Scanning ----
+# Angalia kama packages zako (au updates) zina known CVEs. Endesha mara
+# kwa mara (au kwenye CI/CD): `pip-audit`
+pip-audit==2.7.3
+
+# ---- Static Application Security Testing (SAST) ----
+# Inachanganua CODE yenyewe (siyo dependencies) kutafuta patterns hatari
+# (mfano: SQL injection, hardcoded secrets, use ya eval/exec). Endesha:
+# `bandit -r . -x '*/migrations/*,*/tests/*'`
+bandit==1.7.9
+
+# ---- Testing ----
+pytest==8.3.3
+pytest-django==4.9.0
+factory-boy==3.3.1
+
+# ---- Code Quality ----
+flake8==7.1.1
+black==24.8.0
