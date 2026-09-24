@@ -214,6 +214,11 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["http://localho
 # ili maendeleo ya ndani (localhost, http) yasivunjike.
 # ---------------------------------------------------------------------------
 
+# Render (na hosts nyingi) ziko nyuma ya proxy: hii inaiambia Django kwamba
+# maombi yaliyofika kupitia https ni salama (inazuia link za http:// na
+# redirect loop).
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
@@ -254,6 +259,17 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Cloudinary (hifadhi ya picha za umma kwenye hosting isiyo na diski ya
+# kudumu kama Render free). Inawashwa tu kama CLOUDINARY_URL ipo; vinginevyo
+# media inaendelea kutumia folder la media/ kama kawaida.
+CLOUDINARY_URL = env("CLOUDINARY_URL", default="")
+if CLOUDINARY_URL:
+    INSTALLED_APPS.insert(
+        INSTALLED_APPS.index("django.contrib.staticfiles"), "cloudinary_storage"
+    )
+    INSTALLED_APPS.append("cloudinary")
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # MUHIMU (kama SETUP_PUBLICATIONS_PAID.md na SETUP_SECURITY_HARDENING.md
 # zilivyoeleza): MEDIA_ROOT ya kawaida (FileSystemStorage) ni SAHIHI kwa

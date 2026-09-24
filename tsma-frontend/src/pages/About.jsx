@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import PartnersStrip from '../components/PartnersStrip.jsx'
+import PageBanner from '../components/PageBanner.jsx'
+import PageBannerText from '../components/PageBannerText.jsx'
 
 /**
  * Maudhui haya ya FALLBACK yanatumika tu endapo backend haipatikani bado
@@ -67,16 +69,17 @@ export default function About() {
           kubwa la TSMA (mfano picha ya kundi la mkutano, au uwanja) —
           1920x800px, iwe na watu/hisia za taasisi. Sasa ni gradient
           placeholder. */}
-      <section className="relative bg-navy-deep bg-track-lines text-white py-20 md:py-28 text-center overflow-hidden">
-        <div className="relative z-10 max-w-2xl mx-auto px-5">
-          <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-6">
-            {isSw ? 'KUHUSU SISI' : 'ABOUT US'}
-          </span>
-          <h1 className="font-serif font-bold text-4xl md:text-5xl">
-            TSMA — {isSw ? 'Tunaowajibika Kwako' : 'Committed to You'}
-          </h1>
-        </div>
-      </section>
+      <PageBanner>
+        <PageBannerText
+          pageKey="about"
+          isSw={isSw}
+          titleClassName="font-serif font-bold text-4xl md:text-5xl"
+          fallback={{
+            badge_sw: 'KUHUSU SISI', badge_en: 'ABOUT US',
+            title_sw: 'TSMA — Tunaowajibika Kwako', title_en: 'TSMA — Committed to You',
+          }}
+        />
+      </PageBanner>
 
       {/* ============ VISION & MISSION ============ */}
       <section className="max-w-5xl mx-auto px-5 md:px-8 py-16 md:py-20 grid grid-cols-1 md:grid-cols-2 gap-8">

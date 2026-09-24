@@ -1,6 +1,14 @@
 from rest_framework import serializers
 
-from .models import AboutContent, CoreValue, Milestone, SiteBackgroundImage, SiteSettings
+from .models import (
+    AboutContent,
+    CoreValue,
+    HomeStat,
+    Milestone,
+    PageBannerContent,
+    SiteBackgroundImage,
+    SiteSettings,
+)
 
 
 class SiteBackgroundImageSerializer(serializers.ModelSerializer):
@@ -92,4 +100,43 @@ class AdminMilestoneSerializer(serializers.ModelSerializer):
             "id", "year", "title_sw", "title_en", "description_sw", "description_en",
             "display_order",
         )
+        read_only_fields = ("id",)
+
+
+class PageBannerContentSerializer(serializers.ModelSerializer):
+    """Public — maandishi ya banner ya ukurasa (badge/title/subtitle/CTA)."""
+
+    class Meta:
+        model = PageBannerContent
+        fields = (
+            "page_key", "badge_sw", "badge_en", "title_sw", "title_en",
+            "subtitle_sw", "subtitle_en", "cta_text_sw", "cta_text_en", "cta_url",
+        )
+
+
+class AdminPageBannerContentSerializer(serializers.ModelSerializer):
+    """Board/Super Admin — hariri maandishi ya banner ya ukurasa mahususi."""
+
+    class Meta:
+        model = PageBannerContent
+        fields = (
+            "page_key", "badge_sw", "badge_en", "title_sw", "title_en",
+            "subtitle_sw", "subtitle_en", "cta_text_sw", "cta_text_en", "cta_url",
+            "updated_at",
+        )
+        read_only_fields = ("page_key", "updated_at")
+
+
+class HomeStatSerializer(serializers.ModelSerializer):
+    """Public — takwimu za InfoBox kwenye Home."""
+
+    class Meta:
+        model = HomeStat
+        fields = ("id", "kind", "value", "label_sw", "label_en")
+
+
+class AdminHomeStatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HomeStat
+        fields = ("id", "kind", "value", "label_sw", "label_en", "display_order")
         read_only_fields = ("id",)

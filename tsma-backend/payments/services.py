@@ -61,7 +61,15 @@ def initiate_payment(
     txn.gateway_order_id = checkout_info.get("gateway_order_id")
     txn.gateway_response = checkout_info.get("raw_response")
     txn.status = PaymentStatus.PROCESSING
-    txn.save(update_fields=["gateway_order_id", "gateway_response", "status", "updated_at"])
+    update_fields = ["gateway_order_id", "gateway_response", "status", "updated_at"]
+
+    # `expires_at` — kwa sasa gateway 'manual' pekee inairudisha (deadline
+    # ya kuthibitisha malipo). Gateway zingine haziitumii, inabaki null.
+    if checkout_info.get("expires_at"):
+        txn.expires_at = checkout_info["expires_at"]
+        update_fields.append("expires_at")
+
+    txn.save(update_fields=update_fields)
 
     return txn, checkout_info
 

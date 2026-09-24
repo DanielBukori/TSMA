@@ -18,6 +18,7 @@ class PaymentTransactionSerializer(serializers.ModelSerializer):
             "gateway_order_id",
             "status",
             "phone_number",
+            "expires_at",
             "created_at",
             "paid_at",
         )

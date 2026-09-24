@@ -133,9 +133,18 @@ class JoinMembershipView(APIView):
                 "member": MemberSerializer(member).data,
                 "payment": {
                     "internal_reference": txn.internal_reference,
+                    "gateway": txn.gateway,
                     "instructions": checkout_info.get("instructions"),
                     "checkout_url": checkout_info.get("checkout_url"),
                     "ussd_push_sent": checkout_info.get("ussd_push_sent"),
+                    # `bank_details`/`expires_at` zinatolewa na gateway 'manual'
+                    # pekee (angalia payments/gateways/manual.py) — gateway
+                    # zingine zinaziacha null, frontend inatumia hilo kutambua
+                    # kuonyesha kadi ya taarifa za benki badala ya spinner ya
+                    # kawaida.
+                    "bank_details": checkout_info.get("bank_details"),
+                    "expires_at": checkout_info.get("expires_at"),
+                    "confirm_deadline_hours": checkout_info.get("confirm_deadline_hours"),
                 },
                 "detail": "Member imeundwa. Kamilisha malipo kuwezesha uanachama.",
             },

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
+import PageBanner from '../components/PageBanner.jsx'
+import PageBannerText from '../components/PageBannerText.jsx'
 
 const FALLBACK_POSTS = [
   {
@@ -70,14 +72,16 @@ export default function News() {
 
   return (
     <>
-      <section className="bg-navy-deep bg-track-lines text-white text-center py-14 md:py-16">
-        <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-5">
-          {isSw ? 'HABARI' : 'NEWS'}
-        </span>
-        <h1 className="font-serif font-bold text-3xl md:text-5xl">
-          {isSw ? 'Habari na Matukio' : 'News & Updates'}
-        </h1>
-      </section>
+      <PageBanner>
+        <PageBannerText
+          pageKey="news"
+          isSw={isSw}
+          fallback={{
+            badge_sw: 'HABARI', badge_en: 'NEWS',
+            title_sw: 'Habari na Matukio', title_en: 'News & Updates',
+          }}
+        />
+      </PageBanner>
 
       <section className="max-w-2xl mx-auto px-5 md:px-8 -mt-6 relative z-10">
         <div className="bg-white border border-black/10 rounded-xl shadow-lg p-4 flex flex-col sm:flex-row gap-3">

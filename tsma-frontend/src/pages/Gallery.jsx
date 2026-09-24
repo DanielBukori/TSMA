@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
+import PageBanner from '../components/PageBanner.jsx'
+import PageBannerText from '../components/PageBannerText.jsx'
 
 const FALLBACK_ALBUMS = [
   { id: 1, slug: 'tsma-conference-2025', title: 'TSMA National Symposium 2025', cover_image: null, event_year: 2025, image_count: 24 },
@@ -38,19 +40,18 @@ export default function Gallery() {
 
   return (
     <>
-      <section className="bg-navy-deep bg-track-lines text-white text-center py-16 md:py-20">
-        <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-6">
-          {isSw ? 'PICHA' : 'GALLERY'}
-        </span>
-        <h1 className="font-serif font-bold text-3xl md:text-5xl">
-          {isSw ? 'Kumbukumbu za Picha' : 'Photo Gallery'}
-        </h1>
-        <p className="text-white/75 max-w-lg mx-auto mt-4 px-5">
-          {isSw
-            ? 'Matukio, mikutano na shughuli za TSMA kwa miaka.'
-            : "TSMA's events, conferences, and activities over the years."}
-        </p>
-      </section>
+      <PageBanner>
+        <PageBannerText
+          pageKey="gallery"
+          isSw={isSw}
+          fallback={{
+            badge_sw: 'PICHA', badge_en: 'GALLERY',
+            title_sw: 'Kumbukumbu za Picha', title_en: 'Photo Gallery',
+            subtitle_sw: 'Matukio, mikutano na shughuli za TSMA kwa miaka.',
+            subtitle_en: "TSMA's events, conferences, and activities over the years.",
+          }}
+        />
+      </PageBanner>
 
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-12">
         {years.length > 1 && (

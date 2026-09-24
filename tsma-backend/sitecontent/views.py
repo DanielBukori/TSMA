@@ -6,7 +6,15 @@ from rest_framework.views import APIView
 
 from accounts.permissions import IsBoardAdmin
 
-from .models import AboutContent, CoreValue, Milestone, SiteBackgroundImage, SiteSettings
+from .models import (
+    AboutContent,
+    CoreValue,
+    HomeStat,
+    Milestone,
+    PageBannerContent,
+    SiteBackgroundImage,
+    SiteSettings,
+)
 from .serializers import SiteBackgroundImageSerializer
 
 
@@ -25,8 +33,12 @@ from .serializers import (
     AboutContentSerializer,
     AdminAboutContentSerializer,
     AdminCoreValueSerializer,
+    AdminHomeStatSerializer,
     AdminMilestoneSerializer,
+    AdminPageBannerContentSerializer,
     AdminSiteSettingsSerializer,
+    HomeStatSerializer,
+    PageBannerContentSerializer,
     SiteSettingsSerializer,
 )
 
@@ -102,3 +114,67 @@ class AdminMilestoneDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminMilestoneSerializer
     permission_classes = [IsBoardAdmin]
     queryset = Milestone.objects.all()
+
+
+class PageBannerContentListView(generics.ListAPIView):
+    """
+    GET /api/content/banners/ - maandishi ya banner ya KURASA ZOTE kwa
+    wakati mmoja (public). Frontend inaita hii MARA MOJA (kwenye
+    BannerContentContext) badala ya kuita kwa kila ukurasa mmoja mmoja.
+    """
+
+    serializer_class = PageBannerContentSerializer
+    permission_classes = [AllowAny]
+    queryset = PageBannerContent.objects.all()
+    pagination_class = None
+
+
+class AdminPageBannerContentListView(generics.ListAPIView):
+    """GET /api/content/admin/banners/ - Board/Super Admin: orodha ya kurasa zote."""
+
+    serializer_class = AdminPageBannerContentSerializer
+    permission_classes = [IsBoardAdmin]
+    queryset = PageBannerContent.objects.all()
+    pagination_class = None
+
+
+class AdminPageBannerContentDetailView(generics.RetrieveUpdateAPIView):
+    """
+    GET/PATCH /api/content/admin/banners/<page_key>/ - Board/Super Admin:
+    hariri banner ya ukurasa mmoja. Haiwezi kuongeza/kufuta ukurasa mpya
+    (orodha ya page_key ni fasta kwenye code ya frontend) - ikiwa rekodi
+    haipo bado kwa page_key husika, inatengenezwa papo hapo (get_or_create)
+    ili isilete 404 isiyo ya lazima.
+    """
+
+    serializer_class = AdminPageBannerContentSerializer
+    permission_classes = [IsBoardAdmin]
+    lookup_field = "page_key"
+
+    def get_object(self):
+        obj, _created = PageBannerContent.objects.get_or_create(
+            page_key=self.kwargs["page_key"],
+            defaults={"title_sw": "", "title_en": ""},
+        )
+        return obj
+
+
+class HomeStatsListView(generics.ListAPIView):
+    """GET /api/content/home-stats/ - takwimu za InfoBox (Home), public."""
+
+    serializer_class = HomeStatSerializer
+    permission_classes = [AllowAny]
+    queryset = HomeStat.objects.all()
+    pagination_class = None
+
+
+class AdminHomeStatListCreateView(generics.ListCreateAPIView):
+    serializer_class = AdminHomeStatSerializer
+    permission_classes = [IsBoardAdmin]
+    queryset = HomeStat.objects.all()
+
+
+class AdminHomeStatDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = AdminHomeStatSerializer
+    permission_classes = [IsBoardAdmin]
+    queryset = HomeStat.objects.all()

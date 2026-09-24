@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
+import PageBanner from '../components/PageBanner.jsx'
+import PageBannerText from '../components/PageBannerText.jsx'
 
 const FALLBACK_PUBLICATIONS = [
   { id: 1, slug: 'sports-economy-tz-2026', title: "The State of Tanzania's Sports Economy 2026", authors: 'Dkt. Amina Massawe', publication_year: 2026, category: { name: 'Uchumi wa Michezo' }, access_type: 'free', price: null, currency: 'TZS', cover_image: null },
@@ -59,25 +61,20 @@ export default function Publications() {
 
   return (
     <>
-      <section className="bg-navy-deep bg-track-lines text-white text-center py-16 md:py-20">
-        <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-6">
-          {isSw ? 'MAKTABA' : 'LIBRARY'}
-        </span>
-        <h1 className="font-serif font-bold text-3xl md:text-5xl">
-          {isSw ? 'Machapisho ya Kitaaluma' : 'Academic Publications'}
-        </h1>
-        <p className="text-white/75 max-w-lg mx-auto mt-4 px-5">
-          {isSw
-            ? 'Bure, za wanachama, au za kununua — tafiti na ripoti za sekta ya michezo.'
-            : 'Free, member-only, or purchasable — research and reports from the sports sector.'}
-        </p>
-        <Link
-          to="/publications/submit-abstract"
-          className="inline-block mt-7 bg-gold hover:bg-gold-dark text-navy-deep font-extrabold text-sm px-7 py-3.5 rounded-md transition-colors"
-        >
-          {isSw ? 'Wasilisha Utafiti →' : 'Submit Research →'}
-        </Link>
-      </section>
+      <PageBanner>
+        <PageBannerText
+          pageKey="publications"
+          isSw={isSw}
+          fallback={{
+            badge_sw: 'MAKTABA', badge_en: 'LIBRARY',
+            title_sw: 'Machapisho ya Kitaaluma', title_en: 'Academic Publications',
+            subtitle_sw: 'Bure, za wanachama, au za kununua — tafiti na ripoti za sekta ya michezo.',
+            subtitle_en: 'Free, member-only, or purchasable — research and reports from the sports sector.',
+            cta_text_sw: 'Wasilisha Utafiti →', cta_text_en: 'Submit Research →',
+            cta_url: '/publications/submit-abstract',
+          }}
+        />
+      </PageBanner>
 
       {/* ============ SEARCH & FILTERS ============ */}
       <section className="max-w-6xl mx-auto px-5 md:px-8 -mt-6 relative z-10">

@@ -98,6 +98,13 @@ class PaymentTransaction(models.Model):
     gateway_response = models.JSONField(blank=True, null=True)
     failure_reason = models.CharField(max_length=255, blank=True, null=True)
 
+    # Deadline ya kuthibitishwa — kwa sasa inatumika na gateway 'manual'
+    # pekee (mtumiaji analipa nje ya mfumo, kisha anatuma ujumbe kuthibitisha
+    # ndani ya muda huu). Gateway zingine (Selcom/AzamPay/PayPal) haziitumii,
+    # zinabaki null. Angalia ManualGateway.create_checkout() na
+    # `expire_stale_manual_payments` management command.
+    expires_at = models.DateTimeField(blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     paid_at = models.DateTimeField(blank=True, null=True)
@@ -154,6 +161,78 @@ class PaymentTransaction(models.Model):
             ]
         )
 
+    def mark_expired(self):
+        """
+        Kwa 'manual' gateway pekee - transaction imepita deadline yake
+        (expires_at) bila Admin kuithibitisha. SUCCESS bado ni hali ya
+        mwisho isiyoweza kubadilika (sawa na mark_failed) - kinga dhidi
+        ya race condition kati ya Admin kuthibitisha na cron ya expiry
+        ikiendesha wakati mmoja.
+        """
+        if self.status == PaymentStatus.SUCCESS:
+            return
+        self.status = PaymentStatus.EXPIRED
+        self.failure_reason = (
+            "Muda wa masaa uliopangwa ulipita bila uthibitisho wa malipo "
+            "(manual gateway)."
+        )
+        self.save(update_fields=["status", "failure_reason", "updated_at"])
+
     @staticmethod
     def generate_internal_reference(prefix="TSMA"):
         return f"{prefix}-{uuid.uuid4().hex[:12].upper()}"
+
+
+class ManualPaymentSettings(models.Model):
+    """
+    Taarifa za akaunti ya benki (au namba ya kupokelea malipo ya mkono) —
+    Admin anahariri hapa kupitia Django Admin, hazipaswi kuandikwa moja
+    kwa moja (hardcoded) ndani ya ManualGateway. Singleton (rekodi moja
+    tu) — angalia `load()`.
+    """
+
+    bank_name = models.CharField(_("Jina la Benki"), max_length=150)
+    account_name = models.CharField(_("Jina la Akaunti"), max_length=150)
+    account_number = models.CharField(_("Namba ya Akaunti"), max_length=50)
+    swift_code = models.CharField(_("SWIFT/BIC Code (hiari)"), max_length=20, blank=True)
+
+    confirm_phone = models.CharField(
+        _("Namba ya Kutuma Uthibitisho (WhatsApp/SMS)"), max_length=20,
+        help_text=_(
+            "Namba ambayo mwanachama atatuma ujumbe (screenshot/reference) "
+            "baada ya kulipa, kwa ajili ya uthibitisho."
+        ),
+    )
+    confirm_deadline_hours = models.PositiveIntegerField(
+        _("Muda wa Kuthibitisha (masaa)"), default=24,
+        help_text=_("Mwanachama anapaswa kutuma ujumbe wa uthibitisho ndani ya masaa haya."),
+    )
+
+    extra_instructions_sw = models.TextField(
+        _("Maelezo ya Ziada (Kiswahili) — hiari"), blank=True,
+    )
+    extra_instructions_en = models.TextField(
+        _("Maelezo ya Ziada (Kiingereza) — hiari"), blank=True,
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Taarifa za Malipo ya Mkono (Manual)")
+        verbose_name_plural = _("Taarifa za Malipo ya Mkono (Manual)")
+
+    def __str__(self):
+        return f"{self.bank_name} — {self.account_number}"
+
+    @classmethod
+    def load(cls):
+        obj, _created = cls.objects.get_or_create(
+            pk=1,
+            defaults={
+                "bank_name": "[Weka jina la benki - Django Admin]",
+                "account_name": "[Weka jina la akaunti - Django Admin]",
+                "account_number": "[Weka namba ya akaunti - Django Admin]",
+                "confirm_phone": "[Weka namba ya simu - Django Admin]",
+            },
+        )
+        return obj

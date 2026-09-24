@@ -95,3 +95,6 @@ whitenoise==6.7.0                       # kuhudumia static files kwa usalama bil
 # payment webhook failures) - inashughulikia "monitoring + alerts"
 # iliyotajwa kwenye Phase 2 ya audit.
 sentry-sdk==2.14.0
+
+cloudinary
+django-cloudinary-storage

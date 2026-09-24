@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import PageBanner from '../components/PageBanner.jsx'
+import PageBannerText from '../components/PageBannerText.jsx'
 
 export default function Directory() {
   const { t, i18n } = useTranslation()
@@ -31,17 +32,16 @@ export default function Directory() {
   return (
     <>
       <PageBanner>
-        <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-6">
-          {isSw ? 'MTANDAO WA WATAALAMU' : 'PROFESSIONALS NETWORK'}
-        </span>
-        <h1 className="font-serif font-bold text-3xl md:text-5xl">
-          {isSw ? 'Wataalamu wa TSMA' : 'TSMA Professionals'}
-        </h1>
-        <p className="text-white/75 max-w-lg mx-auto mt-4 px-5">
-          {isSw
-            ? 'Tafuta na uunganishwe na wataalamu wa usimamizi wa michezo Tanzania.'
-            : 'Find and connect with sports management professionals across Tanzania.'}
-        </p>
+        <PageBannerText
+          pageKey="directory"
+          isSw={isSw}
+          fallback={{
+            badge_sw: 'MTANDAO WA WATAALAMU', badge_en: 'PROFESSIONALS NETWORK',
+            title_sw: 'Wataalamu wa TSMA', title_en: 'TSMA Professionals',
+            subtitle_sw: 'Tafuta na uunganishwe na wataalamu wa usimamizi wa michezo Tanzania.',
+            subtitle_en: 'Find and connect with sports management professionals across Tanzania.',
+          }}
+        />
       </PageBanner>
 
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-14 md:py-20">

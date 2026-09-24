@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import BoardMemberCard from '../components/BoardMemberCard.jsx'
 import BoardProfileModal from '../components/BoardProfileModal.jsx'
+import PageBanner from '../components/PageBanner.jsx'
+import PageBannerText from '../components/PageBannerText.jsx'
 
 const FALLBACK_FOUNDERS = [
   { id: 1, full_name: 'Jina Litawekwa na Admin', position: 'Founder & Chairman', photo: null, is_founder: true },
@@ -45,19 +47,18 @@ export default function Founders() {
 
   return (
     <>
-      <section className="bg-navy-deep bg-track-lines text-white text-center py-16 md:py-20">
-        <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-6">
-          ★ {isSw ? 'WAANZILISHI' : 'FOUNDERS'}
-        </span>
-        <h1 className="font-serif font-bold text-3xl md:text-5xl">
-          {isSw ? 'Waanzilishi wa TSMA' : 'Founders of TSMA'}
-        </h1>
-        <p className="text-white/75 max-w-lg mx-auto mt-4 px-5">
-          {isSw
-            ? 'Watu waliobeba dira ya kuanzisha TSMA na kuiongoza hadi hapa ilipofika.'
-            : 'The people who carried the vision to found TSMA and led it to where it stands today.'}
-        </p>
-      </section>
+      <PageBanner>
+        <PageBannerText
+          pageKey="founders"
+          isSw={isSw}
+          fallback={{
+            badge_sw: '★ WAANZILISHI', badge_en: '★ FOUNDERS',
+            title_sw: 'Waanzilishi wa TSMA', title_en: 'Founders of TSMA',
+            subtitle_sw: 'Watu waliobeba dira ya kuanzisha TSMA na kuiongoza hadi hapa ilipofika.',
+            subtitle_en: 'The people who carried the vision to found TSMA and led it to where it stands today.',
+          }}
+        />
+      </PageBanner>
 
       <section className="max-w-4xl mx-auto px-5 md:px-8 py-14 md:py-20">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-5">

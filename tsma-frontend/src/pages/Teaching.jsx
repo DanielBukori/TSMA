@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
+import PageBanner from '../components/PageBanner.jsx'
+import PageBannerText from '../components/PageBannerText.jsx'
 
 const FALLBACK_COURSES = [
   { id: 1, slug: 'sports-marketing-101', title: 'Sports Marketing 101', description: 'Misingi ya masoko ya michezo.', cover_image: null, session_count: 6 },
@@ -42,19 +44,18 @@ export default function Teaching() {
 
   return (
     <>
-      <section className="bg-navy-deep bg-track-lines text-white text-center py-16 md:py-20">
-        <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-6">
-          {isSw ? 'KOZI NA MAFUNZO' : 'COURSES AND TRAINING'}
-        </span>
-        <h1 className="font-serif font-bold text-3xl md:text-5xl">
-          {isSw ? 'Jifunze na TSMA' : 'Learn with TSMA'}
-        </h1>
-        <p className="text-white/75 max-w-lg mx-auto mt-4 px-5">
-          {isSw
-            ? 'Kozi, vikao vya moja kwa moja, na video zilizorekodiwa kwa wataalamu wa usimamizi wa michezo.'
-            : 'Courses, live sessions, and recorded videos for sports management professionals.'}
-        </p>
-      </section>
+      <PageBanner>
+        <PageBannerText
+          pageKey="teaching"
+          isSw={isSw}
+          fallback={{
+            badge_sw: 'KOZI NA MAFUNZO', badge_en: 'COURSES AND TRAINING',
+            title_sw: 'Jifunze na TSMA', title_en: 'Learn with TSMA',
+            subtitle_sw: 'Kozi, vikao vya moja kwa moja, na video zilizorekodiwa kwa wataalamu wa usimamizi wa michezo.',
+            subtitle_en: 'Courses, live sessions, and recorded videos for sports management professionals.',
+          }}
+        />
+      </PageBanner>
 
       {courses.length > 0 && (
         <section className="max-w-5xl mx-auto px-5 md:px-8 py-14">

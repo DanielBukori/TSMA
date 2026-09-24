@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import GatewaySelect from '../components/GatewaySelect.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import PageBanner from '../components/PageBanner.jsx'
+import PageBannerText from '../components/PageBannerText.jsx'
 
 const FALLBACK_TIERS = [
   { id: 1, name: 'Guest', description: 'Ufikiaji wa kurasa za umma pekee.', annual_fee: '0', currency: 'TZS', requires_payment: false, benefits: [] },
@@ -47,19 +49,18 @@ export default function Members() {
 
   return (
     <>
-      <section className="bg-navy-deep bg-track-lines text-white text-center py-16 md:py-20">
-        <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-6">
-          {isSw ? 'UANACHAMA' : 'MEMBERSHIP'}
-        </span>
-        <h1 className="font-serif font-bold text-3xl md:text-5xl">
-          {isSw ? 'Jiunge na TSMA' : 'Join TSMA'}
-        </h1>
-        <p className="text-white/75 max-w-lg mx-auto mt-4 px-5">
-          {isSw
-            ? 'Chagua daraja linalokufaa — lipia moja kwa moja kupitia simu au kadi.'
-            : "Choose the tier that fits you — pay directly via mobile money or card."}
-        </p>
-      </section>
+      <PageBanner>
+        <PageBannerText
+          pageKey="members"
+          isSw={isSw}
+          fallback={{
+            badge_sw: 'UANACHAMA', badge_en: 'MEMBERSHIP',
+            title_sw: 'Jiunge na TSMA', title_en: 'Join TSMA',
+            subtitle_sw: 'Chagua daraja linalokufaa — lipia moja kwa moja kupitia simu au kadi.',
+            subtitle_en: 'Choose the tier that fits you — pay directly via mobile money or card.',
+          }}
+        />
+      </PageBanner>
 
       <section className="max-w-5xl mx-auto px-5 md:px-8 py-14 md:py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -122,6 +123,9 @@ function JoinForm({ tier, isSw, onClose }) {
   const [status, setStatus] = useState('idle') // idle | submitting | waiting | success | error
   const [message, setMessage] = useState('')
   const [reference, setReference] = useState(null)
+  const [bankDetails, setBankDetails] = useState(null)
+  const [expiresAt, setExpiresAt] = useState(null)
+  const [deadlineHours, setDeadlineHours] = useState(24)
   const pollRef = useRef(null)
 
   useEffect(() => {
@@ -145,6 +149,9 @@ function JoinForm({ tier, isSw, onClose }) {
       if (res.data.payment) {
         setReference(res.data.payment.internal_reference)
         setMessage(res.data.payment.instructions)
+        setBankDetails(res.data.payment.bank_details || null)
+        setExpiresAt(res.data.payment.expires_at || null)
+        setDeadlineHours(res.data.payment.confirm_deadline_hours || 24)
         setStatus('waiting')
         startPolling(res.data.payment.internal_reference)
       } else {
@@ -172,6 +179,14 @@ function JoinForm({ tier, isSw, onClose }) {
           clearInterval(pollRef.current)
           setStatus('error')
           setMessage(isSw ? 'Malipo yameshindikana.' : 'Payment failed.')
+        } else if (res.data.status === 'expired') {
+          clearInterval(pollRef.current)
+          setStatus('error')
+          setMessage(
+            isSw
+              ? 'Muda wa kuthibitisha malipo umeisha bila uthibitisho kufika. Wasiliana na TSMA au jaribu kujiunga tena.'
+              : 'The confirmation window closed without a confirmation reaching us. Contact TSMA or try joining again.',
+          )
         }
       } catch {
         // endelea kusubiri, jaribu tena kwenye interval ijayo
@@ -194,14 +209,24 @@ function JoinForm({ tier, isSw, onClose }) {
   return (
     <div className="mt-3 bg-white border border-black/10 rounded-xl p-6">
       {status === 'waiting' ? (
-        <div className="text-center">
-          <div className="w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-ink font-semibold">{message}</p>
-          <p className="text-xs text-ink-muted mt-2">
-            {isSw ? 'Reference: ' : 'Reference: '}
-            {reference}
-          </p>
-        </div>
+        bankDetails ? (
+          <ManualPaymentInstructions
+            isSw={isSw}
+            bankDetails={bankDetails}
+            reference={reference}
+            expiresAt={expiresAt}
+            deadlineHours={deadlineHours}
+          />
+        ) : (
+          <div className="text-center">
+            <div className="w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-sm text-ink font-semibold">{message}</p>
+            <p className="text-xs text-ink-muted mt-2">
+              {isSw ? 'Reference: ' : 'Reference: '}
+              {reference}
+            </p>
+          </div>
+        )
       ) : (
         <form onSubmit={handleSubmit} className="space-y-3.5">
           {tier.requires_payment !== false && Number(tier.annual_fee) > 0 && (
@@ -292,6 +317,76 @@ function JoinForm({ tier, isSw, onClose }) {
           </div>
         </form>
       )}
+    </div>
+  )
+}
+
+function ManualPaymentInstructions({ isSw, bankDetails, reference, expiresAt, deadlineHours }) {
+  const extra = isSw ? bankDetails.extra_instructions_sw : bankDetails.extra_instructions_en
+  const deadlineText = expiresAt
+    ? new Date(expiresAt).toLocaleString(isSw ? 'sw-TZ' : 'en-US', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      })
+    : null
+
+  return (
+    <div className="text-left">
+      <p className="text-sm font-bold text-ink mb-3">
+        {isSw
+          ? 'Kamilisha malipo kwa kutumia taarifa za akaunti hapa chini:'
+          : 'Complete your payment using the account details below:'}
+      </p>
+
+      <div className="bg-navy text-white rounded-lg p-5 space-y-2.5 text-sm">
+        <Row label={isSw ? 'Benki' : 'Bank'} value={bankDetails.bank_name} />
+        <Row label={isSw ? 'Jina la Akaunti' : 'Account Name'} value={bankDetails.account_name} />
+        <Row
+          label={isSw ? 'Namba ya Akaunti' : 'Account Number'}
+          value={bankDetails.account_number}
+          highlight
+        />
+        {bankDetails.swift_code && <Row label="SWIFT/BIC" value={bankDetails.swift_code} />}
+        <Row
+          label={isSw ? 'Reference (weka kwenye malipo)' : 'Reference (include with payment)'}
+          value={reference}
+          highlight
+        />
+      </div>
+
+      <div className="bg-gold/10 border border-gold/30 rounded-md px-4 py-3 mt-4">
+        <p className="text-sm text-ink font-semibold">
+          {isSw
+            ? `Baada ya kulipa, tuma ujumbe (WhatsApp/SMS) kwenye ${bankDetails.confirm_phone} ukiwa na REFERENCE hapo juu, ndani ya masaa ${deadlineHours}, ili tuthibitishe na kuwezesha uanachama wako.`
+            : `After paying, send a message (WhatsApp/SMS) to ${bankDetails.confirm_phone} with the REFERENCE above, within ${deadlineHours} hours, so we can confirm and activate your membership.`}
+        </p>
+      </div>
+
+      {extra && <p className="text-xs text-ink-muted mt-3">{extra}</p>}
+
+      {deadlineText && (
+        <p className="text-xs text-terracotta font-semibold mt-3">
+          {isSw ? 'Muda wa mwisho wa kuthibitisha: ' : 'Confirmation deadline: '}
+          {deadlineText}
+        </p>
+      )}
+
+      <p className="text-xs text-ink-muted mt-3">
+        {isSw
+          ? 'Tutaendelea kuangalia kiotomatiki — ukurasa huu utabadilika mara uanachama wako utakapowezeshwa.'
+          : "We'll keep checking automatically — this page will update once your membership is activated."}
+      </p>
+    </div>
+  )
+}
+
+function Row({ label, value, highlight }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-white/70 text-xs">{label}</span>
+      <span className={`font-bold text-right ${highlight ? 'text-gold text-base' : 'text-sm'}`}>
+        {value}
+      </span>
     </div>
   )
 }

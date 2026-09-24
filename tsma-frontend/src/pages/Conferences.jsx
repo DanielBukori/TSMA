@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
+import PageBanner from '../components/PageBanner.jsx'
+import PageBannerText from '../components/PageBannerText.jsx'
 
 const FALLBACK = {
   upcoming: [
@@ -65,14 +67,16 @@ export default function Conferences() {
 
   return (
     <>
-      <section className="bg-navy-deep bg-track-lines text-white text-center py-14 md:py-16">
-        <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-5">
-          {isSw ? 'MIKUTANO' : 'CONFERENCES'}
-        </span>
-        <h1 className="font-serif font-bold text-3xl md:text-5xl">
-          {isSw ? 'Mikutano ya TSMA' : 'TSMA Conferences'}
-        </h1>
-      </section>
+      <PageBanner>
+        <PageBannerText
+          pageKey="conferences"
+          isSw={isSw}
+          fallback={{
+            badge_sw: 'MIKUTANO', badge_en: 'CONFERENCES',
+            title_sw: 'Mikutano ya TSMA', title_en: 'TSMA Conferences',
+          }}
+        />
+      </PageBanner>
 
       {/* ============ FEATURED: mkutano wa mwaka huu, JUU SANA ============ */}
       {featured && (

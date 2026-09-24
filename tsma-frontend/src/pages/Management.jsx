@@ -4,6 +4,7 @@ import apiClient from '../api/client.js'
 import BoardMemberCard from '../components/BoardMemberCard.jsx'
 import BoardProfileModal from '../components/BoardProfileModal.jsx'
 import PageBanner from '../components/PageBanner.jsx'
+import PageBannerText from '../components/PageBannerText.jsx'
 
 /**
  * Fallback ya DEV pekee — inaonekana tu endapo backend haijaunganishwa.
@@ -60,17 +61,16 @@ export default function Management() {
   return (
     <>
       <PageBanner>
-        <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-6">
-          {isSw ? 'UONGOZI WA UTENDAJI' : 'EXECUTIVE MANAGEMENT'}
-        </span>
-        <h1 className="font-serif font-bold text-3xl md:text-5xl">
-          {isSw ? 'Management ya TSMA' : 'TSMA Management'}
-        </h1>
-        <p className="text-white/75 max-w-lg mx-auto mt-4 px-5">
-          {isSw
-            ? 'Timu inayoendesha shughuli za kila siku za TSMA. Bofya kadi kuona wasifu kamili.'
-            : "The team running TSMA's day-to-day operations. Tap a card to view their full profile."}
-        </p>
+        <PageBannerText
+          pageKey="management"
+          isSw={isSw}
+          fallback={{
+            badge_sw: 'UONGOZI WA UTENDAJI', badge_en: 'EXECUTIVE MANAGEMENT',
+            title_sw: 'Management ya TSMA', title_en: 'TSMA Management',
+            subtitle_sw: 'Timu inayoendesha shughuli za kila siku za TSMA. Bofya kadi kuona wasifu kamili.',
+            subtitle_en: "The team running TSMA's day-to-day operations. Tap a card to view their full profile.",
+          }}
+        />
       </PageBanner>
 
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-14 md:py-20">

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
+import PageBanner from '../components/PageBanner.jsx'
+import PageBannerText from '../components/PageBannerText.jsx'
 
 const FALLBACK_INFO = {
   organization_name: 'TSMA',
@@ -37,19 +39,18 @@ export default function Contact() {
 
   return (
     <>
-      <section className="bg-navy-deep bg-track-lines text-white text-center py-16 md:py-20">
-        <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-6">
-          {isSw ? 'MAWASILIANO' : 'CONTACT'}
-        </span>
-        <h1 className="font-serif font-bold text-3xl md:text-5xl">
-          {isSw ? 'Wasiliana Nasi' : 'Get In Touch'}
-        </h1>
-        <p className="text-white/75 max-w-lg mx-auto mt-4 px-5">
-          {isSw
-            ? 'Tuko tayari kukusaidia — piga simu, tuma ujumbe, au jaza fomu hapa chini.'
-            : "We're here to help — call, message, or fill the form below."}
-        </p>
-      </section>
+      <PageBanner>
+        <PageBannerText
+          pageKey="contact"
+          isSw={isSw}
+          fallback={{
+            badge_sw: 'MAWASILIANO', badge_en: 'CONTACT',
+            title_sw: 'Wasiliana Nasi', title_en: 'Get In Touch',
+            subtitle_sw: 'Tuko tayari kukusaidia — piga simu, tuma ujumbe, au jaza fomu hapa chini.',
+            subtitle_en: "We're here to help — call, message, or fill the form below.",
+          }}
+        />
+      </PageBanner>
 
       <section className="max-w-5xl mx-auto px-5 md:px-8 py-14 md:py-20 grid grid-cols-1 lg:grid-cols-5 gap-10">
         {/* ============ CONTACT INFO ============ */}

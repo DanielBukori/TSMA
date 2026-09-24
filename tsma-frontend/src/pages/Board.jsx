@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import BoardMemberCard from '../components/BoardMemberCard.jsx'
 import PageBanner from '../components/PageBanner.jsx'
+import PageBannerText from '../components/PageBannerText.jsx'
 import BoardProfileModal from '../components/BoardProfileModal.jsx'
 
 /**
@@ -62,17 +63,16 @@ export default function Board() {
   return (
     <>
       <PageBanner>
-        <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-6">
-          {isSw ? 'UONGOZI WETU' : 'OUR LEADERSHIP'}
-        </span>
-        <h1 className="font-serif font-bold text-3xl md:text-5xl">
-          {isSw ? 'Wanabodi wa TSMA' : 'TSMA Board Members'}
-        </h1>
-        <p className="text-white/75 max-w-lg mx-auto mt-4 px-5">
-          {isSw
-            ? 'Bofya kadi ya mjumbe kuona wasifu wake kamili.'
-            : "Tap a member's card to view their full profile."}
-        </p>
+        <PageBannerText
+          pageKey="board"
+          isSw={isSw}
+          fallback={{
+            badge_sw: 'UONGOZI WETU', badge_en: 'OUR LEADERSHIP',
+            title_sw: 'Wanabodi wa TSMA', title_en: 'TSMA Board Members',
+            subtitle_sw: 'Bofya kadi ya mjumbe kuona wasifu wake kamili.',
+            subtitle_en: "Tap a member's card to view their full profile.",
+          }}
+        />
       </PageBanner>
 
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-14 md:py-20">
