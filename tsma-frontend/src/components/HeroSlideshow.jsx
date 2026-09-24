@@ -92,9 +92,9 @@ export default function HeroSlideshow() {
 
         {/* Stat counters (count-up animation on scroll into view) */}
         <div className="mt-14 flex flex-wrap justify-center gap-8 md:gap-16">
-          <StatCounter value={1200} suffix="+" label={t('stats.members')} />
-          <StatCounter value={26} label={t('stats.regions')} />
-          <StatCounter value={5} prefix="TZS " suffix="M" label={t('stats.award')} />
+          <StatCounter value={50} suffix="+" label={t('stats.members')} />
+          <StatCounter value={18} label={t('stats.regions')} />
+          <StatCounter value={2} prefix="TZS " suffix="M" label={t('stats.award')} />
           <StatCounter value={2026} label={t('stats.nextConference')} noCount />
         </div>
       </div>
