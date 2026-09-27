@@ -98,3 +98,5 @@ sentry-sdk==2.14.0
 
 cloudinary
 django-cloudinary-storage
+django-cloudinary-storage==0.3.0
+cloudinary==1.41.0

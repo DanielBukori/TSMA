@@ -91,6 +91,16 @@ class PayPalWebhookView(APIView):
         return _handle_gateway_webhook(request, "paypal", "PayPal")
 
 
+class SnippeWebhookView(APIView):
+    """POST /api/payments/webhook/snippe/ — angalia payments/gateways/snippe.py."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        return _handle_gateway_webhook(request, "snippe", "Snippe")
+
+
 class MyTransactionsView(ListAPIView):
     """GET /api/payments/my-transactions/ - Historia ya malipo ya mtumiaji aliye-login."""
 

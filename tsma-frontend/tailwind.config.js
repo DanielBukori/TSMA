@@ -4,26 +4,39 @@ export default {
   theme: {
     extend: {
       colors: {
+        // RANGI KUU #1 — msingi (backgrounds za giza, navbar, maandishi mazito)
         navy: {
           DEFAULT: '#0E2A4A',
           deep: '#081B31',
           light: '#1C3E63',
         },
+        // RANGI KUU #2 — ACCENT PEKEE (vitufe, badges, highlights, stat
+        // numbers). Kijani cha TFF/bendera ya Tanzania — tofauti kabisa
+        // na navy+gold ya ASMA. "gold" na "green" (majina ya token
+        // yaliyokuwepo kwenye component nyingi tayari — Navbar,
+        // PageBanner, InfoBox, vitufe) zote mbili sasa zinaelekeza rangi
+        // HII HII moja — hivyo hazionekani kama rangi mbili tofauti
+        // popote kwenye tovuti, bila kuhitaji kugusa faili za component.
         gold: {
-          DEFAULT: '#D9922E',
-          light: '#F0B75E',
-          dark: '#B87620',
+          DEFAULT: '#1EA34D',
+          light: '#3DBF6E',
+          dark: '#157A3A',
         },
         green: {
-          DEFAULT: '#157A52',
-          light: '#1F9A6B',
-          dark: '#0F5E3F',
+          DEFAULT: '#1EA34D',
+          light: '#3DBF6E',
+          dark: '#157A3A',
         },
+        // "terracotta" pia ilikuwa ikitumika mahali pachache (mfano
+        // tagline ndogo ya Navbar) — kuiacha ingeleta rangi ya 4.
+        // Sasa inaelekeza navy-deep badala yake (bado ina utofauti wa
+        // giza dhidi ya background nyeupe, lakini si hue mpya).
         terracotta: {
-          DEFAULT: '#C1541F',
-          light: '#DA6E38',
-          dark: '#9C4218',
+          DEFAULT: '#081B31',
+          light: '#1C3E63',
+          dark: '#050F1B',
         },
+        // RANGI KUU #3 — neutral nyepesi (background za page, cards)
         cream: {
           DEFAULT: '#F3EFE4',
           dark: '#E6DDC9',
@@ -39,7 +52,7 @@ export default {
       },
       backgroundImage: {
         'track-lines':
-          'repeating-linear-gradient(115deg, rgba(217,146,46,0.06) 0px, rgba(217,146,46,0.06) 1px, transparent 1px, transparent 34px)',
+          'repeating-linear-gradient(115deg, rgba(30,163,77,0.07) 0px, rgba(30,163,77,0.07) 1px, transparent 1px, transparent 34px)',
       },
       animation: {
         'fade-in': 'fadeIn 1.2s ease forwards',

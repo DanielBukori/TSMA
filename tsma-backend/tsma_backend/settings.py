@@ -62,7 +62,8 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",  # MUHIMU: JWT blacklist (logout halisi, password-reset invalidation)
     "corsheaders",
     "axes",  # brute-force / credential-stuffing protection
-    # "storages",  # fungua hii mara utakapoweka AWS_* credentials za S3 (angalia chini)
+    "cloudinary_storage",  # LAZIMA iwe KABLA ya staticfiles (angalia Static/Media Files chini)
+    "cloudinary",
 
     # Local apps (TSMA)
     "accounts",
@@ -214,11 +215,6 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["http://localho
 # ili maendeleo ya ndani (localhost, http) yasivunjike.
 # ---------------------------------------------------------------------------
 
-# Render (na hosts nyingi) ziko nyuma ya proxy: hii inaiambia Django kwamba
-# maombi yaliyofika kupitia https ni salama (inazuia link za http:// na
-# redirect loop).
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
@@ -257,41 +253,39 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# MEDIA (picha/faili zilizopakiwa na Admin — board photos, gallery, news,
+# partners, publication covers/files, n.k.):
+#
+# Render (na huduma nyingi za "static site"/"web service" za bure) zina
+# disk ya "ephemeral" — faili zilizopakiwa kupitia Django Admin ZINAFUTIKA
+# kila deploy/restart mpya. Pia Django haihudumii /media/ yenyewe wakati
+# DEBUG=False isipokuwa umeweka usanidi wa ziada. Hii ndiyo sababu picha
+# zilizopakiwa zilikuwa hazionekani kabisa baada ya deploy.
+#
+# Suluhisho: Cloudinary (bure — 25GB/mwezi, hauitaji AWS). Ukiwa na
+# CLOUDINARY_URL (angalia .env), MEDIA yote (uploads mpya) inaenda
+# Cloudinary moja kwa moja — inabaki salama milele, haifutiki kamwe kwa
+# deploy. Static files (CSS/JS ya frontend build) HAZIGUSWI - zinabaki
+# WhiteNoise kama ilivyokuwa (hizo tayari zinafanya kazi sahihi).
+#
+# Bila CLOUDINARY_URL (mfano development ya ndani), inarudi kiotomatiki
+# kwenye FileSystemStorage ya kawaida (media/ folder ya ndani) — hakuna
+# kinachovunjika kwa maendeleo ya ndani.
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Cloudinary (hifadhi ya picha za umma kwenye hosting isiyo na diski ya
-# kudumu kama Render free). Inawashwa tu kama CLOUDINARY_URL ipo; vinginevyo
-# media inaendelea kutumia folder la media/ kama kawaida.
-CLOUDINARY_URL = env("CLOUDINARY_URL", default="")
-if CLOUDINARY_URL:
-    INSTALLED_APPS.insert(
-        INSTALLED_APPS.index("django.contrib.staticfiles"), "cloudinary_storage"
-    )
-    INSTALLED_APPS.append("cloudinary")
+if env("CLOUDINARY_URL", default=""):
     DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+    # CLOUDINARY_URL (mfumo: cloudinary://API_KEY:API_SECRET@CLOUD_NAME)
+    # inasomwa MOJA KWA MOJA na maktaba ya cloudinary kutoka environment
+    # variable - hauitaji kuiweka humu tena. Weka tu kwenye .env / Render
+    # Environment Variables.
 
-# MUHIMU (kama SETUP_PUBLICATIONS_PAID.md na SETUP_SECURITY_HARDENING.md
-# zilivyoeleza): MEDIA_ROOT ya kawaida (FileSystemStorage) ni SAHIHI kwa
-# picha za umma (board photos, news images, gallery). LAKINI kwa
-# Publication.file za PAID, storage hii SIYO salama kama nginx/web server
-# itahudumia /media/ moja kwa moja bila kupitia Django (PublicationDownloadView
-# haitasaidia kama mtu anaweza kuomba faili moja kwa moja kutoka /media/).
-#
-# Kabla ya kwenda live na paid publications nyingi/za thamani, fungua
-# "storages" kwenye INSTALLED_APPS hapo juu na ongeza:
-#
-#   DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"  # picha za umma
-#   AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-#   AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-#   AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-#   AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME", default="af-south-1")
-#   AWS_DEFAULT_ACL = "private"
-#   AWS_QUERYSTRING_EXPIRE = 300
-#
-# na uunde storage class maalum kwa Publication.file (S3Boto3Storage
-# yenye default_acl="private") ili nginx isiwahi kuhudumia faili hilo
-# moja kwa moja bila kupitia PublicationDownloadView.
+# Publication.file za PAID: Cloudinary inaunga mkono "authenticated"
+# delivery (signed URLs zenye muda wa kuisha) - njia ile ile ya S3 ile
+# iliyopendekezwa hapo awali, bila kuhitaji akaunti tofauti ya AWS. Ukifika
+# hatua ya paid publications nyingi za thamani, tuambie tuongeze storage
+# class maalum (access_mode="authenticated") kwa field hilo moja pekee.
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

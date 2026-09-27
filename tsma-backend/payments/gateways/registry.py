@@ -20,11 +20,13 @@ from .azampay import AzamPayGateway
 from .manual import ManualGateway
 from .paypal import PayPalGateway
 from .selcom import SelcomGateway
+from .snippe import SnippeGateway
 
 _REGISTRY = {
     Gateway.SELCOM: SelcomGateway,
     Gateway.AZAMPAY: AzamPayGateway,
     Gateway.PAYPAL: PayPalGateway,
+    Gateway.SNIPPE: SnippeGateway,
     Gateway.MANUAL: ManualGateway,
     # Gateway.CLICKPESA: ClickPesaGateway,    # ongeza hapa baadaye
     # Gateway.DPO_PESAPAL: DpoPesapalGateway, # ongeza hapa baadaye

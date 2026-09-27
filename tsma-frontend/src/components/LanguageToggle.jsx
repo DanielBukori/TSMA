@@ -36,14 +36,14 @@ export default function LanguageToggle({ variant = 'light' }) {
         onClick={() => setLang('sw')}
         className={`${btnBase} ${isSw ? activeClass : inactiveClass}`}
       >
-        KISWAHILI
+        KISW
       </button>
       <button
         type="button"
         onClick={() => setLang('en')}
         className={`${btnBase} ${!isSw ? activeClass : inactiveClass}`}
       >
-        ENGLISH
+        ENG
       </button>
     </div>
   )

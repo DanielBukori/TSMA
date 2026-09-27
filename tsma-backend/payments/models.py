@@ -23,6 +23,7 @@ class Gateway(models.TextChoices):
     CLICKPESA = "clickpesa", _("ClickPesa")
     DPO_PESAPAL = "dpo_pesapal", _("DPO/Pesapal")
     FLUTTERWAVE = "flutterwave", _("Flutterwave")
+    SNIPPE = "snippe", _("Snippe")
     MANUAL = "manual", _("Malipo ya Mkono (Manual/Bank Deposit)")
 
 
