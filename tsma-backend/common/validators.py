@@ -22,9 +22,18 @@ class MaxFileSizeValidator:
 
     def __call__(self, file):
         limit_bytes = self.max_mb * 1024 * 1024
-        if file.size > limit_bytes:
+        try:
+            size = file.size
+        except (AttributeError, OSError, ValueError):
+            # Storage ya mbali (mfano Cloudinary) wakati mwingine
+            # inashindwa kurudisha .size — usikatae faili kwa sababu
+            # ya hitilafu ya kusoma metadata pekee.
+            return
+        if size is None:
+            return
+        if size > limit_bytes:
             raise ValidationError(
-                f"File exceeded the limit ({file.size / (1024*1024):.1f}MB). "
+                f"File exceeded the limit ({size / (1024*1024):.1f}MB). "
                 f"The maximum size {self.max_mb}MB."
             )
 
@@ -57,9 +66,15 @@ class FileTypeValidator:
         self.allowed_types = allowed_types
 
     def __call__(self, file):
-        file.seek(0)
-        header = file.read(16)
-        file.seek(0)
+        try:
+            file.seek(0)
+            header = file.read(16)
+            file.seek(0)
+        except (AttributeError, OSError, ValueError):
+            # Faili iliyopo tayari kwenye storage ya mbali (Cloudinary)
+            # wakati mwingine haiwezi kusomwa upya wakati wa full_clean()
+            # kama haijabadilishwa — usikatae faili kwa sababu hiyo.
+            return
 
         for type_name in self.allowed_types:
             signatures = _MAGIC_SIGNATURES.get(type_name, [])
