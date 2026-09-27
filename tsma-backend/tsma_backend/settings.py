@@ -252,6 +252,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+WHITENOISE_MANIFEST_STRICT = False  # kwa sababu Cloudinary inatumia URLs za dynamic (manifest.json haiwezi kujua zote)
 
 # MEDIA (picha/faili zilizopakiwa na Admin — board photos, gallery, news,
 # partners, publication covers/files, n.k.):
