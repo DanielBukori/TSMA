@@ -88,10 +88,13 @@ export default function Navbar() {
       >
         <Link to="/" className="flex items-center gap-2.5 shrink-0" onClick={() => setOpen(false)}>
           {logoUrl ? (
+            // rounded-lg (SI rounded-full) — logo halisi ya TSMA ina
+            // umbo la "shield" lenye maandishi ndani yake; duara
+            // lilikuwa linakata sehemu za logo na kuifanya isisomeke.
             <img
               src={logoUrl}
               alt="TSMA"
-              className="w-10 h-10 rounded-full object-contain shrink-0"
+              className="h-10 w-auto max-w-[44px] rounded-lg object-contain shrink-0"
             />
           ) : (
             // Fallback mpaka TSMA ipate logo rasmi — angalia SiteSettingsContext
@@ -99,9 +102,14 @@ export default function Navbar() {
               T
             </div>
           )}
-          <div className="leading-tight hidden sm:block">
+          {/* Jina "TSMA" sasa linaonekana KILA MAHALI (simu na desktop) —
+              ilikuwa "hidden sm:block" ikificha kwenye simu, ndiyo
+              malalamiko. */}
+          <div className="leading-tight">
             <div className="font-serif font-bold text-base text-navy">TSMA</div>
-            <div className="font-sans font-bold text-[9px] text-terracotta tracking-wider">
+            {/* Tagline ndogo inabaki hidden kwenye simu (nafasi finyu) -
+                jina "TSMA" lenyewe ndilo muhimu zaidi, linaonekana daima. */}
+            <div className="font-sans font-bold text-[9px] text-terracotta tracking-wider hidden sm:block">
               {t('nav.tagline')}
             </div>
           </div>
@@ -125,7 +133,7 @@ export default function Navbar() {
               onClick={() => setMoreOpen((v) => !v)}
               className="text-sm font-semibold text-ink hover:text-navy transition-colors whitespace-nowrap"
             >
-              {t('more')} ▾
+              {t('nav.more')} ▾
             </button>
             {moreOpen && (
               <>
