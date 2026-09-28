@@ -40,7 +40,10 @@ export default function HeroSlideshow() {
           // Hakuna picha bado (Admin hajapakia) - fallback ya rangi, haivunjiki
           <div className="absolute inset-0 bg-track-lines" />
         )}
-        <div className="absolute inset-0 bg-navy-deep/40" />
+        {/* Kivuli cha brown (kahawa) juu ya picha - chepesi juu (picha inabaki
+            angavu), kizito chini ambapo maneno na vitufe viko. Ni matibabu ya
+            picha tu, si rangi ya nne ya brand. */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#3B2314]/35 via-[#3B2314]/50 to-[#2A180C]/80" />
       </div>
 
       {/* Slide indicator dots */}
@@ -61,17 +64,21 @@ export default function HeroSlideshow() {
 
       {/* Content layer */}
       <div className="relative z-10 max-w-6xl mx-auto px-5 md:px-8 pt-14 md:pt-20 pb-16 text-center">
-        <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-6 animate-fade-in">
+        <span className="inline-block bg-gold-dark text-white text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-6 animate-fade-in shadow-md">
           {t('hero.badge')}
         </span>
 
-        <h1 className="font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight animate-slide-up">
+        <h1 className="font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight text-white animate-slide-up [text-shadow:0_2px_14px_rgba(0,0,0,0.5)]">
           {t('hero.titleLine1')}
           <br />
-          <span className="text-gold">{t('hero.titleLine2')}</span>
+          <span className="text-white">{t('hero.titleLine2')}</span>
         </h1>
 
-        <p className="mt-6 text-white/80 text-base md:text-lg max-w-xl mx-auto animate-slide-up [animation-delay:150ms] opacity-0 [animation-fill-mode:forwards]">
+        {/* Mstari mfupi wa kijani chini ya headline (kijani kwenye kitu
+            chenye rangi imara, si kama rangi ya maneno juu ya picha) */}
+        <div className="mx-auto mt-5 h-1 w-20 rounded-full bg-gold" />
+
+        <p className="mt-6 text-white/95 text-base md:text-lg max-w-xl mx-auto [text-shadow:0_1px_8px_rgba(0,0,0,0.55)] animate-slide-up [animation-delay:150ms] opacity-0 [animation-fill-mode:forwards]">
           {t('hero.lede')}
         </p>
 
@@ -84,18 +91,18 @@ export default function HeroSlideshow() {
           </a>
           <a
             href="#publications"
-            className="border border-terracotta hover:bg-terracotta/20 text-white font-extrabold text-sm px-8 py-4 rounded-md transition-colors"
+            className="border border-white/70 hover:bg-white/10 text-white font-extrabold text-sm px-8 py-4 rounded-md transition-colors"
           >
             {t('hero.ctaSecondary')}
           </a>
         </div>
 
         {/* Stat counters (count-up animation on scroll into view) */}
-        <div className="mt-14 flex flex-wrap justify-center gap-8 md:gap-16">
-          <StatCounter value={50} suffix="+" label={t('stats.members')} />
-          <StatCounter value={18} label={t('stats.regions')} />
-          <StatCounter value={2} prefix="TZS " suffix="M" label={t('stats.award')} />
-          <StatCounter value={2026} label={t('stats.nextConference')} noCount />
+        <div className="mt-14 inline-flex flex-wrap justify-center gap-8 md:gap-16 bg-black/25 backdrop-blur-sm rounded-2xl px-6 md:px-10 py-6">
+          <StatCounter numberClass="text-white" value={50} suffix="+" label={t('stats.members')} />
+          <StatCounter numberClass="text-white" value={18} label={t('stats.regions')} />
+          <StatCounter numberClass="text-white" value={2} prefix="TZS " suffix="M" label={t('stats.award')} />
+          <StatCounter numberClass="text-white" value={2026} label={t('stats.nextConference')} noCount />
         </div>
       </div>
 

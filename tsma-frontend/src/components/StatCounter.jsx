@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
  * skrini (IntersectionObserver) — kama roadmap ilivyoainisha: "takwimu za
  * haraka zenye animation ya namba kuongezeka."
  */
-export default function StatCounter({ value, label, prefix = '', suffix = '', noCount = false, duration = 1600 }) {
+export default function StatCounter({ value, label, prefix = '', suffix = '', noCount = false, duration = 1600, numberClass = 'text-gold' }) {
   const [display, setDisplay] = useState(noCount ? value : 0)
   const ref = useRef(null)
   const hasAnimated = useRef(false)
@@ -45,7 +45,7 @@ export default function StatCounter({ value, label, prefix = '', suffix = '', no
 
   return (
     <div ref={ref} className="text-center">
-      <div className="font-serif font-black text-3xl md:text-4xl text-gold">
+      <div className={`font-serif font-black text-3xl md:text-4xl ${numberClass}`}>
         {prefix}
         {display.toLocaleString()}
         {suffix}
