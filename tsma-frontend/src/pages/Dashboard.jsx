@@ -389,6 +389,8 @@ function ProfessionalProfileSection({ isSw }) {
       })
       setProfile(res.data)
       setForm(res.data)
+      // Navbar inasikiliza tukio hili ili kusasisha avatar mara moja
+      window.dispatchEvent(new CustomEvent('tsma:profile-updated', { detail: res.data }))
       setPhotoFile(null)
       setCvFile(null)
       setSaved(true)

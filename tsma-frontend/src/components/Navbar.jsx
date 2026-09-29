@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import LanguageToggle from './LanguageToggle.jsx'
+import UserAvatar, { useProfilePhoto } from './UserAvatar.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useSiteSettings } from '../context/SiteSettingsContext.jsx'
 
@@ -26,6 +27,7 @@ export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth()
   const { logoUrl } = useSiteSettings()
   const navigate = useNavigate()
+  const photo = useProfilePhoto(user)
 
   const links = [
     { to: '/about', label: t('nav.about') },
@@ -165,8 +167,9 @@ export default function Navbar() {
             <div className="flex items-center gap-3">
               <Link
                 to="/dashboard"
-                className="text-sm font-bold text-navy hover:text-terracotta transition-colors whitespace-nowrap"
+                className="flex items-center gap-2 text-sm font-bold text-navy hover:text-terracotta transition-colors whitespace-nowrap"
               >
+                <UserAvatar src={photo} name={user?.full_name} size={30} />
                 {user?.full_name?.split(' ')[0] || 'Dashibodi'}
               </Link>
               <button
@@ -251,9 +254,10 @@ export default function Navbar() {
             <Link
               to="/dashboard"
               onClick={() => setOpen(false)}
-              className="block text-[15px] font-bold text-navy py-3.5 border-b border-black/5"
+              className="flex items-center gap-3 text-[15px] font-bold text-navy py-3.5 border-b border-black/5"
             >
-              👤 {user?.full_name || (t('common.dashboard', 'Dashibodi Yangu'))}
+              <UserAvatar src={photo} name={user?.full_name} size={32} />
+              {user?.full_name || (t('common.dashboard', 'Dashibodi Yangu'))}
             </Link>
           )}
           {links.map((link) => (
