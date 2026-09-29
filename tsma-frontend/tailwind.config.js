@@ -9,24 +9,32 @@ export default {
           deep: '#081B31',
           light: '#1C3E63',
         },
-        // Kijani kimeng'arishwa kidogo (kutoka #1EA34D) - kinabaki
-        // "kijani cha TFF/bendera" lakini sasa kina mwanga zaidi kwa
-        // ajili ya maandishi juu ya picha za hero (Home) ambazo
-        // wakati mwingine ni nyepesi/zenye rangi nyingi.
+        // ACCENT KUU imerudi kuwa DHAHABU (kama mteja alivyoomba) — LAKINI
+        // si ile hex ya awali (#D9922E, amber ya kawaida) iliyofanana na
+        // ASMA. Hii ni "antique gold" — mwelekeo zaidi wa njano-bronze,
+        // si machungwa-amber — bado inasomeka kama "gold" lakini si
+        // nakala ya moja kwa moja. Kila kitu kinachotumia bg-gold/
+        // text-gold (vitufe, badges, Navbar, InfoBox) kinapata hii
+        // kiotomatiki, faili hili moja tu.
         gold: {
-          DEFAULT: '#24B056',
-          light: '#4FCB79',
-          dark: '#1B8A42',
+          DEFAULT: '#C9A227',
+          light: '#DFC15C',
+          dark: '#9C7D1C',
         },
+        // Kijani kimerudi kuwa rangi yake halisi (halitegemei gold tena) -
+        // kwa matumizi machache, ya makusudi: stripe ya rangi za bendera
+        // kwenye Footer, na sehemu nyinginezo za "michezo ya taifa".
         green: {
-          DEFAULT: '#24B056',
-          light: '#4FCB79',
-          dark: '#1B8A42',
+          DEFAULT: '#1EA34D',
+          light: '#3DBF6E',
+          dark: '#157A3A',
         },
+        // Terracotta pia imerudi kuwa rangi yake halisi (haielekezi navy
+        // tena) - inatumika kidogo (tagline ya Navbar, n.k.)
         terracotta: {
-          DEFAULT: '#081B31',
-          light: '#1C3E63',
-          dark: '#050F1B',
+          DEFAULT: '#C1541F',
+          light: '#DA6E38',
+          dark: '#9C4218',
         },
         cream: {
           DEFAULT: '#F3EFE4',
@@ -43,7 +51,7 @@ export default {
       },
       backgroundImage: {
         'track-lines':
-          'repeating-linear-gradient(115deg, rgba(36,176,86,0.07) 0px, rgba(36,176,86,0.07) 1px, transparent 1px, transparent 34px)',
+          'repeating-linear-gradient(115deg, rgba(201,162,39,0.07) 0px, rgba(201,162,39,0.07) 1px, transparent 1px, transparent 34px)',
       },
       animation: {
         'fade-in': 'fadeIn 1.2s ease forwards',

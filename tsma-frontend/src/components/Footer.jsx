@@ -5,10 +5,12 @@ import { fetchContactInfo } from '../api/contact.js'
 import SocialIcon from './SocialIcon.jsx'
 import { useSiteSettings } from '../context/SiteSettingsContext.jsx'
 
-// Mitandao ya kijamii — HUONEKANA DAIMA kwenye Footer, hata kabla ya
-// Admin kujaza URL kwenye Django Admin (angalia PLACEHOLDER_HREF chini).
-// Ukishaijaza backend (ContactInfo), kiungo halisi kinachukua nafasi ya
-// "#" moja kwa moja — hakuna mabadiliko mengine ya code yanayohitajika.
+// Mitandao ya kijamii — icons HUONEKANA DAIMA kwenye Footer, hata kabla
+// ya Admin kujaza URL kwenye Django Admin. Kabla ya kujazwa, icons hizi
+// ni za kuangalia tu (si "clickable" — angalia FooterLink chini) ili
+// zisionekane kama viungo vilivyovunjika. Ukishajaza ContactInfo
+// backend, zinakuwa clickable moja kwa moja — hakuna mabadiliko
+// mengine ya code yanayohitajika.
 const SOCIAL_LINKS = [
   { key: 'facebook_url', icon: 'facebook', label: 'Facebook' },
   { key: 'instagram_url', icon: 'instagram', label: 'Instagram' },
@@ -18,7 +20,26 @@ const SOCIAL_LINKS = [
   { key: 'youtube_url', icon: 'youtube', label: 'YouTube' },
 ]
 
-const PLACEHOLDER_HREF = '#'
+// Kiungo hiki kinaonekana DAIMA (icon + maandishi), lakini kinakuwa
+// "clickable" TU pale href halisi ikiwepo (kutoka ContactInfo). Bila
+// hiyo, ni <span> ya kawaida — haionekani kama kiungo kilichovunjika
+// kinachoenda popote pasipo maana.
+function FooterLink({ href, external, className, children }) {
+  if (!href) {
+    // Opacity kidogo chini — ishara ya kuona kwamba hii bado haijawekewa
+    // kiungo halisi na Admin, badala ya kuonekana kama kiungo cha kawaida.
+    return <span className={`${className} opacity-50 cursor-default`}>{children}</span>
+  }
+  return (
+    <a
+      href={href}
+      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      className={className}
+    >
+      {children}
+    </a>
+  )
+}
 
 export default function Footer() {
   const { t } = useTranslation()
@@ -36,6 +57,18 @@ export default function Footer() {
 
   return (
     <footer className="bg-navy-deep text-white/80">
+      <svg
+        className="block h-6 w-full"
+        viewBox="0 0 100 24"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path fill="#1EB53A" d="M0 0h100L0 24z" />
+        <path fill="#00A3DD" d="M0 24h100V0z" />
+        <path fill="#FCD116" d="M0 17.5 100 0v6.5L0 24z" />
+        <path fill="#000000" d="M0 19.5 100 1.5v3L0 22.5z" />
+      </svg>
+
       <div className="max-w-6xl mx-auto px-5 md:px-8 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
         <div>
           {logoOnDarkUrl ? (
@@ -63,22 +96,22 @@ export default function Footer() {
               placeholder mara ContactInfo itakapojazwa kwenye Admin. */}
           <ul className="space-y-3 text-sm">
             <li>
-              <a href={info?.phone_call_link || PLACEHOLDER_HREF} className="flex items-center gap-2.5 hover:text-gold transition-colors">
+              <FooterLink href={info?.phone_call_link} className="flex items-center gap-2.5 hover:text-gold transition-colors">
                 <SocialIcon name="phone" className="w-4 h-4 shrink-0" />
                 <span>{info?.phone_number || '+255 7XX XXX XXX'}</span>
-              </a>
+              </FooterLink>
             </li>
             <li>
-              <a href={info?.whatsapp_link || PLACEHOLDER_HREF} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 hover:text-gold transition-colors">
+              <FooterLink href={info?.whatsapp_link} external className="flex items-center gap-2.5 hover:text-gold transition-colors">
                 <SocialIcon name="whatsapp" className="w-4 h-4 shrink-0" />
                 <span>WhatsApp</span>
-              </a>
+              </FooterLink>
             </li>
             <li>
-              <a href={info?.email_mailto_link || PLACEHOLDER_HREF} className="flex items-center gap-2.5 hover:text-gold transition-colors">
+              <FooterLink href={info?.email_mailto_link} className="flex items-center gap-2.5 hover:text-gold transition-colors">
                 <SocialIcon name="mail" className="w-4 h-4 shrink-0" />
                 <span>{info?.email || 'info@tsma.or.tz'}</span>
-              </a>
+              </FooterLink>
             </li>
           </ul>
         </div>
@@ -86,18 +119,15 @@ export default function Footer() {
         <div>
           <h4 className="text-white font-bold text-sm mb-4">{t('footer.followUs')}</h4>
           <div className="flex flex-wrap gap-3">
-            {SOCIAL_LINKS.map((s) => (
-              <a
-                key={s.key}
-                href={info?.[s.key] || PLACEHOLDER_HREF}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={s.label}
-                title={s.label}
+            {SOCIAL_LINKS.map((item) => (
+              <FooterLink
+                key={item.key}
+                href={info?.[item.key]}
+                external
                 className="w-9 h-9 rounded-full bg-white/10 hover:bg-gold text-white hover:text-navy-deep flex items-center justify-center transition-colors"
               >
-                <SocialIcon name={s.icon} className="w-4.5 h-4.5" />
-              </a>
+                <SocialIcon name={item.icon} className="w-4.5 h-4.5" />
+              </FooterLink>
             ))}
           </div>
         </div>

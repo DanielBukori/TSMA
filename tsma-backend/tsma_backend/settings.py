@@ -1,16 +1,25 @@
 """
-TSMA Backend — settings.py HALISI (siyo maelekezo tu).
+TSMA Backend — settings.py (Django 5.2 LTS).
 
-Hii inaunganisha KILA KITU tulichojenga: apps 11 (accounts, members,
-payments, board, news, gallery, contact, publications, conferences,
-teaching, sitecontent) + security hardening yote iliyoainishwa kwenye
-SETUP_SECURITY_HARDENING.md (Argon2, django-axes, django-csp, JWT
-blacklist, django-storages, Sentry).
+Apps: accounts, members, payments, board, management_team, news, gallery,
+contact, publications, partners, careers, conferences, teaching,
+sitecontent, security.
 
-MUHIMU: Faili hii inasoma SECRETS zote kutoka environment variables
-(.env) — HAKUNA secret yoyote iliyowekwa hapa moja kwa moja. Nakili
-`.env.example` kuwa `.env` na jaza thamani zako HALISI kabla ya
-kuendesha `python manage.py runserver` au deployment yoyote.
+Security hardening: Argon2, django-axes, django-csp (4.x), JWT blacklist,
+Cloudinary (media), WhiteNoise (static), Sentry.
+
+MUHIMU: SECRETS zote zinasomwa kutoka environment variables (.env).
+HAKUNA secret iliyowekwa hapa moja kwa moja.
+
+MABADILIKO MAKUU (vs toleo la Django 4.2):
+- DATABASES: CONN_MAX_AGE + CONN_HEALTH_CHECKS (kasi: hakuna kufungua
+  muunganiko wa Neon kila ombi).
+- STORAGES badala ya DEFAULT_FILE_STORAGE / STATICFILES_STORAGE
+  (zimeondolewa Django 5.1).
+- django-csp 4.x: CONTENT_SECURITY_POLICY badala ya CSP_* settings.
+- SECURE_PROXY_SSL_HEADER kwa Render (nyuma ya proxy).
+- CACHES iliyo wazi (inatumika na BlockedIPMiddleware cache).
+- CORS_PREFLIGHT_MAX_AGE wazi.
 """
 
 from datetime import timedelta
@@ -23,9 +32,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     DJANGO_DEBUG=(bool, False),
 )
-# Soma .env kama ipo (production halisi mara nyingi inatumia environment
-# variables za mfumo moja kwa moja badala ya faili la .env — zote mbili
-# zinafanya kazi hapa).
+# Soma .env kama ipo (production mara nyingi hutumia environment
+# variables za mfumo moja kwa moja — zote mbili zinafanya kazi).
 env_file = BASE_DIR / ".env"
 if env_file.exists():
     environ.Env.read_env(str(env_file))
@@ -38,8 +46,8 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DJANGO_DEBUG")
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
-# Domain kamili ya frontend — inatumika kwenye emails (verification links,
-# password reset), QR verification URLs (kadi, vyeti, risiti).
+# Domain kamili ya frontend — emails (verification, password reset),
+# QR verification URLs (kadi, vyeti, risiti).
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
 
 AUTH_USER_MODEL = "accounts.User"
@@ -59,10 +67,10 @@ INSTALLED_APPS = [
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt",
-    "rest_framework_simplejwt.token_blacklist",  # MUHIMU: JWT blacklist (logout halisi, password-reset invalidation)
+    "rest_framework_simplejwt.token_blacklist",  # JWT blacklist (logout halisi)
     "corsheaders",
     "axes",  # brute-force / credential-stuffing protection
-    "cloudinary_storage",  # LAZIMA iwe KABLA ya staticfiles (angalia Static/Media Files chini)
+    "cloudinary_storage",  # LAZIMA iwe KABLA ya staticfiles
     "cloudinary",
 
     # Local apps (TSMA)
@@ -80,12 +88,12 @@ INSTALLED_APPS = [
     "conferences",
     "teaching",
     "sitecontent",
-    "security",  # Self-healing security monitoring + dashboard (login/2FA yake tofauti)
+    "security",  # Self-healing security monitoring + dashboard
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # inahudumia CSS/JS (static files) - LAZIMA iwe hapa
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # static files - LAZIMA hapa
     "csp.middleware.CSPMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -94,7 +102,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "security.middleware.BlockedIPMiddleware",  # kataa maombi kutoka IP zilizozuiwa MAPEMA kabisa
+    "security.middleware.BlockedIPMiddleware",  # kataa IP zilizozuiwa
     "axes.middleware.AxesMiddleware",  # LAZIMA iwe karibu na mwisho
 ]
 
@@ -119,7 +127,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "tsma_backend.wsgi.application"
 
 # ---------------------------------------------------------------------------
-# Database
+# Database (Neon Postgres)
 # ---------------------------------------------------------------------------
 
 DATABASES = {
@@ -129,8 +137,31 @@ DATABASES = {
     )
 }
 
+# Weka muunganiko wazi kwa sekunde 600 badala ya kufunga/kufungua kila
+# ombi (chanzo kikuu cha sekunde 1-2 kwa kila request).
+DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=600)
+# Hakikisha muunganiko bado hai kabla ya kuutumia tena (Neon husimamisha
+# compute ikiwa idle).
+DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
+
+# Weka DB_POOLER=True kwenye .env KAMA TU DATABASE_URL yako inatumia host
+# ya Neon yenye "-pooler" (PgBouncer, transaction mode).
+if env.bool("DB_POOLER", default=False):
+    DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
+
 # ---------------------------------------------------------------------------
-# Authentication — Argon2 (imara zaidi ya PBKDF2 ya default) + django-axes
+# Cache (inatumika na BlockedIPMiddleware, throttling)
+# ---------------------------------------------------------------------------
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "tsma-default",
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Authentication — Argon2 + django-axes
 # ---------------------------------------------------------------------------
 
 AUTHENTICATION_BACKENDS = [
@@ -140,7 +171,7 @@ AUTHENTICATION_BACKENDS = [
 
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
-    "django.contrib.auth.hashers.PBKDF2PasswordHasher",  # fallback kwa hashes za zamani
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",  # fallback ya hashes za zamani
 ]
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -150,10 +181,10 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# Email verification enforcement (hiari — angalia CustomTokenObtainPairSerializer)
+# Email verification enforcement (hiari)
 REQUIRE_EMAIL_VERIFICATION = env.bool("REQUIRE_EMAIL_VERIFICATION", default=False)
 
-# django-axes: funga (lockout) baada ya majaribio 5 yasiyofanikiwa
+# django-axes: lockout baada ya majaribio 5 yasiyofanikiwa
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1  # saa 1
 AXES_LOCKOUT_PARAMETERS = ["ip_address", "username"]
@@ -180,8 +211,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "30/minute",
         "user": "120/minute",
-        # Scoped throttle maalum kwa endpoints nyeti (angalia
-        # throttle_scope kwenye views husika):
+        # Scoped throttle kwa endpoints nyeti (throttle_scope kwenye views):
         "contact_form": "5/hour",
         "password_reset": "5/hour",
     },
@@ -207,13 +237,18 @@ CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS", default=["http://localhost:5173"]
 )
 CORS_ALLOW_CREDENTIALS = True
+# Sekunde 7200 = kikomo cha juu ambacho Chrome inakubali kuhifadhi preflight.
+CORS_PREFLIGHT_MAX_AGE = 7200
 
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["http://localhost:5173"])
 
 # ---------------------------------------------------------------------------
-# Security Headers (production) — vinawashwa moja kwa moja DEBUG=False tu,
-# ili maendeleo ya ndani (localhost, http) yasivunjike.
+# Security Headers (production) — DEBUG=False tu
 # ---------------------------------------------------------------------------
+
+# Render (na hosts nyingi) ziko nyuma ya proxy ya HTTPS. Bila mstari huu,
+# SECURE_SSL_REDIRECT inaweza kusababisha redirect zisizoisha / ombi la ziada.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
@@ -224,17 +259,22 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
 SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_HTTPONLY = False  # CSRF token lazima isomeke na JS kwa baadhi ya flows; DRF+JWT haitumii CSRF kwa API calls za JWT
+CSRF_COOKIE_HTTPONLY = False  # DRF+JWT haitumii CSRF kwa API calls za JWT
 
-# django-csp — Content-Security-Policy
-CSP_DEFAULT_SRC = ("'self'",)
-CSP_IMG_SRC = ("'self'", "data:", "https:")
-CSP_SCRIPT_SRC = ("'self'",)
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
-CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
-CSP_CONNECT_SRC = ("'self'",) + tuple(CORS_ALLOWED_ORIGINS)
+# django-csp 4.x — Content-Security-Policy
+CONTENT_SECURITY_POLICY = {
+    "DIRECTIVES": {
+        "default-src": ["'self'"],
+        "img-src": ["'self'", "data:", "https:"],
+        "script-src": ["'self'"],
+        "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        "font-src": ["'self'", "https://fonts.gstatic.com"],
+        "connect-src": ["'self'", *CORS_ALLOWED_ORIGINS],
+    }
+}
 
 # ---------------------------------------------------------------------------
 # Internationalization
@@ -246,47 +286,38 @@ USE_I18N = True
 USE_TZ = True
 
 # ---------------------------------------------------------------------------
-# Static / Media Files
+# Static / Media Files (STORAGES — Django 4.2+, LAZIMA kwa 5.1+)
 # ---------------------------------------------------------------------------
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-WHITENOISE_MANIFEST_STRICT = False  # kwa sababu Cloudinary inatumia URLs za dynamic (manifest.json haiwezi kujua zote)
+WHITENOISE_MANIFEST_STRICT = False  # Cloudinary URLs ni dynamic
 
-# MEDIA (picha/faili zilizopakiwa na Admin — board photos, gallery, news,
-# partners, publication covers/files, n.k.):
-#
-# Render (na huduma nyingi za "static site"/"web service" za bure) zina
-# disk ya "ephemeral" — faili zilizopakiwa kupitia Django Admin ZINAFUTIKA
-# kila deploy/restart mpya. Pia Django haihudumii /media/ yenyewe wakati
-# DEBUG=False isipokuwa umeweka usanidi wa ziada. Hii ndiyo sababu picha
-# zilizopakiwa zilikuwa hazionekani kabisa baada ya deploy.
-#
-# Suluhisho: Cloudinary (bure — 25GB/mwezi, hauitaji AWS). Ukiwa na
-# CLOUDINARY_URL (angalia .env), MEDIA yote (uploads mpya) inaenda
-# Cloudinary moja kwa moja — inabaki salama milele, haifutiki kamwe kwa
-# deploy. Static files (CSS/JS ya frontend build) HAZIGUSWI - zinabaki
-# WhiteNoise kama ilivyokuwa (hizo tayari zinafanya kazi sahihi).
-#
-# Bila CLOUDINARY_URL (mfano development ya ndani), inarudi kiotomatiki
-# kwenye FileSystemStorage ya kawaida (media/ folder ya ndani) — hakuna
-# kinachovunjika kwa maendeleo ya ndani.
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-if env("CLOUDINARY_URL", default=""):
-    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-    # CLOUDINARY_URL (mfumo: cloudinary://API_KEY:API_SECRET@CLOUD_NAME)
-    # inasomwa MOJA KWA MOJA na maktaba ya cloudinary kutoka environment
-    # variable - hauitaji kuiweka humu tena. Weka tu kwenye .env / Render
-    # Environment Variables.
+# MEDIA (uploads za Admin: board photos, gallery, news, partners,
+# publications...). Render ina disk ya ephemeral, kwa hiyo Cloudinary
+# inatumika ikiwa CLOUDINARY_URL ipo (cloudinary://KEY:SECRET@CLOUD_NAME,
+# inasomwa moja kwa moja na maktaba kutoka environment). Bila hiyo
+# (development ya ndani), inarudi kwenye FileSystemStorage.
+_MEDIA_BACKEND = (
+    "cloudinary_storage.storage.MediaCloudinaryStorage"
+    if env("CLOUDINARY_URL", default="")
+    else "django.core.files.storage.FileSystemStorage"
+)
+
+STORAGES = {
+    "default": {"BACKEND": _MEDIA_BACKEND},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Publication.file za PAID: Cloudinary inaunga mkono "authenticated"
-# delivery (signed URLs zenye muda wa kuisha) - njia ile ile ya S3 ile
-# iliyopendekezwa hapo awali, bila kuhitaji akaunti tofauti ya AWS. Ukifika
-# hatua ya paid publications nyingi za thamani, tuambie tuongeze storage
-# class maalum (access_mode="authenticated") kwa field hilo moja pekee.
+# delivery (signed URLs zenye muda wa kuisha) — ongeza storage class
+# maalum (access_mode="authenticated") kwa field hilo pekee ukifika hatua
+# hiyo.
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -329,8 +360,7 @@ AZAMPAY_CHECKOUT_URL = env("AZAMPAY_CHECKOUT_URL", default="https://sandbox.azam
 AZAMPAY_APP_NAME = env("AZAMPAY_APP_NAME", default="")
 AZAMPAY_CLIENT_ID = env("AZAMPAY_CLIENT_ID", default="")
 AZAMPAY_CLIENT_SECRET = env("AZAMPAY_CLIENT_SECRET", default="")
-# Hiari - jaza tu kama AzamPay watakupa status-check endpoint wakati wa
-# onboarding (angalia maelezo kwenye payments/gateways/azampay.py).
+# Hiari - jaza kama AzamPay watakupa status-check endpoint.
 AZAMPAY_STATUS_URL = env("AZAMPAY_STATUS_URL", default="")
 
 # ---------------------------------------------------------------------------
@@ -338,8 +368,8 @@ AZAMPAY_STATUS_URL = env("AZAMPAY_STATUS_URL", default="")
 # ---------------------------------------------------------------------------
 
 PAYPAL_BASE_URL = env("PAYPAL_BASE_URL", default="https://api-m.sandbox.paypal.com")
-# PRODUCTION: badilisha PAYPAL_BASE_URL kwenye .env kuwa
-# https://api-m.paypal.com ukishathibitisha kila kitu kwenye sandbox.
+# PRODUCTION: badilisha PAYPAL_BASE_URL kuwa https://api-m.paypal.com
+# ukishathibitisha kila kitu kwenye sandbox.
 PAYPAL_CLIENT_ID = env("PAYPAL_CLIENT_ID", default="")
 PAYPAL_CLIENT_SECRET = env("PAYPAL_CLIENT_SECRET", default="")
 PAYPAL_WEBHOOK_ID = env("PAYPAL_WEBHOOK_ID", default="")
@@ -357,7 +387,7 @@ ZOOM_CLIENT_ID = env("ZOOM_CLIENT_ID", default="")
 ZOOM_CLIENT_SECRET = env("ZOOM_CLIENT_SECRET", default="")
 
 # ---------------------------------------------------------------------------
-# Sentry (Error Monitoring) — hiari, inawashwa tu kama SENTRY_DSN ipo
+# Sentry (Error Monitoring) — inawashwa tu kama SENTRY_DSN ipo
 # ---------------------------------------------------------------------------
 
 SENTRY_DSN = env("SENTRY_DSN", default="")
@@ -378,12 +408,10 @@ if SENTRY_DSN:
 # ---------------------------------------------------------------------------
 
 # Key TOFAUTI kabisa na SECRET_KEY kuu — inasaini tokens za security
-# dashboard pekee. WEKA thamani YAKE MWENYEWE (random, ndefu) kwenye .env —
-# USIACHE ikitegemea fallback ya SECRET_KEY kwa production halisi.
+# dashboard pekee. WEKA thamani YAKE MWENYEWE (random, ndefu) kwenye .env.
 SECURITY_ADMIN_SECRET_KEY = env("SECURITY_ADMIN_SECRET_KEY", default="")
 
-# Channels za arifa (email inafanya kazi bila usanidi wa ziada; sms/whatsapp
-# ni hiari — angalia security/notifiers/sms_whatsapp.py).
+# Channels za arifa (email inafanya kazi bila usanidi wa ziada).
 SECURITY_NOTIFICATION_CHANNELS = env.list("SECURITY_NOTIFICATION_CHANNELS", default=["email"])
 SECURITY_ALERT_RECIPIENTS = env.list("SECURITY_ALERT_RECIPIENTS", default=[])
 
@@ -391,7 +419,7 @@ AFRICASTALKING_USERNAME = env("AFRICASTALKING_USERNAME", default="")
 AFRICASTALKING_API_KEY = env("AFRICASTALKING_API_KEY", default="")
 
 # ---------------------------------------------------------------------------
-# Logging — muhimu kwa kuona payment/payout failures (angalia audit #2)
+# Logging — muhimu kwa kuona payment/payout failures
 # ---------------------------------------------------------------------------
 
 LOGGING = {
@@ -409,8 +437,6 @@ LOGGING = {
     "root": {"handlers": ["console"], "level": "INFO"},
     "loggers": {
         "django": {"handlers": ["console"], "level": "INFO", "propagate": False},
-        # Logger maalum kwa payments/payouts — hizi ndizo unahitaji kuona
-        # kwenye monitoring/alerts (Sentry itazikamata pia moja kwa moja).
         "payments": {"handlers": ["console"], "level": "INFO", "propagate": False},
         "publications": {"handlers": ["console"], "level": "INFO", "propagate": False},
     },
