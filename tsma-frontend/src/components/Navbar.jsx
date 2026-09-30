@@ -135,7 +135,7 @@ export default function Navbar() {
               onClick={() => setMoreOpen((v) => !v)}
               className="text-sm font-semibold text-ink hover:text-navy transition-colors whitespace-nowrap"
             >
-              {t('more')} ▾
+              {t('nav.more')} ▾
             </button>
             {moreOpen && (
               <>
