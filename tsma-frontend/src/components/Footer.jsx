@@ -124,9 +124,9 @@ export default function Footer() {
                 key={item.key}
                 href={info?.[item.key]}
                 external
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-gold text-white hover:text-navy-deep flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-gold text-white hover:text-navy-deep flex items-center justify-center transition-colors"
               >
-                <SocialIcon name={item.icon} className="w-4.5 h-4.5" />
+                <SocialIcon name={item.icon} className="w-3.5 h-3.5" />
               </FooterLink>
             ))}
           </div>
