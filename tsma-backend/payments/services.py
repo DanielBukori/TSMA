@@ -2,7 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction as db_transaction
 
 from .gateways.base import GatewayError
-from .gateways.registry import get_gateway
+from .gateways.registry import get_gateway, is_gateway_enabled
 from .models import PaymentStatus, PaymentTransaction
 from .signals import payment_failed, payment_succeeded
 
@@ -29,6 +29,14 @@ def initiate_payment(
 
     Inarudisha tuple: (transaction, checkout_info_dict)
     """
+    # USALAMA: gateway isiyoruhusiwa (settings.ENABLED_PAYMENT_GATEWAYS)
+    # inakataliwa HAPA, kabla ya kutengeneza transaction yoyote — hata
+    # mtu akipiga API moja kwa moja (bila kupitia frontend).
+    if not is_gateway_enabled(gateway_code):
+        raise GatewayError(
+            "Njia hii ya malipo haipatikani kwa sasa. Tafadhali tumia Malipo ya Mkono (Manual)."
+        )
+
     txn = PaymentTransaction.objects.create(
         user=user,
         purpose=purpose,
@@ -72,6 +80,25 @@ def initiate_payment(
     txn.save(update_fields=update_fields)
 
     return txn, checkout_info
+
+
+def build_payment_response(txn, checkout_info):
+    """
+    Muundo MMOJA wa `payment` unaorudishwa kwa frontend na views zote
+    (members, conferences, publications). `bank_details` / `expires_at` /
+    `confirm_deadline_hours` zinajazwa na gateway 'manual' pekee — frontend
+    ikiziona, inaonyesha kadi ya taarifa za benki + WhatsApp.
+    """
+    return {
+        "internal_reference": txn.internal_reference,
+        "gateway": txn.gateway,
+        "instructions": checkout_info.get("instructions"),
+        "checkout_url": checkout_info.get("checkout_url"),
+        "ussd_push_sent": checkout_info.get("ussd_push_sent"),
+        "bank_details": checkout_info.get("bank_details"),
+        "expires_at": checkout_info.get("expires_at"),
+        "confirm_deadline_hours": checkout_info.get("confirm_deadline_hours"),
+    }
 
 
 def verify_and_sync(transaction):

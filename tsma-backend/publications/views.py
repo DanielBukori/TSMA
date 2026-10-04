@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 from accounts.permissions import IsBoardAdmin, IsContentEditor
 from payments.gateways.base import GatewayError
+from payments.services import build_payment_response
 
 from .models import (
     AbstractSubmission,
@@ -182,7 +183,7 @@ class PublicationPurchaseInitiateView(APIView):
             purchase, txn, checkout_info = initiate_publication_purchase(
                 user=request.user,
                 publication=publication,
-                phone_number=data["phone_number"],
+                phone_number=data.get("phone_number", ""),
                 gateway=data["gateway"],
                 payment_method=data["payment_method"],
             )
@@ -195,12 +196,7 @@ class PublicationPurchaseInitiateView(APIView):
         return Response(
             {
                 "purchase": PublicationPurchaseSerializer(purchase).data,
-                "payment": {
-                    "internal_reference": txn.internal_reference,
-                    "instructions": checkout_info.get("instructions"),
-                    "checkout_url": checkout_info.get("checkout_url"),
-                    "ussd_push_sent": checkout_info.get("ussd_push_sent"),
-                },
+                "payment": build_payment_response(txn, checkout_info),
             },
             status=status.HTTP_201_CREATED,
         )

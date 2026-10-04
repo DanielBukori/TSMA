@@ -46,6 +46,18 @@ export default function GatewaySelect({ value, onChange, isSw }) {
     )
   }
 
+  // Gateway MOJA tu (mfano Manual pekee) — hakuna cha kuchagua, onyesha jina tu.
+  if (gateways.length === 1) {
+    return (
+      <div className="bg-cream border border-black/10 rounded-md px-4 py-2.5">
+        <span className="text-xs font-bold text-ink-muted">
+          {isSw ? 'Njia ya Malipo: ' : 'Payment method: '}
+        </span>
+        <span className="text-sm font-bold text-navy">{gateways[0].label}</span>
+      </div>
+    )
+  }
+
   return (
     <div>
       <label className="block text-xs font-bold text-ink mb-1.5">

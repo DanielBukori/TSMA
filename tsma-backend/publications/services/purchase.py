@@ -4,7 +4,7 @@ from payments.services import initiate_payment
 from ..models import Publication, PublicationAccessType, PublicationPurchase
 
 
-def initiate_publication_purchase(*, user, publication, phone_number, gateway="selcom", payment_method="mobile_money"):
+def initiate_publication_purchase(*, user, publication, phone_number="", gateway="manual", payment_method="mobile_money"):
     """
     Anzisha ununuzi wa chapisho la PAID. Inatengeneza PublicationPurchase
     (pending) + PaymentTransaction, kisha inaanzisha checkout na gateway.

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import GatewaySelect from '../components/GatewaySelect.jsx'
+import ManualPaymentCard from '../components/ManualPaymentCard.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function ConferenceDetail() {
@@ -215,7 +216,20 @@ function TicketPicker({ tickets, selectedId, onSelect, isSw }) {
   )
 }
 
-function PaymentStatusBlock({ status, message, reference, isSw }) {
+function PaymentStatusBlock({ status, message, reference, isSw, manual }) {
+  if (status === 'waiting' && manual?.bank_details) {
+    return (
+      <div className="border border-black/10 rounded-xl p-6 bg-white">
+        <ManualPaymentCard
+          isSw={isSw}
+          bankDetails={manual.bank_details}
+          reference={reference}
+          expiresAt={manual.expires_at}
+          deadlineHours={manual.confirm_deadline_hours || 24}
+        />
+      </div>
+    )
+  }
   if (status === 'waiting') {
     return (
       <div className="text-center border border-black/10 rounded-xl p-6 bg-cream">
@@ -247,12 +261,14 @@ function usePaymentPolling() {
   const [status, setStatus] = useState('idle')
   const [message, setMessage] = useState('')
   const [reference, setReference] = useState(null)
+  const [manual, setManual] = useState(null)
   const pollRef = useRef(null)
 
   useEffect(() => () => clearInterval(pollRef.current), [])
 
-  function startPolling(ref, isSw) {
+  function startPolling(ref, isSw, payment) {
     setReference(ref)
+    setManual(payment?.bank_details ? payment : null)
     pollRef.current = setInterval(async () => {
       try {
         const res = await apiClient.get(`/payments/status/${ref}/`)
@@ -264,6 +280,14 @@ function usePaymentPolling() {
           clearInterval(pollRef.current)
           setStatus('error')
           setMessage(isSw ? 'Malipo yameshindikana.' : 'Payment failed.')
+        } else if (res.data.status === 'expired') {
+          clearInterval(pollRef.current)
+          setStatus('error')
+          setMessage(
+            isSw
+              ? 'Muda wa kuthibitisha malipo umeisha bila uthibitisho kufika. Wasiliana na TSMA (WhatsApp) kama tayari ulilipa.'
+              : 'The confirmation window closed without a confirmation reaching us. Contact TSMA (WhatsApp) if you already paid.',
+          )
         }
       } catch {
         // endelea kusubiri
@@ -271,7 +295,7 @@ function usePaymentPolling() {
     }, 5000)
   }
 
-  return { status, setStatus, message, setMessage, reference, startPolling }
+  return { status, setStatus, message, setMessage, reference, manual, startPolling }
 }
 
 function SelfRegistrationForm({ conference, isSw }) {
@@ -279,7 +303,7 @@ function SelfRegistrationForm({ conference, isSw }) {
   const [phone, setPhone] = useState('')
   const [gateway, setGateway] = useState(null)
   const [method, setMethod] = useState('mobile_money')
-  const { status, setStatus, message, setMessage, reference, startPolling } = usePaymentPolling()
+  const { status, setStatus, message, setMessage, reference, manual, startPolling } = usePaymentPolling()
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -290,12 +314,12 @@ function SelfRegistrationForm({ conference, isSw }) {
         ticket_type_id: ticketId,
         phone_number: phone,
         gateway: gateway?.code,
-        payment_method: method,
+        payment_method: gateway?.code === 'manual' ? 'bank_transfer' : method,
       })
       if (res.data.payment) {
         setMessage(res.data.payment.instructions)
         setStatus('waiting')
-        startPolling(res.data.payment.internal_reference, isSw)
+        startPolling(res.data.payment.internal_reference, isSw, res.data.payment)
       } else {
         setStatus('success')
         setMessage(isSw ? 'Umesajiliwa kwa mafanikio!' : 'Registered successfully!')
@@ -307,7 +331,7 @@ function SelfRegistrationForm({ conference, isSw }) {
   }
 
   if (status === 'waiting' || status === 'success' || status === 'error') {
-    return <PaymentStatusBlock status={status} message={message} reference={reference} isSw={isSw} />
+    return <PaymentStatusBlock status={status} message={message} reference={reference} isSw={isSw} manual={manual} />
   }
 
   return (
@@ -333,7 +357,7 @@ function SelfRegistrationForm({ conference, isSw }) {
               />
             </div>
           )}
-          <div className="grid grid-cols-2 gap-2">
+          <div className={`grid grid-cols-2 gap-2 ${gateway?.code === 'manual' ? 'hidden' : ''}`}>
             <button type="button" onClick={() => setMethod('mobile_money')} className={`text-sm font-bold py-2.5 rounded-md border ${method === 'mobile_money' ? 'bg-navy text-white border-navy' : 'border-black/15'}`}>
               📱 {isSw ? 'M-Pesa/Simu' : 'Mobile Money'}
             </button>
@@ -356,7 +380,7 @@ function BulkRegistrationForm({ conference, isSw }) {
   const [gateway, setGateway] = useState(null)
   const [method, setMethod] = useState('mobile_money')
   const [attendees, setAttendees] = useState([{ full_name: '', email: '', ticket_type_id: null }])
-  const { status, setStatus, message, setMessage, reference, startPolling } = usePaymentPolling()
+  const { status, setStatus, message, setMessage, reference, manual, startPolling } = usePaymentPolling()
 
   function updateAttendee(index, field, value) {
     setAttendees((prev) => prev.map((a, i) => (i === index ? { ...a, [field]: value } : a)))
@@ -376,13 +400,13 @@ function BulkRegistrationForm({ conference, isSw }) {
         organization_name: orgName,
         phone_number: phone,
         gateway: gateway?.code,
-        payment_method: method,
+        payment_method: gateway?.code === 'manual' ? 'bank_transfer' : method,
         attendees,
       })
       if (res.data.payment) {
         setMessage(res.data.payment.instructions)
         setStatus('waiting')
-        startPolling(res.data.payment.internal_reference, isSw)
+        startPolling(res.data.payment.internal_reference, isSw, res.data.payment)
       } else {
         setStatus('success')
         setMessage(isSw ? 'Washiriki wamesajiliwa!' : 'Attendees registered!')
@@ -394,7 +418,7 @@ function BulkRegistrationForm({ conference, isSw }) {
   }
 
   if (status === 'waiting' || status === 'success' || status === 'error') {
-    return <PaymentStatusBlock status={status} message={message} reference={reference} isSw={isSw} />
+    return <PaymentStatusBlock status={status} message={message} reference={reference} isSw={isSw} manual={manual} />
   }
 
   return (
@@ -480,7 +504,7 @@ function BulkRegistrationForm({ conference, isSw }) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className={`grid grid-cols-2 gap-2 ${gateway?.code === 'manual' ? 'hidden' : ''}`}>
         <button type="button" onClick={() => setMethod('mobile_money')} className={`text-sm font-bold py-2.5 rounded-md border ${method === 'mobile_money' ? 'bg-navy text-white border-navy' : 'border-black/15'}`}>
           📱 {isSw ? 'M-Pesa/Simu' : 'Mobile Money'}
         </button>

@@ -60,7 +60,14 @@ class PaymentTransactionAdmin(admin.ModelAdmin):
                 continue
             if txn.status == PaymentStatus.SUCCESS:
                 continue  # tayari imethibitishwa - salama kuruka (idempotent)
-            if txn.status not in (PaymentStatus.PENDING, PaymentStatus.PROCESSING):
+            # EXPIRED inaruhusiwa pia: mtu anaweza kulipa/kutuma uthibitisho
+            # baada ya masaa 24 — Admin akijiridhisha fedha zimefika, anaweza
+            # kuthibitisha na uanachama/risiti vitawezeshwa kawaida.
+            if txn.status not in (
+                PaymentStatus.PENDING,
+                PaymentStatus.PROCESSING,
+                PaymentStatus.EXPIRED,
+            ):
                 skipped_wrong_status += 1
                 continue
 
@@ -79,7 +86,7 @@ class PaymentTransactionAdmin(admin.ModelAdmin):
         if skipped_wrong_status:
             self.message_user(
                 request,
-                f"{skipped_wrong_status} zimerukwa - hali yake si pending/processing.",
+                f"{skipped_wrong_status} zimerukwa - hali yake si pending/processing/expired.",
                 level="warning",
             )
 

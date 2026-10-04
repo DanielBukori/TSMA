@@ -338,6 +338,20 @@ else:
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@tsma.or.tz")
 
 # ---------------------------------------------------------------------------
+# Gateways zinazoruhusiwa kuonekana na kutumika (kuwasha/kuzima BILA kubadili code)
+# ---------------------------------------------------------------------------
+# DEFAULT = "manual" pekee (Malipo ya Mkono: akaunti ya benki + WhatsApp).
+# Gateway nyingine (selcom, azampay, paypal, snippe) zinaweza kuwa
+# zimesajiliwa kwenye registry.py na hata zina funguo kwenye .env, lakini
+# HAZITAONEKANA wala kukubaliwa na API mpaka uziweke hapa.
+# Kuwasha baadaye: Render -> Environment -> ENABLED_PAYMENT_GATEWAYS=manual,selcom
+ENABLED_PAYMENT_GATEWAYS = [
+    g.strip().lower()
+    for g in env.list("ENABLED_PAYMENT_GATEWAYS", default=["manual"])
+    if g.strip()
+]
+
+# ---------------------------------------------------------------------------
 # Selcom Payment Gateway
 # ---------------------------------------------------------------------------
 

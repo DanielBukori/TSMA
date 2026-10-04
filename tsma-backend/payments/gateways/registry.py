@@ -38,6 +38,34 @@ class GatewayNotConfigured(Exception):
     pass
 
 
+def enabled_gateway_codes():
+    """
+    Gateway codes zilizoruhusiwa na settings.ENABLED_PAYMENT_GATEWAYS
+    (default: ["manual"]). Gateway iliyosajiliwa lakini isiyo kwenye
+    orodha hii HAIONEKANI kwa mtumiaji na HAIKUBALIWI na API.
+    """
+    from django.conf import settings as dj_settings
+
+    return [str(c).lower() for c in getattr(dj_settings, "ENABLED_PAYMENT_GATEWAYS", ["manual"])]
+
+
+def is_gateway_enabled(gateway_code):
+    code = gateway_code.value if hasattr(gateway_code, "value") else str(gateway_code)
+    return code.lower() in enabled_gateway_codes()
+
+
+def default_gateway():
+    """Gateway ya default kwa serializers (ya kwanza kwenye orodha iliyoruhusiwa)."""
+    enabled = enabled_gateway_codes()
+    return enabled[0] if enabled else "manual"
+
+
+def gateway_requires_phone(gateway_code):
+    """True kama gateway hii inahitaji namba ya simu (mobile money)."""
+    gateway_class = _REGISTRY.get(gateway_code)
+    return bool(gateway_class and gateway_class.requires_phone)
+
+
 def get_gateway(gateway_code):
     """Rudisha instance ya gateway adapter kulingana na gateway_code."""
     gateway_class = _REGISTRY.get(gateway_code)
@@ -69,7 +97,12 @@ def available_gateways_info(include_unconfigured=False):
     hakuna code inayohitaji kubadilika.
     """
     info = []
+    enabled = enabled_gateway_codes()
     for code, gateway_class in _REGISTRY.items():
+        code_str = code.value if hasattr(code, "value") else str(code)
+        # Gateway lazima iwe kwenye ENABLED_PAYMENT_GATEWAYS (settings.py)
+        if code_str.lower() not in enabled:
+            continue
         if not include_unconfigured and not gateway_class.is_configured():
             continue
         info.append(

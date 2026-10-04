@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from payments.gateways.registry import available_gateways
+from payments.gateways.registry import available_gateways, default_gateway, gateway_requires_phone
 
 from .models import (
     AbstractSubmission,
@@ -98,11 +98,19 @@ class PublicationDetailSerializer(serializers.ModelSerializer):
 class PublicationPurchaseInitiateSerializer(serializers.Serializer):
     """POST /api/publications/<slug>/purchase/ - anzisha ununuzi wa chapisho la PAID."""
 
-    phone_number = serializers.CharField(required=True)
-    gateway = serializers.ChoiceField(choices=available_gateways(), default="selcom")
+    phone_number = serializers.CharField(required=False, allow_blank=True, default="")
+    gateway = serializers.ChoiceField(choices=available_gateways(), default=default_gateway)
     payment_method = serializers.ChoiceField(
-        choices=["mobile_money", "card"], default="mobile_money"
+        choices=["mobile_money", "card", "bank_transfer"], default="mobile_money"
     )
+
+    def validate(self, attrs):
+        # Namba ya simu inahitajika TU kwa gateway za mobile money (si Manual/PayPal).
+        if gateway_requires_phone(attrs.get("gateway")) and not (attrs.get("phone_number") or "").strip():
+            raise serializers.ValidationError(
+                {"phone_number": "Weka namba ya simu kwa ajili ya malipo."}
+            )
+        return attrs
 
 
 class PublicationPurchaseSerializer(serializers.ModelSerializer):

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import GatewaySelect from '../components/GatewaySelect.jsx'
+import ManualPaymentCard from '../components/ManualPaymentCard.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function PublicationDetail() {
@@ -157,6 +158,7 @@ function PurchaseBlock({ pub, isSw, isAuthenticated }) {
   const [status, setStatus] = useState('idle') // idle | form | submitting | waiting | success | error
   const [message, setMessage] = useState('')
   const [reference, setReference] = useState(null)
+  const [manual, setManual] = useState(null)
   const pollRef = useRef(null)
 
   useEffect(() => () => clearInterval(pollRef.current), [])
@@ -168,10 +170,11 @@ function PurchaseBlock({ pub, isSw, isAuthenticated }) {
       const res = await apiClient.post(`/publications/${pub.slug}/purchase/`, {
         phone_number: phone,
         gateway: gateway?.code,
-        payment_method: method,
+        payment_method: gateway?.code === 'manual' ? 'bank_transfer' : method,
       })
       setMessage(res.data.payment.instructions)
       setReference(res.data.payment.internal_reference)
+      setManual(res.data.payment.bank_details ? res.data.payment : null)
       setStatus('waiting')
       pollRef.current = setInterval(async () => {
         try {
@@ -184,6 +187,14 @@ function PurchaseBlock({ pub, isSw, isAuthenticated }) {
             clearInterval(pollRef.current)
             setStatus('error')
             setMessage(isSw ? 'Malipo yameshindwa.' : 'Payment failed.')
+          } else if (statusRes.data.status === 'expired') {
+            clearInterval(pollRef.current)
+            setStatus('error')
+            setMessage(
+              isSw
+                ? 'Muda wa kuthibitisha malipo umeisha. Wasiliana na TSMA (WhatsApp) kama tayari ulilipa.'
+                : 'The confirmation window has closed. Contact TSMA (WhatsApp) if you already paid.',
+            )
           }
         } catch {
           // endelea kusubiri
@@ -216,6 +227,20 @@ function PurchaseBlock({ pub, isSw, isAuthenticated }) {
         <a href={`/publications/${pub.slug}`} onClick={() => window.location.reload()} className="inline-block bg-navy text-white font-extrabold text-sm px-7 py-3 rounded-md">
           ⬇ {isSw ? 'Pakua Sasa' : 'Download Now'}
         </a>
+      </div>
+    )
+  }
+
+  if (status === 'waiting' && manual?.bank_details) {
+    return (
+      <div className="border border-black/10 bg-white rounded-xl p-6">
+        <ManualPaymentCard
+          isSw={isSw}
+          bankDetails={manual.bank_details}
+          reference={reference}
+          expiresAt={manual.expires_at}
+          deadlineHours={manual.confirm_deadline_hours || 24}
+        />
       </div>
     )
   }
@@ -265,7 +290,7 @@ function PurchaseBlock({ pub, isSw, isAuthenticated }) {
               />
             </div>
           )}
-          <div className="grid grid-cols-2 gap-2">
+          <div className={`grid grid-cols-2 gap-2 ${gateway?.code === 'manual' ? 'hidden' : ''}`}>
             <button type="button" onClick={() => setMethod('mobile_money')} className={`text-xs font-bold py-2.5 rounded-md border ${method === 'mobile_money' ? 'bg-navy text-white border-navy' : 'border-black/15'}`}>
               📱 {isSw ? 'M-Pesa/Simu' : 'Mobile Money'}
             </button>

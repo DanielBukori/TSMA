@@ -44,6 +44,22 @@ class ManualGateway(PaymentGatewayBase):
 
     def create_checkout(self, transaction, **kwargs):
         settings_obj = ManualPaymentSettings.load()
+
+        # ULINZI: usimwonyeshe mtumiaji maandishi ya placeholder kama
+        # "[Weka namba ya akaunti - Django Admin]". Admin lazima kwanza
+        # ajaze Django Admin -> Taarifa za Malipo ya Mkono (Manual).
+        required_values = (
+            settings_obj.bank_name,
+            settings_obj.account_name,
+            settings_obj.account_number,
+            settings_obj.confirm_phone,
+        )
+        if any((v or "").strip().startswith("[Weka") or not (v or "").strip() for v in required_values):
+            raise GatewayError(
+                "Taarifa za akaunti ya benki za TSMA bado hazijawekwa. "
+                "Tafadhali wasiliana na TSMA."
+            )
+
         deadline_hours = settings_obj.confirm_deadline_hours
         expires_at = timezone.now() + timedelta(hours=deadline_hours)
 
@@ -65,10 +81,10 @@ class ManualGateway(PaymentGatewayBase):
         instructions = (
             f"Fanya malipo benki '{settings_obj.bank_name}', Akaunti: "
             f"{settings_obj.account_name} ({settings_obj.account_number}). "
-            f"Tumia REFERENCE: {transaction.internal_reference}. Kisha tuma "
-            f"ujumbe (WhatsApp/SMS) kwenye {settings_obj.confirm_phone} ukiwa "
-            f"na reference hiyo, ndani ya masaa {deadline_hours}, ili "
-            "tuthibitishe na kuwezesha uanachama wako."
+            f"Tumia REFERENCE: {transaction.internal_reference}. Baada ya kulipa, "
+            f"tuma ujumbe wa WhatsApp kwenye {settings_obj.confirm_phone} ukiwa "
+            f"na reference hiyo (na picha ya risiti ya benki), ndani ya masaa "
+            f"{deadline_hours}, ili tuthibitishe malipo yako."
         )
 
         return {

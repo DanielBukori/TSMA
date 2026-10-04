@@ -1,7 +1,7 @@
 from django.db import transaction as db_transaction
 from rest_framework import serializers
 
-from payments.gateways.registry import available_gateways
+from payments.gateways.registry import available_gateways, default_gateway, gateway_requires_phone
 
 from .models import (
     Conference,
@@ -137,10 +137,18 @@ class SelfRegistrationSerializer(serializers.Serializer):
 
     ticket_type_id = serializers.IntegerField()
     phone_number = serializers.CharField(max_length=20, required=False, allow_blank=True)
-    gateway = serializers.ChoiceField(choices=available_gateways(), default="selcom")
+    gateway = serializers.ChoiceField(choices=available_gateways(), default=default_gateway)
     payment_method = serializers.ChoiceField(
-        choices=["mobile_money", "card"], default="mobile_money"
+        choices=["mobile_money", "card", "bank_transfer"], default="mobile_money"
     )
+
+    def validate(self, attrs):
+        # Namba ya simu inahitajika TU kwa gateway za mobile money (si Manual/PayPal).
+        if gateway_requires_phone(attrs.get("gateway")) and not (attrs.get("phone_number") or "").strip():
+            raise serializers.ValidationError(
+                {"phone_number": "Weka namba ya simu kwa ajili ya malipo."}
+            )
+        return attrs
 
 
 class BulkRegistrationSerializer(serializers.Serializer):
@@ -152,12 +160,21 @@ class BulkRegistrationSerializer(serializers.Serializer):
     organization_name = serializers.CharField(max_length=255)
     attendees = AttendeeInputSerializer(many=True)
     phone_number = serializers.CharField(
-        max_length=20, help_text="Namba ya simu ya kulipia (mwakilishi wa taasisi)."
+        max_length=20, required=False, allow_blank=True, default="",
+        help_text="Namba ya simu ya kulipia (mwakilishi wa taasisi). Haihitajiki kwa Malipo ya Mkono (Manual).",
     )
-    gateway = serializers.ChoiceField(choices=available_gateways(), default="selcom")
+    gateway = serializers.ChoiceField(choices=available_gateways(), default=default_gateway)
     payment_method = serializers.ChoiceField(
-        choices=["mobile_money", "card"], default="mobile_money"
+        choices=["mobile_money", "card", "bank_transfer"], default="mobile_money"
     )
+
+    def validate(self, attrs):
+        # Namba ya simu inahitajika TU kwa gateway za mobile money (si Manual/PayPal).
+        if gateway_requires_phone(attrs.get("gateway")) and not (attrs.get("phone_number") or "").strip():
+            raise serializers.ValidationError(
+                {"phone_number": "Weka namba ya simu kwa ajili ya malipo."}
+            )
+        return attrs
 
     def validate_attendees(self, value):
         if not value:

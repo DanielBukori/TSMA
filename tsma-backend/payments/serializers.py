@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .gateways.registry import available_gateways
+from .gateways.registry import available_gateways, default_gateway
 from .models import PaymentTransaction
 
 
@@ -29,9 +29,9 @@ class InitiateMembershipPaymentSerializer(serializers.Serializer):
     """Input ya kuanzisha malipo ya ada ya uanachama."""
 
     tier_id = serializers.IntegerField(required=True)
-    gateway = serializers.ChoiceField(choices=available_gateways(), default="selcom")
+    gateway = serializers.ChoiceField(choices=available_gateways(), default=default_gateway)
     payment_method = serializers.ChoiceField(
-        choices=["mobile_money", "card"], default="mobile_money"
+        choices=["mobile_money", "card", "bank_transfer"], default="mobile_money"
     )
     phone_number = serializers.CharField(required=False, allow_blank=True)
 

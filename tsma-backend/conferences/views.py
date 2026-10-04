@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from accounts.permissions import IsBoardAdmin
 from payments.gateways.base import GatewayError
 from payments.models import PaymentPurpose
-from payments.services import initiate_payment
+from payments.services import build_payment_response, initiate_payment
 
 from .models import (
     Conference,
@@ -173,12 +173,7 @@ class SelfRegistrationView(APIView):
         return Response(
             {
                 "batch": ConferenceRegistrationBatchSerializer(batch).data,
-                "payment": {
-                    "internal_reference": txn.internal_reference,
-                    "instructions": checkout_info.get("instructions"),
-                    "checkout_url": checkout_info.get("checkout_url"),
-                    "ussd_push_sent": checkout_info.get("ussd_push_sent"),
-                },
+                "payment": build_payment_response(txn, checkout_info),
             },
             status=status.HTTP_201_CREATED,
         )
