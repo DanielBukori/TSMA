@@ -58,7 +58,7 @@ export default function Footer() {
   return (
     <footer className="bg-navy-deep text-white/80">
       <svg
-        className="block h-6 w-full"
+        className="block h-4 w-full"
         viewBox="0 0 100 24"
         preserveAspectRatio="none"
         aria-hidden="true"
