@@ -119,7 +119,10 @@ function TierCard({ tier, isSw, isOpen, onChoose }) {
 // {"field": ["kosa1", ...]} -> "kosa1 kosa2".
 function extractApiError(data) {
   if (!data) return ''
-  if (typeof data === 'string') return data
+  if (typeof data === 'string') {
+    // Hitilafu ya seva (500) hurudisha ukurasa wa HTML — usimwonyeshe mtumiaji
+    return data.trim().startsWith('<') ? '' : data
+  }
   if (data.detail) return String(data.detail)
   const parts = []
   Object.values(data).forEach((v) => {
