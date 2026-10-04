@@ -115,6 +115,20 @@ function TierCard({ tier, isSw, isOpen, onChoose }) {
   )
 }
 
+// Inatoa ujumbe halisi wa backend (DRF): {"detail": "..."} au
+// {"field": ["kosa1", ...]} -> "kosa1 kosa2".
+function extractApiError(data) {
+  if (!data) return ''
+  if (typeof data === 'string') return data
+  if (data.detail) return String(data.detail)
+  const parts = []
+  Object.values(data).forEach((v) => {
+    if (Array.isArray(v)) parts.push(...v.map(String))
+    else if (typeof v === 'string') parts.push(v)
+  })
+  return parts.join(' ')
+}
+
 function JoinForm({ tier, isSw, onClose }) {
   const [phone, setPhone] = useState('')
   const [gateway, setGateway] = useState(null)
@@ -161,7 +175,7 @@ function JoinForm({ tier, isSw, onClose }) {
     } catch (err) {
       setStatus('error')
       setMessage(
-        err.response?.data?.detail ||
+        extractApiError(err.response?.data) ||
           (isSw ? 'Imeshindikana. Jaribu tena.' : 'Something went wrong. Please try again.'),
       )
     }

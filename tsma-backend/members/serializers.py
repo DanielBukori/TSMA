@@ -50,7 +50,9 @@ class JoinMembershipSerializer(serializers.Serializer):
 
     tier_id = serializers.IntegerField(required=True)
     organization_name = serializers.CharField(required=False, allow_blank=True)
-    phone_number = serializers.CharField(required=True)
+    # Namba ya simu inahitajika TU kwa gateways za mobile money/kadi.
+    # Manual/Bank Deposit (na PayPal) hazihitaji — ona validate() hapa chini.
+    phone_number = serializers.CharField(required=False, allow_blank=True, default="")
     gateway = serializers.ChoiceField(choices=available_gateways(), default="selcom")
     payment_method = serializers.ChoiceField(
         choices=["mobile_money", "card"], default="mobile_money"
@@ -63,6 +65,18 @@ class JoinMembershipSerializer(serializers.Serializer):
             raise serializers.ValidationError("Daraja hili halipatikani kwa sasa.")
         self.context["tier"] = tier
         return value
+
+    # Gateways ambazo HAZIHITAJI namba ya simu (lazima ziendane na
+    # `requires_phone` ya kila gateway kwenye payments.gateways.registry).
+    GATEWAYS_WITHOUT_PHONE = {"manual", "paypal"}
+
+    def validate(self, attrs):
+        gateway = attrs.get("gateway")
+        if gateway not in self.GATEWAYS_WITHOUT_PHONE and not (attrs.get("phone_number") or "").strip():
+            raise serializers.ValidationError(
+                {"phone_number": "Weka namba ya simu kwa ajili ya malipo."}
+            )
+        return attrs
 
 
 class AdminMembershipTierSerializer(serializers.ModelSerializer):

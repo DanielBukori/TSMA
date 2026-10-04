@@ -112,6 +112,19 @@ export default function Dashboard() {
                         {Number(txn.amount).toLocaleString()} {txn.currency}
                       </div>
                       <StatusPill status={txn.status} isSw={isSw} />
+                      {/* Risiti halisi (QR) inaonekana chini kwenye "Mikutano
+                          Yangu" (ConferenceRegistrationsSection) - hapa tunatoa
+                          tu kiungo cha kupeleka pale, badala ya kurudia logic ya
+                          kutafuta e_receipt_image sahihi bila kujua muunganiko
+                          kamili wa data (angalia maelezo kwenye JINSI_YA_KUWEKA.md). */}
+                      {txn.purpose === 'conference' && txn.status === 'success' && (
+                        <a
+                          href="#my-conferences"
+                          className="block text-[11px] font-bold text-terracotta mt-1"
+                        >
+                          {isSw ? 'Ona risiti chini ↓' : 'See receipt below ↓'}
+                        </a>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -200,7 +213,7 @@ function ConferenceRegistrationsSection({ registrations, isSw }) {
   const past = registrations.filter((r) => r.conference_end_date && r.conference_end_date < today)
 
   return (
-    <div className="mt-14">
+    <div className="mt-14" id="my-conferences">
       <h2 className="font-serif font-bold text-lg text-navy mb-4">
         {isSw ? 'Mikutano Yangu' : 'My Conferences'}
       </h2>
