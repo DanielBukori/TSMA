@@ -89,7 +89,7 @@ export default function Directory() {
           onClick={() => setSelected(null)}
         >
           <div
-            className="bg-white rounded-xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-7"
+            className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-7"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-4 mb-5">
@@ -138,12 +138,24 @@ export default function Directory() {
                   {isSw ? 'Wasiliana' : 'Contact'} →
                 </a>
               )}
-              {selected.cv_file && (
-                <a href={selected.cv_file} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-terracotta">
-                  {isSw ? 'Pakua CV' : 'Download CV'} →
-                </a>
-              )}
             </div>
+
+            {selected.has_cv && (
+              <section className="mt-5 pt-5 border-t border-black/10">
+                <h4 className="text-sm font-bold text-navy mb-3">CV</h4>
+                {selected.cv_preview_url ? (
+                  <iframe
+                    src={`${selected.cv_preview_url}#toolbar=0&navpanes=0`}
+                    title={`${selected.full_name} CV`}
+                    className="w-full h-[60vh] min-h-[360px] border border-black/10 rounded-md"
+                  />
+                ) : (
+                  <p className="text-xs text-ink-muted">
+                    {isSw ? 'Muonekano wa CV unapatikana kwa faili za PDF pekee.' : 'CV preview is available for PDF files only.'}
+                  </p>
+                )}
+              </section>
+            )}
 
             <button
               onClick={() => setSelected(null)}

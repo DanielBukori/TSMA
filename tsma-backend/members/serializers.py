@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 
 from payments.gateways.registry import available_gateways, default_gateway
 
@@ -156,6 +157,33 @@ class ProfessionalDirectoryDetailSerializer(serializers.ModelSerializer):
 
     full_name = serializers.CharField(source="member.user.get_full_name", read_only=True)
     membership_tier = serializers.CharField(source="member.tier.name", read_only=True)
+    cv_preview_url = serializers.SerializerMethodField()
+    has_cv = serializers.SerializerMethodField()
+
+    def _can_view_cv(self):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        return bool(
+            user
+            and user.is_authenticated
+            and (user.is_member or user.is_board_admin or user.is_super_admin)
+        )
+
+    def get_cv_preview_url(self, obj):
+        if (
+            not self._can_view_cv()
+            or not obj.cv_file
+            or not obj.cv_file.name.lower().endswith(".pdf")
+        ):
+            return None
+        return reverse(
+            "members:directory_cv_preview",
+            kwargs={"member_id": obj.member_id},
+            request=self.context.get("request"),
+        )
+
+    def get_has_cv(self, obj):
+        return self._can_view_cv() and bool(obj.cv_file)
 
     class Meta:
         model = MemberProfile
@@ -174,5 +202,6 @@ class ProfessionalDirectoryDetailSerializer(serializers.ModelSerializer):
             "linkedin_url",
             "public_email",
             "photo",
-            "cv_file",
+            "cv_preview_url",
+            "has_cv",
         )

@@ -8,6 +8,7 @@ from .views import (
     MembershipTierListView,
     MyMembershipView,
     MyProfileView,
+    ProfessionalDirectoryCVView,
     ProfessionalDirectoryDetailView,
     ProfessionalDirectoryListView,
     VerifyMembershipCardView,
@@ -24,6 +25,11 @@ urlpatterns = [
         name="verify_card",
     ),
     path("directory/", ProfessionalDirectoryListView.as_view(), name="directory_list"),
+    path(
+        "directory/<uuid:member_id>/cv/",
+        ProfessionalDirectoryCVView.as_view(),
+        name="directory_cv_preview",
+    ),
     path(
         "directory/<uuid:member_id>/",
         ProfessionalDirectoryDetailView.as_view(),

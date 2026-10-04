@@ -1,4 +1,5 @@
 from django.db import transaction as db_transaction
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -6,7 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.permissions import IsBoardAdmin, IsSuperAdmin
+from accounts.permissions import IsBoardAdmin, IsMember, IsSuperAdmin
 from payments.gateways.base import GatewayError
 from payments.models import PaymentPurpose
 from payments.services import initiate_payment
@@ -244,3 +245,30 @@ class ProfessionalDirectoryDetailView(generics.RetrieveAPIView):
     )
     lookup_field = "member_id"
     lookup_url_kwarg = "member_id"
+
+
+class ProfessionalDirectoryCVView(APIView):
+    """Serve public-profile PDFs inline to authenticated members and admins."""
+
+    permission_classes = [IsMember | IsBoardAdmin]
+
+    def get(self, request, member_id):
+        profile = get_object_or_404(
+            MemberProfile.objects.filter(is_public=True), member_id=member_id
+        )
+        if (
+            not profile.cv_file
+            or not profile.cv_file.name.lower().endswith(".pdf")
+            or not profile.cv_file.storage.exists(profile.cv_file.name)
+        ):
+            raise Http404
+
+        response = FileResponse(
+            profile.cv_file.open("rb"),
+            as_attachment=False,
+            filename="cv.pdf",
+            content_type="application/pdf",
+        )
+        response["X-Content-Type-Options"] = "nosniff"
+        response["Cache-Control"] = "private, no-store"
+        return response
