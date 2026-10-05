@@ -12,7 +12,6 @@ const FALLBACK_POSTS = [
     images: [],
     author_name: 'TSMA Team',
     published_at: '2026-09-01T10:00:00Z',
-    views_count: 214,
     category: { name: 'Matukio' },
   },
   {
@@ -22,7 +21,6 @@ const FALLBACK_POSTS = [
     images: [],
     author_name: 'TSMA Team',
     published_at: '2026-08-28T09:00:00Z',
-    views_count: 512,
     category: { name: 'Matangazo' },
   },
 ]
@@ -152,11 +150,6 @@ function PostCard({ post, isSw }) {
 
       {/* Images (carousel kama post ina picha kadhaa) */}
       {post.images?.length > 0 && <ImageCarousel images={post.images} />}
-
-      {/* Footer: views */}
-      <div className="px-4 py-3 border-t border-black/5 flex items-center gap-4 text-[11px] text-ink-muted">
-        <span>👁 {post.views_count?.toLocaleString() || 0} {isSw ? 'walioona' : 'views'}</span>
-      </div>
     </article>
   )
 }

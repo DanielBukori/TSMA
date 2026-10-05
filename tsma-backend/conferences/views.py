@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from accounts.permissions import IsBoardAdmin
 from payments.gateways.base import GatewayError
 from payments.models import PaymentPurpose
-from payments.services import build_payment_response, initiate_payment
+from payments.payment_services import build_payment_response, initiate_payment
 
 from .models import (
     Conference,

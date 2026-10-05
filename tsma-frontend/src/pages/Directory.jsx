@@ -4,6 +4,25 @@ import apiClient from '../api/client.js'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
 
+// Kipengele kimoja cha profaili (Wasifu, Uzoefu, Elimu...) - kinafunguka kwa kubofya.
+function ProfileSection({ id, title, openKey, setOpenKey, children }) {
+  const open = openKey === id
+  return (
+    <div className="border border-black/10 rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpenKey(open ? null : id)}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left bg-cream hover:bg-gold/10 transition-colors"
+      >
+        <span className="text-sm font-bold text-navy">{title}</span>
+        <span className={`text-navy text-xs transition-transform ${open ? 'rotate-180' : ''}`}>▼</span>
+      </button>
+      {open && <div className="px-4 py-4 text-sm text-ink leading-relaxed whitespace-pre-line">{children}</div>}
+    </div>
+  )
+}
+
 export default function Directory() {
   const { t, i18n } = useTranslation()
   const isSw = i18n.language?.startsWith('sw')
@@ -11,6 +30,7 @@ export default function Directory() {
   const [profiles, setProfiles] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
+  const [openKey, setOpenKey] = useState(null) // kipengele kimoja kinafunguka kwa wakati
 
   useEffect(() => {
     apiClient
@@ -23,6 +43,7 @@ export default function Directory() {
   async function openProfile(memberId) {
     try {
       const res = await apiClient.get(`/members/directory/${memberId}/`)
+      setOpenKey(null)
       setSelected(res.data)
     } catch {
       // profaili haipatikani (imefanywa faragha ghafla) - endelea kimya
@@ -89,7 +110,7 @@ export default function Directory() {
           onClick={() => setSelected(null)}
         >
           <div
-            className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-7"
+            className="bg-white rounded-xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-7"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-4 mb-5">
@@ -107,55 +128,89 @@ export default function Directory() {
               </div>
             </div>
 
-            {selected.bio && <p className="text-sm text-ink mb-4">{selected.bio}</p>}
+            {selected.is_public === false && (
+              <p className="text-[11px] font-bold text-terracotta bg-terracotta/10 rounded-md px-3 py-2 mb-4">
+                {isSw
+                  ? '🔒 Profaili hii ni siri - unaiona kwa sababu ni yako au wewe ni admin.'
+                  : '🔒 This profile is private - you can see it because it is yours or you are an admin.'}
+              </p>
+            )}
 
-            <div className="space-y-3 text-sm">
-              {selected.current_organization && (
-                <p><span className="font-bold">{isSw ? 'Mwajiri: ' : 'Organization: '}</span>{selected.current_organization}</p>
+            {selected.current_organization && (
+              <p className="text-xs text-ink-muted mb-4">
+                <span className="font-bold">{isSw ? 'Mwajiri: ' : 'Organization: '}</span>
+                {selected.current_organization}
+              </p>
+            )}
+
+            {/* Vipengele - vinafunguka mtu akibofya */}
+            <div className="space-y-2">
+              {selected.bio && (
+                <ProfileSection id="bio" openKey={openKey} setOpenKey={setOpenKey} title={isSw ? 'Wasifu' : 'About'}>
+                  {selected.bio}
+                </ProfileSection>
               )}
-              {selected.years_of_experience != null && (
-                <p><span className="font-bold">{isSw ? 'Uzoefu: ' : 'Experience: '}</span>{selected.years_of_experience} {isSw ? 'miaka' : 'years'}</p>
+              {(selected.experience || selected.years_of_experience != null) && (
+                <ProfileSection id="experience" openKey={openKey} setOpenKey={setOpenKey} title={isSw ? 'Uzoefu wa Kazi' : 'Work Experience'}>
+                  {selected.years_of_experience != null && (
+                    <p className="font-bold mb-2">
+                      {selected.years_of_experience} {isSw ? 'miaka ya uzoefu' : 'years of experience'}
+                    </p>
+                  )}
+                  {selected.experience}
+                </ProfileSection>
               )}
               {selected.education && (
-                <p><span className="font-bold">{isSw ? 'Elimu: ' : 'Education: '}</span>{selected.education}</p>
-              )}
-              {selected.experience && (
-                <p><span className="font-bold">{isSw ? 'Uzoefu wa Kazi: ' : 'Work Experience: '}</span>{selected.experience}</p>
+                <ProfileSection id="education" openKey={openKey} setOpenKey={setOpenKey} title={isSw ? 'Elimu' : 'Education'}>
+                  {selected.education}
+                </ProfileSection>
               )}
               {selected.certifications && (
-                <p><span className="font-bold">{isSw ? 'Vyeti: ' : 'Certifications: '}</span>{selected.certifications}</p>
+                <ProfileSection id="certifications" openKey={openKey} setOpenKey={setOpenKey} title={isSw ? 'Vyeti' : 'Certifications'}>
+                  {selected.certifications}
+                </ProfileSection>
               )}
-            </div>
-
-            <div className="flex gap-4 mt-5 pt-5 border-t border-black/10">
-              {selected.linkedin_url && (
-                <a href={selected.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-terracotta">
-                  LinkedIn →
-                </a>
+              {selected.cv_file && (
+                <ProfileSection id="cv" openKey={openKey} setOpenKey={setOpenKey} title={selected.cv_public === false ? 'CV 🔒' : 'CV'}>
+                  {selected.cv_public === false && (
+                    <p className="text-[11px] text-terracotta font-bold mb-2">
+                      {isSw ? 'Imefichwa kwa jamii - wewe/admin tu mnaiona.' : 'Hidden from the community - only you/admins see it.'}
+                    </p>
+                  )}
+                  <a href={selected.cv_file} target="_blank" rel="noopener noreferrer" className="font-bold text-terracotta">
+                    {isSw ? 'Pakua CV →' : 'Download CV →'}
+                  </a>
+                </ProfileSection>
               )}
-              {selected.public_email && (
-                <a href={`mailto:${selected.public_email}`} className="text-xs font-bold text-terracotta">
-                  {isSw ? 'Wasiliana' : 'Contact'} →
-                </a>
+              {(selected.linkedin_url || selected.public_email) && (
+                <ProfileSection id="contact" openKey={openKey} setOpenKey={setOpenKey} title={isSw ? 'Mawasiliano' : 'Contact'}>
+                  {selected.public_email && selected.email_public === false && (
+                    <p className="text-[11px] text-terracotta font-bold mb-2">
+                      {isSw ? '🔒 Barua pepe imefichwa kwa jamii - wewe/admin tu mnaiona.' : '🔒 Email hidden from the community - only you/admins see it.'}
+                    </p>
+                  )}
+                  <div className="space-y-2">
+                    {selected.linkedin_url && (
+                      <a href={selected.linkedin_url} target="_blank" rel="noopener noreferrer" className="block font-bold text-terracotta">
+                        LinkedIn →
+                      </a>
+                    )}
+                    {selected.public_email && (
+                      <a href={`mailto:${selected.public_email}`} className="block font-bold text-terracotta">
+                        {selected.public_email}
+                      </a>
+                    )}
+                  </div>
+                </ProfileSection>
               )}
-            </div>
-
-            {selected.has_cv && (
-              <section className="mt-5 pt-5 border-t border-black/10">
-                <h4 className="text-sm font-bold text-navy mb-3">CV</h4>
-                {selected.cv_preview_url ? (
-                  <iframe
-                    src={`${selected.cv_preview_url}#toolbar=0&navpanes=0`}
-                    title={`${selected.full_name} CV`}
-                    className="w-full h-[60vh] min-h-[360px] border border-black/10 rounded-md"
-                  />
-                ) : (
+              {!selected.bio && !selected.experience && !selected.education && !selected.certifications &&
+                !selected.cv_file && !selected.linkedin_url && !selected.public_email &&
+                selected.years_of_experience == null && (
                   <p className="text-xs text-ink-muted">
-                    {isSw ? 'Muonekano wa CV unapatikana kwa faili za PDF pekee.' : 'CV preview is available for PDF files only.'}
+                    {isSw ? 'Mwanachama bado hajaongeza maelezo ya profaili.' : 'This member has not added profile details yet.'}
                   </p>
                 )}
-              </section>
-            )}
+            </div>
 
             <button
               onClick={() => setSelected(null)}

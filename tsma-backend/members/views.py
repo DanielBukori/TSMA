@@ -1,16 +1,17 @@
 from django.db import transaction as db_transaction
+from django.db.models import Q
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.permissions import IsBoardAdmin, IsMember, IsSuperAdmin
+from accounts.permissions import IsBoardAdmin, IsSuperAdmin
 from payments.gateways.base import GatewayError
 from payments.models import PaymentPurpose
-from payments.services import initiate_payment
+from payments.payment_services import initiate_payment
 
 from .models import Member, MemberProfile, MembershipStatus, MembershipTier
 from .serializers import (
@@ -63,6 +64,8 @@ class JoinMembershipView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    # multipart inahitajika kwa picha ya ID ya chuo (Student); JSON inabaki kufanya kazi.
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request):
         serializer = JoinMembershipSerializer(
@@ -95,6 +98,9 @@ class JoinMembershipView(APIView):
                 user=request.user,
                 tier=tier,
                 organization_name=data.get("organization_name", ""),
+                student_id_image=(
+                    data.get("student_id_image") if tier.slug == "student-member" else None
+                ),
                 status=MembershipStatus.PENDING_PAYMENT,
             )
 
@@ -197,8 +203,8 @@ class VerifyMembershipCardView(APIView):
 class MyProfileView(generics.RetrieveUpdateAPIView):
     """
     GET/PATCH /api/members/me/profile/ - mwanachama anahariri profaili
-    yake ya kitaaluma (CV, bio, elimu, n.k.) na anachagua kama ionekane
-    hadharani (`is_public`, default True). MemberProfile inatengenezwa
+    yake ya kitaaluma (CV, bio, elimu, n.k.) na anachagua kama aitoe kwa
+    jamii (`is_public`, default False = siri). MemberProfile inatengenezwa
     kiotomatiki (get_or_create) mara ya kwanza mwanachama anapoifikia.
     """
 
@@ -215,8 +221,8 @@ class MyProfileView(generics.RetrieveUpdateAPIView):
 class ProfessionalDirectoryListView(generics.ListAPIView):
     """
     GET /api/members/directory/ - "Professionals Directory" ya umma.
-    Inaonyesha TU profaili zenye is_public=True (default True, mwanachama
-    anaweza kuzima mwenyewe kwenye Dashboard yake) - hii ni queryset-level
+    Inaonyesha TU profaili ambazo wamiliki wamezitoa kwa jamii
+    (is_public=True; default ni False/siri) - hii ni queryset-level
     filter, si hiari ya serializer, kwa hiyo profaili za faragha
     HAZIWEZI kuvuja kupitia endpoint hii kwa namna yoyote.
     """
@@ -232,43 +238,60 @@ class ProfessionalDirectoryListView(generics.ListAPIView):
 
 class ProfessionalDirectoryDetailView(generics.RetrieveAPIView):
     """
-    GET /api/members/directory/<uuid:member_id>/ - wasifu kamili wa umma.
-    Vile vile: queryset inachuja is_public=True pekee - mtu akijaribu
-    URL ya moja kwa moja ya profaili ya faragha, anapata 404 (si 403),
-    kuepuka "kuthibitisha" uwepo wa profaili ya faragha.
+    GET /api/members/directory/<uuid:member_id>/ - wasifu kamili.
+
+    Nani anaona nini:
+    - Mtu yeyote (hata asiyeingia akaunti): profaili zilizotolewa kwa jamii tu.
+    - Mmiliki: profaili yake mwenyewe hata kama ni siri.
+    - Board Admin / Super Admin: profaili zote.
+    Mtu asiyeruhusiwa akijaribu URL ya profaili ya siri anapata 404 (si 403),
+    kuepuka "kuthibitisha" uwepo wake.
     """
 
     serializer_class = ProfessionalDirectoryDetailSerializer
     permission_classes = [AllowAny]
-    queryset = MemberProfile.objects.filter(is_public=True).select_related(
-        "member", "member__user", "member__tier"
-    )
     lookup_field = "member_id"
     lookup_url_kwarg = "member_id"
 
-
-class ProfessionalDirectoryCVView(APIView):
-    """Serve public-profile PDFs inline to authenticated members and admins."""
-
-    permission_classes = [IsMember | IsBoardAdmin]
-
-    def get(self, request, member_id):
-        profile = get_object_or_404(
-            MemberProfile.objects.filter(is_public=True), member_id=member_id
+    def get_queryset(self):
+        queryset = MemberProfile.objects.select_related(
+            "member", "member__user", "member__tier"
         )
-        if (
-            not profile.cv_file
-            or not profile.cv_file.name.lower().endswith(".pdf")
-            or not profile.cv_file.storage.exists(profile.cv_file.name)
-        ):
-            raise Http404
+        user = self.request.user
+        if user.is_authenticated:
+            if user.is_super_admin or user.is_board_admin:
+                return queryset
+            return queryset.filter(Q(is_public=True) | Q(member__user=user))
+        return queryset.filter(is_public=True)
 
+
+class ProfessionalDirectoryCVView(generics.RetrieveAPIView):
+    """GET /api/members/directory/<uuid:member_id>/cv/ - download CV ya profaili ya umma."""
+
+    permission_classes = [AllowAny]
+    lookup_field = "member_id"
+    lookup_url_kwarg = "member_id"
+
+    def get_queryset(self):
+        queryset = MemberProfile.objects.select_related("member", "member__user")
+        user = self.request.user
+        if user.is_authenticated:
+            if user.is_super_admin or user.is_board_admin:
+                return queryset
+            return queryset.filter(Q(member__user=user) | Q(cv_public=True, is_public=True))
+        return queryset.filter(cv_public=True, is_public=True)
+
+    def get(self, request, *args, **kwargs):
+        profile = self.get_object()
+        if not profile.cv_file:
+            raise Http404("CV haipo kwa profaili hii.")
+
+        # We allow access only when the profile is public and has CV visibility enabled,
+        # or when the owner/admin is requesting it. The queryset enforces those rules.
+        file_handle = profile.cv_file.open("rb")
         response = FileResponse(
-            profile.cv_file.open("rb"),
-            as_attachment=False,
-            filename="cv.pdf",
-            content_type="application/pdf",
+            file_handle,
+            as_attachment=True,
+            filename=profile.cv_file.name.split("/")[-1],
         )
-        response["X-Content-Type-Options"] = "nosniff"
-        response["Cache-Control"] = "private, no-store"
         return response

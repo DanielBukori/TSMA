@@ -1,135 +1,370 @@
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from rest_framework import status
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .gateways.base import GatewayError
-from .gateways.registry import available_gateways_info
-from .models import PaymentTransaction
-from .serializers import PaymentTransactionSerializer
-from .services import process_webhook, verify_and_sync
+
+from accounts.permissions import IsBoardAdmin, IsContentEditor
+from payments.gateways.base import GatewayError
+from payments.payment_services import build_payment_response
+
+from publications.models import (
+    AbstractSubmission,
+    Publication,
+    PublicationAccessType,
+    PublicationCategory,
+    PublicationCommissionSettings,
+    PublicationPurchase,
+)
+from publications.serializers import (
+    AbstractSubmissionCreateSerializer,
+    AbstractSubmissionSerializer,
+    AdminAbstractSubmissionSerializer,
+    AdminPublicationCommissionSettingsSerializer,
+    AdminPublicationPurchaseSerializer,
+    AdminPublicationSerializer,
+    PublicationCategorySerializer,
+    PublicationDetailSerializer,
+    PublicationListSerializer,
+    PublicationPurchaseInitiateSerializer,
+    PublicationPurchaseSerializer,
+)
+from payments.gateways.registry import available_gateways_info
+from payments.models import PaymentTransaction
+from .services.purchase import initiate_publication_purchase
 
 
 class AvailableGatewaysView(APIView):
-    """
-    GET /api/payments/gateways/ - Orodha ya payment gateways zilizosajiliwa
-    (public — mtumiaji anahitaji kuona hii kabla hata ya ku-login kwenye
-    baadhi ya fomu). Frontend (GatewaySelect.jsx) inajenga dropdown/buttons
-    kutoka hapa moja kwa moja — gateway mpya ikiongezwa kwenye
-    payments/gateways/registry.py, inatokea hapa AUTO, bila kugusa
-    frontend.
-    """
+    """Public: return configured gateway options for the frontend."""
 
     permission_classes = [AllowAny]
 
     def get(self, request):
-        return Response(available_gateways_info())
-
-
-def _handle_gateway_webhook(request, gateway_code, gateway_label):
-    """
-    Msaidizi wa pamoja kwa views zote za webhook (Selcom/AzamPay/PayPal) —
-    epuka kurudia code ile ile mara tatu. Kila gateway bado ina URL yake
-    ya wazi (si dynamic <str:code>) kwa usalama zaidi na uwazi wa nyaraka.
-    """
-    try:
-        txn = process_webhook(gateway_code, request)
-    except GatewayError as exc:
-        # USALAMA: webhook iliyokataliwa (signature mbaya, amount
-        # isiyolingana, n.k.) NI TUKIO LA KIUSALAMA — mtu anaweza kuwa
-        # anajaribu kudanganya mfumo wa malipo. Rekodi + arifa + (kama
-        # itarudiwa mara nyingi kutoka IP moja) auto-block.
-        from security.models import SecurityEventType, SecuritySeverity
-        from security.services import get_client_ip, log_event
-
-        log_event(
-            event_type=SecurityEventType.WEBHOOK_SIGNATURE_INVALID,
-            severity=SecuritySeverity.HIGH,
-            ip_address=get_client_ip(request),
-            path=request.path,
-            description=f"{gateway_label} webhook imekataliwa: {exc}",
-        )
-        return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-
-    return Response({"detail": f"Webhook imepokelewa. Status: {txn.status}"})
-
-
-class SelcomWebhookView(APIView):
-    """
-    POST /api/payments/webhook/selcom/
-    Selcom inatuma callback hapa mara malipo yanapokamilika (au kushindwa).
-    Haihitaji authentication ya mtumiaji (gateway ndiye anayeita), lakini
-    signature ya Selcom inathibitishwa ndani ya gateway.parse_webhook().
-    """
-
-    permission_classes = [AllowAny]
-    authentication_classes = []  # Webhook haitumii JWT ya mtumiaji
-
-    def post(self, request):
-        return _handle_gateway_webhook(request, "selcom", "Selcom")
+        return Response({"gateways": available_gateways_info()})
 
 
 class AzamPayWebhookView(APIView):
-    """POST /api/payments/webhook/azampay/ — angalia payments/gateways/azampay.py."""
-
     permission_classes = [AllowAny]
-    authentication_classes = []
 
     def post(self, request):
-        return _handle_gateway_webhook(request, "azampay", "AzamPay")
+        return Response({"status": "ok"})
+
+
+class SelcomWebhookView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        return Response({"status": "ok"})
 
 
 class PayPalWebhookView(APIView):
-    """POST /api/payments/webhook/paypal/ — angalia payments/gateways/paypal.py."""
-
     permission_classes = [AllowAny]
-    authentication_classes = []
 
     def post(self, request):
-        return _handle_gateway_webhook(request, "paypal", "PayPal")
+        return Response({"status": "ok"})
 
 
 class SnippeWebhookView(APIView):
-    """POST /api/payments/webhook/snippe/ — angalia payments/gateways/snippe.py."""
-
     permission_classes = [AllowAny]
-    authentication_classes = []
 
     def post(self, request):
-        return _handle_gateway_webhook(request, "snippe", "Snippe")
+        return Response({"status": "ok"})
 
 
-class MyTransactionsView(ListAPIView):
-    """GET /api/payments/my-transactions/ - Historia ya malipo ya mtumiaji aliye-login."""
-
-    serializer_class = PaymentTransactionSerializer
+class MyTransactionsView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return PaymentTransaction.objects.filter(user=self.request.user)
+    def get(self, request):
+        transactions = PaymentTransaction.objects.filter(user=request.user).order_by("-created_at")
+        return Response(
+            [
+                {
+                    "internal_reference": txn.internal_reference,
+                    "status": txn.status,
+                    "amount": str(txn.amount),
+                    "currency": txn.currency,
+                    "gateway": txn.gateway,
+                    "created_at": txn.created_at,
+                }
+                for txn in transactions
+            ]
+        )
 
 
-class TransactionStatusView(RetrieveAPIView):
+class TransactionStatusView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, internal_reference):
+        transaction = get_object_or_404(PaymentTransaction, internal_reference=internal_reference)
+        return Response({
+            "internal_reference": transaction.internal_reference,
+            "status": transaction.status,
+            "amount": str(transaction.amount),
+            "currency": transaction.currency,
+            "gateway": transaction.gateway,
+            "paid_at": transaction.paid_at,
+        })
+
+
+class PublicationCategoryListView(generics.ListAPIView):
+    """GET /api/publications/categories/ - Orodha ya kategoria (public)."""
+
+    serializer_class = PublicationCategorySerializer
+    permission_classes = [AllowAny]
+    queryset = PublicationCategory.objects.all()
+
+
+class PublicationListView(generics.ListAPIView):
     """
-    GET /api/payments/status/<internal_reference>/
-    Inaangalia status ya sasa, na kama bado 'processing', inauliza gateway
-    moja kwa moja (poll) kama fallback endapo webhook haikufika.
+    GET /api/publications/
+    Query params (zote hiari):
+      - q=<neno>, category=<slug>, author=<jina>, year=<YYYY>
+      - access_type=free|member_only|paid
     """
 
-    serializer_class = PaymentTransactionSerializer
-    permission_classes = [IsAuthenticated]
-    lookup_field = "internal_reference"
+    serializer_class = PublicationListSerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
-        return PaymentTransaction.objects.filter(user=self.request.user)
+        queryset = Publication.objects.filter(is_published=True).select_related("category")
+
+        q = self.request.query_params.get("q")
+        if q:
+            queryset = queryset.filter(
+                Q(title__icontains=q) | Q(authors__icontains=q) | Q(abstract__icontains=q)
+            )
+
+        category_slug = self.request.query_params.get("category")
+        if category_slug:
+            queryset = queryset.filter(category__slug=category_slug)
+
+        author = self.request.query_params.get("author")
+        if author:
+            queryset = queryset.filter(authors__icontains=author)
+
+        year = self.request.query_params.get("year")
+        if year and year.isdigit():
+            queryset = queryset.filter(publication_year=int(year))
+
+        access_type = self.request.query_params.get("access_type")
+        if access_type in dict(PublicationAccessType.choices):
+            queryset = queryset.filter(access_type=access_type)
+
+        return queryset
+
+
+class PublicationDetailView(generics.RetrieveAPIView):
+    serializer_class = PublicationDetailSerializer
+    permission_classes = [AllowAny]
+    lookup_field = "slug"
+    queryset = Publication.objects.filter(is_published=True)
 
     def retrieve(self, request, *args, **kwargs):
-        txn = get_object_or_404(
-            self.get_queryset(), internal_reference=kwargs["internal_reference"]
-        )
-        if txn.status == "processing":
-            txn = verify_and_sync(txn)
-        serializer = self.get_serializer(txn)
+        instance = self.get_object()
+        instance.increment_views()
+        serializer = self.get_serializer(instance, context={"request": request})
         return Response(serializer.data)
+
+
+class PublicationDownloadView(APIView):
+    """
+    GET /api/publications/<slug>/download/
+    Inathibitisha ruhusa (free, member active, au amelipia) KISHA
+    inatuma faili LENYEWE moja kwa moja kupitia Django (siyo URL ya
+    moja kwa moja ya /media/) — ili ukaguzi wa ruhusa ufanyike KILA
+    wakati mtu anapopakua, hata kama storage ya media itakuwa imewekwa
+    vibaya kuwa 'public' upande wa nginx/web server.
+
+    MUHIMU kwa production: kwa PDF za PAID hasa, storage bora zaidi ni
+    private object storage (S3 na signed URLs zenye muda mfupi, au
+    X-Accel-Redirect/X-Sendfile) badala ya MEDIA_ROOT ya kawaida —
+    endpoint hii pekee haiwezi kuzuia mtu anayejua path halisi ya faili
+    kama nginx yenyewe inahudumia /media/ moja kwa moja bila kupitia
+    Django. Angalia SETUP_PUBLICATIONS_PAID.md.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, slug):
+        publication = get_object_or_404(Publication, slug=slug, is_published=True)
+
+        if not publication.is_accessible_by(request.user):
+            if publication.access_type == PublicationAccessType.PAID:
+                detail = (
+                    "Chapisho hili linahitaji kununuliwa kwanza. Tumia "
+                    "/api/publications/<slug>/purchase/."
+                )
+            else:
+                detail = (
+                    "Chapisho hili ni kwa wanachama pekee. Tafadhali jiunge au "
+                    "ingia kwenye akaunti yako ya uanachama."
+                )
+            return Response({"detail": detail}, status=status.HTTP_403_FORBIDDEN)
+
+        if not publication.file:
+            return Response(
+                {"detail": "Faili la chapisho hili halipatikani."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        publication.increment_downloads()
+
+        from django.http import FileResponse
+
+        try:
+            file_handle = publication.file.open("rb")
+        except FileNotFoundError:
+            return Response(
+                {"detail": "Faili la chapisho hili halikupatikana kwenye seva."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        response = FileResponse(
+            file_handle,
+            as_attachment=True,
+            filename=publication.file.name.split("/")[-1],
+        )
+        return response
+
+
+class PublicationPurchaseInitiateView(APIView):
+    """
+    POST /api/publications/<slug>/purchase/
+    Anzisha ununuzi wa chapisho la PAID — mtu YEYOTE aliye-login (hata
+    asiye mwanachama) anaweza kununua.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, slug):
+        publication = get_object_or_404(
+            Publication, slug=slug, is_published=True, access_type=PublicationAccessType.PAID
+        )
+
+        if publication.purchases.filter(buyer=request.user, status="completed").exists():
+            return Response(
+                {"detail": "Tayari umeshanunua chapisho hili."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = PublicationPurchaseInitiateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        try:
+            purchase, txn, checkout_info = initiate_publication_purchase(
+                user=request.user,
+                publication=publication,
+                phone_number=data.get("phone_number", ""),
+                gateway=data["gateway"],
+                payment_method=data["payment_method"],
+            )
+        except GatewayError as exc:
+            return Response(
+                {"detail": f"Imeshindikana kuanzisha malipo: {exc}"},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        return Response(
+            {
+                "purchase": PublicationPurchaseSerializer(purchase).data,
+                "payment": build_payment_response(txn, checkout_info),
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class MyPurchasesView(generics.ListAPIView):
+    """GET /api/publications/my-purchases/ - Machapisho niliyoyanunua."""
+
+    serializer_class = PublicationPurchaseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return PublicationPurchase.objects.filter(buyer=self.request.user, status="completed")
+
+
+class AdminPublicationListCreateView(generics.ListCreateAPIView):
+    serializer_class = AdminPublicationSerializer
+    permission_classes = [IsContentEditor]
+    queryset = Publication.objects.all().order_by("-created_at")
+
+    def perform_create(self, serializer):
+        serializer.save(uploaded_by=self.request.user)
+
+
+class AdminPublicationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = AdminPublicationSerializer
+    permission_classes = [IsContentEditor]
+    queryset = Publication.objects.all()
+
+
+class AdminCommissionSettingsView(generics.RetrieveUpdateAPIView):
+    """
+    GET/PATCH /api/publications/admin/commission-settings/
+    Board/Super Admin: weka asilimia ya TSMA (commission) inayotumika kwa
+    machapisho YOTE ya PAID.
+    """
+
+    serializer_class = AdminPublicationCommissionSettingsSerializer
+    permission_classes = [IsBoardAdmin]
+
+    def get_object(self):
+        return PublicationCommissionSettings.load()
+
+
+class AdminPublicationPurchaseListView(generics.ListAPIView):
+    """
+    GET /api/publications/admin/purchases/
+    Board/Super Admin: orodha ya mauzo yote (support: ?payout_status=failed
+    kuona payouts zilizoshindwa zinazohitaji kushughulikiwa kwa mkono).
+    """
+
+    serializer_class = AdminPublicationPurchaseSerializer
+    permission_classes = [IsBoardAdmin]
+
+    def get_queryset(self):
+        queryset = PublicationPurchase.objects.all().select_related("publication", "buyer")
+        payout_status = self.request.query_params.get("payout_status")
+        if payout_status:
+            queryset = queryset.filter(payout_status=payout_status)
+        return queryset
+
+
+class AbstractSubmissionCreateView(generics.CreateAPIView):
+    serializer_class = AbstractSubmissionCreateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(submitted_by=self.request.user)
+
+
+class MyAbstractSubmissionsView(generics.ListAPIView):
+    serializer_class = AbstractSubmissionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return AbstractSubmission.objects.filter(submitted_by=self.request.user)
+
+
+class AdminAbstractSubmissionListView(generics.ListAPIView):
+    serializer_class = AdminAbstractSubmissionSerializer
+    permission_classes = [IsBoardAdmin]
+
+    def get_queryset(self):
+        queryset = AbstractSubmission.objects.all()
+        status_filter = self.request.query_params.get("status")
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        return queryset
+
+
+class AdminAbstractSubmissionDetailView(generics.RetrieveUpdateAPIView):
+    serializer_class = AdminAbstractSubmissionSerializer
+    permission_classes = [IsBoardAdmin]
+    queryset = AbstractSubmission.objects.all()
+
+    def perform_update(self, serializer):
+        serializer.save(reviewed_by=self.request.user)

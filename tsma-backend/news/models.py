@@ -63,8 +63,6 @@ class News(models.Model):
     is_published = models.BooleanField(_("Imechapishwa"), default=False)
     published_at = models.DateTimeField(_("Tarehe ya Kuchapishwa"), null=True, blank=True)
 
-    views_count = models.PositiveIntegerField(default=0)
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -92,9 +90,6 @@ class News(models.Model):
             self.published_at = timezone.now()
 
         super().save(*args, **kwargs)
-
-    def increment_views(self):
-        News.objects.filter(pk=self.pk).update(views_count=models.F("views_count") + 1)
 
     @property
     def has_images(self):

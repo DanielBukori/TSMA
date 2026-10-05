@@ -197,9 +197,9 @@ export default function Dashboard() {
         <ConferenceRegistrationsSection registrations={conferenceRegs} isSw={isSw} />
       )}
 
-      {/* Profaili ya Kitaaluma - CV, bio, elimu, uzoefu. Default is_public
-          ni True (Sunga alithibitisha) - mwanachama anaweza kuzima
-          mwenyewe hapa chini wakati wowote. */}
+      {/* Profaili ya Kitaaluma - CV, bio, elimu, uzoefu. NI SIRI kwa default
+          (mwenyewe na Admin tu). Mwanachama anaulizwa kama anataka kuitoa
+          kwa jamii; anaweza kubadili uamuzi wakati wowote hapa chini. */}
       <ProfessionalProfileSection isSw={isSw} />
     </section>
   )
@@ -366,6 +366,7 @@ function ProfessionalProfileSection({ isSw }) {
   const [cvFile, setCvFile] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [visibilitySaving, setVisibilitySaving] = useState(false)
 
   useEffect(() => {
     apiClient
@@ -393,7 +394,6 @@ function ProfessionalProfileSection({ isSw }) {
         'linkedin_url', 'public_email',
       ]
       textFields.forEach((f) => data.append(f, form[f] ?? ''))
-      data.append('is_public', form.is_public ? 'true' : 'false')
       if (photoFile) data.append('photo', photoFile)
       if (cvFile) data.append('cv_file', cvFile)
 
@@ -414,6 +414,33 @@ function ProfessionalProfileSection({ isSw }) {
     }
   }
 
+  // Inabadilisha ruhusa MOJA tu (is_public, cv_public au email_public) na
+  // inahifadhi papo hapo - maandishi ambayo mtumiaji hajahifadhi hayaguswi.
+  async function patchFlag(field, value) {
+    setVisibilitySaving(true)
+    try {
+      const data = new FormData()
+      data.append(field, value ? 'true' : 'false')
+      const res = await apiClient.patch('/members/me/profile/', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      const patch = {
+        is_public: res.data.is_public,
+        visibility_decided: res.data.visibility_decided,
+        cv_public: res.data.cv_public,
+        email_public: res.data.email_public,
+      }
+      setProfile((prev) => ({ ...prev, ...patch }))
+      setForm((prev) => ({ ...prev, ...patch }))
+    } catch {
+      // hali haijabadilika - mtumiaji anaweza kujaribu tena
+    } finally {
+      setVisibilitySaving(false)
+    }
+  }
+
+  const setVisibility = (makePublic) => patchFlag('is_public', makePublic)
+
   if (!form) return null
 
   const inputClass =
@@ -422,29 +449,108 @@ function ProfessionalProfileSection({ isSw }) {
 
   return (
     <div className="mt-14 border-t border-black/5 pt-10">
-      <div className="flex items-center justify-between mb-1">
-        <h2 className="font-serif font-bold text-lg text-navy">
-          {isSw ? 'Profaili Yangu ya Kitaaluma' : 'My Professional Profile'}
-        </h2>
-        <label className="flex items-center gap-2 text-xs font-bold cursor-pointer select-none">
+      <h2 className="font-serif font-bold text-lg text-navy mb-3">
+        {isSw ? 'Profaili Yangu ya Kitaaluma' : 'My Professional Profile'}
+      </h2>
+
+      {/* Swali la idhini - linaonekana hadi mwanachama ajibu (Ndiyo au Hapana) */}
+      {!form.visibility_decided ? (
+        <div className="bg-gold/10 border border-gold/40 rounded-xl p-5 mb-6">
+          <p className="text-sm font-extrabold text-navy mb-2">
+            {isSw
+              ? 'Je, unataka profaili yako ionekane na jamii ya TSMA?'
+              : 'Do you want to release your profile for the TSMA community to see?'}
+          </p>
+          <p className="text-xs text-ink leading-relaxed mb-1">
+            {isSw
+              ? 'Ukichagua NDIYO, hivi vitaonekana kwa kila mtu kwenye ukurasa wa Wataalamu: jina, cheo, taasisi, picha, wasifu, uzoefu, elimu, vyeti na LinkedIn. CV na barua pepe havionekani hadi uviruhusu kila kimoja hapa chini.'
+              : 'If you choose YES, these become visible to everyone on the Professionals page: name, title, organization, photo, bio, experience, education, certifications and LinkedIn. Your CV and email stay hidden until you allow each one below.'}
+          </p>
+          <p className="text-xs text-ink leading-relaxed mb-4">
+            {isSw
+              ? 'Ukichagua HAPANA, profaili yako inabaki siri: wewe na viongozi (admin) wa TSMA tu mnaweza kuiona. Unaweza kubadili uamuzi wakati wowote.'
+              : 'If you choose NO, your profile stays private: only you and TSMA administrators can see it. You can change your mind at any time.'}
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              disabled={visibilitySaving}
+              onClick={() => setVisibility(true)}
+              className="bg-navy text-white text-xs font-bold px-5 py-2.5 rounded-md disabled:opacity-60"
+            >
+              {isSw ? 'Ndiyo, itoe kwa jamii' : 'Yes, release it to the community'}
+            </button>
+            <button
+              type="button"
+              disabled={visibilitySaving}
+              onClick={() => setVisibility(false)}
+              className="border border-black/20 text-ink text-xs font-bold px-5 py-2.5 rounded-md disabled:opacity-60"
+            >
+              {isSw ? 'Hapana, ibaki siri' : 'No, keep it private'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-cream border border-black/10 rounded-lg px-4 py-3 mb-6">
+          <p className="text-xs text-ink">
+            {form.is_public
+              ? isSw
+                ? '🌍 Profaili yako imetolewa kwa jamii - inaonekana kwenye ukurasa wa Wataalamu.'
+                : '🌍 Your profile is released to the community - visible on the Professionals page.'
+              : isSw
+                ? '🔒 Profaili yako ni siri - wewe na viongozi (admin) wa TSMA tu mnaiona.'
+                : '🔒 Your profile is private - only you and TSMA administrators can see it.'}
+          </p>
+          <button
+            type="button"
+            disabled={visibilitySaving}
+            onClick={() => setVisibility(!form.is_public)}
+            className="text-xs font-bold text-terracotta border-b border-terracotta disabled:opacity-60"
+          >
+            {form.is_public
+              ? isSw ? 'Ifanye siri' : 'Make private'
+              : isSw ? 'Itoe kwa jamii' : 'Release to community'}
+          </button>
+        </div>
+      )}
+
+      {/* Ruhusa za kando: CV na barua pepe - kila kimoja kinaruhusiwa peke yake */}
+      <div className="border border-black/10 rounded-lg px-4 py-3 mb-6 space-y-3">
+        <p className="text-xs font-bold text-navy">
+          {isSw ? 'Taarifa nyeti - kila moja ina ruhusa yake' : 'Sensitive details - each has its own permission'}
+        </p>
+        <label className="flex items-start gap-3 text-xs cursor-pointer select-none">
           <input
             type="checkbox"
-            checked={!!form.is_public}
-            onChange={(e) => update('is_public', e.target.checked)}
-            className="w-4 h-4"
+            checked={!!form.cv_public}
+            disabled={visibilitySaving}
+            onChange={(e) => patchFlag('cv_public', e.target.checked)}
+            className="w-4 h-4 mt-0.5"
           />
-          {isSw ? 'Ionekane Hadharani' : 'Public'}
+          <span>
+            <span className="font-bold">CV</span> -{' '}
+            {isSw ? 'ruhusu jamii kuona na kupakua CV yangu' : 'allow the community to view and download my CV'}
+          </span>
         </label>
+        <label className="flex items-start gap-3 text-xs cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={!!form.email_public}
+            disabled={visibilitySaving}
+            onChange={(e) => patchFlag('email_public', e.target.checked)}
+            className="w-4 h-4 mt-0.5"
+          />
+          <span>
+            <span className="font-bold">{isSw ? 'Barua pepe' : 'Email'}</span> -{' '}
+            {isSw ? 'ruhusu jamii kuona barua pepe yangu ya umma' : 'allow the community to see my public email'}
+          </span>
+        </label>
+        <p className="text-[11px] text-ink-muted">
+          {isSw
+            ? 'Visiporuhusiwa, havionekani kwa jamii hata profaili ikiwa imetolewa. Wewe na viongozi (admin) wa TSMA mnaviona kila wakati.'
+            : 'If not allowed, they stay hidden from the community even when your profile is released. You and TSMA administrators can always see them.'}
+        </p>
       </div>
-      <p className="text-xs text-ink-muted mb-6">
-        {form.is_public
-          ? isSw
-            ? 'Profaili yako (pamoja na CV) inaonekana kwenye Directory ya Umma.'
-            : 'Your profile (including CV) is visible in the Public Directory.'
-          : isSw
-            ? 'Profaili yako ni ya faragha - haionekani kwenye Directory.'
-            : 'Your profile is private - hidden from the Directory.'}
-      </p>
 
       <form onSubmit={handleSave} className="space-y-4">
         <div className="grid sm:grid-cols-2 gap-4">

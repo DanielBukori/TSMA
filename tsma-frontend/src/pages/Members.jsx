@@ -8,22 +8,16 @@ import { useAuth } from '../context/AuthContext.jsx'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
 
-const FALLBACK_TIERS = [
-  { id: 1, name: 'Guest', description: 'Ufikiaji wa kurasa za umma pekee.', annual_fee: '0', currency: 'TZS', requires_payment: false, benefits: [] },
-  { id: 2, name: 'Institution', description: 'Kwa taasisi/vyuo.', annual_fee: '500000', currency: 'TZS', requires_payment: true, benefits: ['Ufikiaji wa machapisho', 'Kadi ya kidijitali'] },
-  { id: 3, name: 'College Lecturer', description: 'Kwa walimu wa vyuo.', annual_fee: '100000', currency: 'TZS', requires_payment: true, benefits: ['Ufikiaji wa machapisho', 'Punguzo la mkutano'] },
-  { id: 4, name: 'Entrepreneur', description: 'Kwa wajasiriamali.', annual_fee: '150000', currency: 'TZS', requires_payment: true, benefits: ['Ufikiaji wa machapisho', 'Punguzo la mkutano'] },
-  { id: 5, name: 'Sponsor', description: 'Kwa wadhamini.', annual_fee: '1000000', currency: 'TZS', requires_payment: true, benefits: ['Umaarufu wa kibrand', 'Kiti cha VIP'] },
-  { id: 6, name: 'Investor', description: 'Kwa wawekezaji.', annual_fee: '2000000', currency: 'TZS', requires_payment: true, benefits: ['Ripoti za uchumi', 'Mikutano ya faragha'] },
-]
-
 export default function Members() {
   const { i18n } = useTranslation()
   const isSw = i18n.language?.startsWith('sw')
   const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
 
-  const [tiers, setTiers] = useState(FALLBACK_TIERS)
+  // Hakuna orodha ya "fallback" tena: ids za fallback hazikulingana na za backend,
+  // mtu angeweza kuona bei ya daraja moja na kujiunga na daraja jingine.
+  const [tiers, setTiers] = useState([])
+  const [loadingTiers, setLoadingTiers] = useState(true)
   const [selectedTierId, setSelectedTierId] = useState(null)
 
   useEffect(() => {
@@ -35,6 +29,9 @@ export default function Members() {
         if (!cancelled && Array.isArray(results) && results.length > 0) setTiers(results)
       })
       .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoadingTiers(false)
+      })
     return () => {
       cancelled = true
     }
@@ -57,13 +54,22 @@ export default function Members() {
           fallback={{
             badge_sw: 'UANACHAMA', badge_en: 'MEMBERSHIP',
             title_sw: 'Jiunge na TSMA', title_en: 'Join TSMA',
-            subtitle_sw: 'Chagua daraja linalokufaa — lipia moja kwa moja kupitia simu au kadi.',
-            subtitle_en: 'Choose the tier that fits you — pay directly via mobile money or card.',
+            subtitle_sw: 'Chagua daraja linalokufaa kulingana na Katiba ya TSMA — lipa kwa benki, kisha thibitisha kupitia WhatsApp.',
+            subtitle_en: 'Choose the tier that fits you under the TSMA Constitution — pay by bank, then confirm via WhatsApp.',
           }}
         />
       </PageBanner>
 
       <section className="max-w-5xl mx-auto px-5 md:px-8 py-14 md:py-20">
+        {tiers.length === 0 && (
+          <p className="text-center text-sm text-ink-muted py-10">
+            {loadingTiers
+              ? isSw ? 'Inapakua madaraja...' : 'Loading tiers...'
+              : isSw
+                ? 'Madaraja ya uanachama hayapatikani kwa sasa. Tafadhali jaribu tena baadaye au wasiliana na TSMA.'
+                : 'Membership tiers are not available right now. Please try again later or contact TSMA.'}
+          </p>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tiers.map((tier) => (
             <div key={tier.id}>
@@ -138,6 +144,7 @@ function JoinForm({ tier, isSw, onClose }) {
   const [gateway, setGateway] = useState(null)
   const [method, setMethod] = useState('mobile_money')
   const [organizationName, setOrganizationName] = useState('')
+  const [studentIdFile, setStudentIdFile] = useState(null) // Student Member: picha ya ID ya chuo
   const [status, setStatus] = useState('idle') // idle | submitting | waiting | success | error
   const [message, setMessage] = useState('')
   const [reference, setReference] = useState(null)
@@ -156,12 +163,17 @@ function JoinForm({ tier, isSw, onClose }) {
     setMessage('')
 
     try {
-      const res = await apiClient.post('/members/join/', {
-        tier_id: tier.id,
-        phone_number: phone,
-        organization_name: organizationName,
-        gateway: gateway?.code,
-        payment_method: gateway?.code === 'manual' ? 'bank_transfer' : method,
+      // multipart (si JSON) kwa sababu Student anatuma picha ya ID ya chuo
+      const body = new FormData()
+      body.append('tier_id', tier.id)
+      body.append('phone_number', phone)
+      body.append('organization_name', organizationName)
+      if (gateway?.code) body.append('gateway', gateway.code)
+      body.append('payment_method', gateway?.code === 'manual' ? 'bank_transfer' : method)
+      if (tier.slug === 'student-member' && studentIdFile) body.append('student_id_image', studentIdFile)
+
+      const res = await apiClient.post('/members/join/', body, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       })
 
       if (res.data.payment) {
@@ -267,17 +279,49 @@ function JoinForm({ tier, isSw, onClose }) {
                 </div>
               )}
 
-              {(tier.name === 'Institution' || tier.name === 'Sponsor') && (
+              {['institutional-member', 'corporate-member'].includes(tier.slug) && (
                 <div>
                   <label className="block text-xs font-bold text-ink mb-1.5">
                     {isSw ? 'Jina la Taasisi' : 'Organization Name'}
                   </label>
                   <input
                     type="text"
+                    required
                     value={organizationName}
                     onChange={(e) => setOrganizationName(e.target.value)}
                     className="w-full border border-black/15 rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-terracotta/40"
                   />
+                </div>
+              )}
+
+              {/* Katiba Art 10.3: Student Member lazima athibitishe kwa ID ya chuo */}
+              {tier.slug === 'student-member' && (
+                <div>
+                  <label className="block text-xs font-bold text-ink mb-1.5">
+                    {isSw ? 'Picha ya ID ya Chuo (lazima)' : 'College ID photo (required)'}
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    required
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null
+                      if (file && file.size > 5 * 1024 * 1024) {
+                        setStatus('error')
+                        setMessage(isSw ? 'Picha ni kubwa mno. Kikomo ni MB 5.' : 'Image is too large. Limit is 5 MB.')
+                        e.target.value = ''
+                        setStudentIdFile(null)
+                        return
+                      }
+                      setStudentIdFile(file)
+                    }}
+                    className="w-full text-xs"
+                  />
+                  <p className="text-[11px] text-ink-muted mt-1">
+                    {isSw
+                      ? 'Piga picha ya ID yako ya chuo (upande wenye jina na chuo). Itaonekana na viongozi wa TSMA tu kwa ajili ya kuthibitisha.'
+                      : 'Take a photo of your college ID (the side showing your name and institution). Only TSMA administrators will see it, to verify you.'}
+                  </p>
                 </div>
               )}
 

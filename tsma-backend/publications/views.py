@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from accounts.permissions import IsBoardAdmin, IsContentEditor
 from payments.gateways.base import GatewayError
-from payments.services import build_payment_response
+from payments.payment_services import build_payment_response
 
 from .models import (
     AbstractSubmission,

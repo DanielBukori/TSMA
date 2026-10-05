@@ -37,7 +37,6 @@ class NewsListSerializer(serializers.ModelSerializer):
             "images",
             "author_name",
             "published_at",
-            "views_count",
         )
 
 
@@ -60,7 +59,6 @@ class NewsDetailSerializer(serializers.ModelSerializer):
             "images",
             "author_name",
             "published_at",
-            "views_count",
         )
 
 
@@ -94,11 +92,10 @@ class AdminNewsSerializer(serializers.ModelSerializer):
             "uploaded_images",
             "is_published",
             "published_at",
-            "views_count",
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "slug", "views_count", "created_at", "updated_at")
+        read_only_fields = ("id", "slug", "created_at", "updated_at")
 
     def create(self, validated_data):
         uploaded_images = validated_data.pop("uploaded_images", [])

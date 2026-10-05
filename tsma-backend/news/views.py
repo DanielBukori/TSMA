@@ -64,18 +64,12 @@ class NewsListView(generics.ListAPIView):
 
 
 class NewsDetailView(generics.RetrieveAPIView):
-    """GET /api/news/<slug>/ - Habari kamili + inaongeza view count."""
+    """GET /api/news/<slug>/ - Habari kamili (hakuna view count)."""
 
     serializer_class = NewsDetailSerializer
     permission_classes = [AllowAny]
     lookup_field = "slug"
     queryset = News.objects.filter(is_published=True)
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.increment_views()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
 
 
 class AdminNewsListCreateView(generics.ListCreateAPIView):

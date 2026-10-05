@@ -102,6 +102,16 @@ class Member(models.Model):
     # Taasisi/Kampuni (kwa tier za Institution/Sponsor/Investor)
     organization_name = models.CharField(max_length=255, blank=True)
 
+    # Kwa Student Member (Katiba Art 10.3): picha ya ID ya chuo - inaombwa
+    # wakati wa kujiunga na Admin analinganisha kabla ya kuthibitisha malipo.
+    # NYETI: haionyeshwi kwa umma wala kwenye API ya orodha/verify.
+    student_id_image = models.ImageField(
+        _("Picha ya ID ya chuo (Student)"),
+        upload_to="student_ids/",
+        blank=True,
+        null=True,
+    )
+
     digital_card_image = models.ImageField(
         upload_to="membership_cards/", blank=True, null=True
     )
@@ -164,10 +174,12 @@ class MemberProfile(models.Model):
     baada ya kujiunga, tofauti na Member (uanachama/malipo) inayosimamiwa
     zaidi na mfumo/Admin.
 
-    `is_public` -> DEFAULT True (Sunga alithibitisha: wanachama wanaonekana
-    kwenye "Professionals Directory" ya umma kwa default), lakini
-    mwanachama anaweza kuizima mwenyewe wakati wowote kwenye Dashboard
-    yake ili profaili yake (pamoja na CV) isionekane hadharani tena.
+    FARAGHA: `is_public` -> DEFAULT False. Profaili ni SIRI: anaiona
+    mwenyewe na Admin/Board/Super Admin tu. Mwanachama anaulizwa kwenye
+    Dashboard "Je, unataka profaili yako ionekane na jamii?" - akijibu
+    "Ndiyo" ndipo inaingia kwenye Professionals Directory ya umma; akijibu
+    "Hapana" inabaki siri. Anaweza kubadili uamuzi wakati wowote.
+    `visibility_decided` inaonyesha kama ameshajibu swali hilo.
     """
 
     member = models.OneToOneField(
@@ -203,8 +215,17 @@ class MemberProfile(models.Model):
         validators=validate_document_max_15mb,
     )
 
-    # DEFAULT True kwa uamuzi wa Sunga - mwanachama anaweza kuzima mwenyewe.
-    is_public = models.BooleanField(_("Ionekane Hadharani (Directory)"), default=True)
+    # DEFAULT False (siri) - mwanachama mwenyewe ndiye anayeitoa kwa jamii.
+    is_public = models.BooleanField(_("Imetolewa kwa jamii (Directory)"), default=False)
+    visibility_decided = models.BooleanField(
+        _("Ameshajibu swali la kuitoa kwa jamii"), default=False
+    )
+    # Ruhusa ZA KANDO kwa taarifa nyeti: hata profaili ikitolewa kwa jamii,
+    # CV na barua pepe HAZIONEKANI hadi mwenyewe aziruhusu kila moja.
+    cv_public = models.BooleanField(_("Ruhusu CV ionekane na jamii"), default=False)
+    email_public = models.BooleanField(
+        _("Ruhusu barua pepe ionekane na jamii"), default=False
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

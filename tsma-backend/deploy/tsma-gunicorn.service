@@ -1,0 +1,21 @@
+# /etc/systemd/system/tsma-gunicorn.service
+[Unit]
+Description=TSMA Django (gunicorn)
+After=network.target postgresql.service
+
+[Service]
+User=tsma
+Group=tsma
+WorkingDirectory=/srv/tsma/tsma-backend
+EnvironmentFile=/srv/tsma/tsma-backend/.env
+# MUHIMU: worker 1 + threads. Cache ya mradi ni LocMem (kwa kila process) - kwa worker
+# moja, rate-limit/throttling zinahesabu kwa usahihi. Inatosha kwa trafiki ya chama.
+# Trafiki ikikua: weka Redis kama cache kisha ongeza workers.
+ExecStart=/srv/tsma/venv/bin/gunicorn tsma_backend.wsgi:application \
+    --bind 127.0.0.1:8000 --workers 1 --threads 8 --timeout 60 \
+    --access-logfile - --error-logfile -
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

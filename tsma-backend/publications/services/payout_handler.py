@@ -31,7 +31,7 @@ from django.utils import timezone
 
 from payments.gateways.base import GatewayError
 from payments.models import PaymentPurpose
-from payments.services import disburse_payout
+from payments.payment_services import disburse_payout
 
 from ..models import (
     PublicationCommissionSettings,

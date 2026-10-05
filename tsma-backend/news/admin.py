@@ -26,12 +26,11 @@ class NewsAdmin(admin.ModelAdmin):
         "image_count",
         "is_published",
         "published_at",
-        "views_count",
     )
     list_filter = ("is_published", "category")
     search_fields = ("title", "excerpt", "content")
     prepopulated_fields = {"slug": ("title",)}
-    readonly_fields = ("views_count", "created_at", "updated_at")
+    readonly_fields = ("created_at", "updated_at")
     ordering = ("-created_at",)
     inlines = [NewsImageInline]
 
@@ -39,7 +38,7 @@ class NewsAdmin(admin.ModelAdmin):
         (None, {"fields": ("title", "category", "excerpt", "content")}),
         (
             "Uchapishaji",
-            {"fields": ("is_published", "published_at", "slug", "views_count")},
+            {"fields": ("is_published", "published_at", "slug")},
         ),
         ("Metadata", {"fields": ("created_at", "updated_at")}),
     )

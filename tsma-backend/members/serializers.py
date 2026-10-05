@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.reverse import reverse
 
 from payments.gateways.registry import available_gateways, default_gateway
 
@@ -51,6 +50,8 @@ class JoinMembershipSerializer(serializers.Serializer):
 
     tier_id = serializers.IntegerField(required=True)
     organization_name = serializers.CharField(required=False, allow_blank=True)
+    # Student Member (Katiba Art 10.3) LAZIMA aweke picha ya ID ya chuo.
+    student_id_image = serializers.ImageField(required=False, allow_null=True)
     # Namba ya simu inahitajika TU kwa gateways za mobile money/kadi.
     # Manual/Bank Deposit (na PayPal) hazihitaji — ona validate() hapa chini.
     phone_number = serializers.CharField(required=False, allow_blank=True, default="")
@@ -67,11 +68,23 @@ class JoinMembershipSerializer(serializers.Serializer):
         self.context["tier"] = tier
         return value
 
+    MAX_STUDENT_ID_BYTES = 5 * 1024 * 1024  # 5 MB
+
+    def validate_student_id_image(self, value):
+        if value and value.size > self.MAX_STUDENT_ID_BYTES:
+            raise serializers.ValidationError("Picha ni kubwa mno. Kikomo ni MB 5.")
+        return value
+
     # Gateways ambazo HAZIHITAJI namba ya simu (lazima ziendane na
     # `requires_phone` ya kila gateway kwenye payments.gateways.registry).
     GATEWAYS_WITHOUT_PHONE = {"manual", "paypal"}
 
     def validate(self, attrs):
+        tier = self.context.get("tier")
+        if tier and tier.slug == "student-member" and not attrs.get("student_id_image"):
+            raise serializers.ValidationError(
+                {"student_id_image": "Mwanafunzi lazima aweke picha ya ID ya chuo."}
+            )
         gateway = attrs.get("gateway")
         if gateway not in self.GATEWAYS_WITHOUT_PHONE and not (attrs.get("phone_number") or "").strip():
             raise serializers.ValidationError(
@@ -125,9 +138,19 @@ class MyProfileSerializer(serializers.ModelSerializer):
             "photo",
             "cv_file",
             "is_public",
+            "visibility_decided",
+            "cv_public",
+            "email_public",
             "updated_at",
         )
-        read_only_fields = ("updated_at",)
+        read_only_fields = ("visibility_decided", "updated_at")
+
+    def update(self, instance, validated_data):
+        # Mwanachama akishajibu swali la "itoe kwa jamii?" (Ndiyo au Hapana),
+        # tunakumbuka ili tusimuulize tena.
+        if "is_public" in validated_data:
+            validated_data["visibility_decided"] = True
+        return super().update(instance, validated_data)
 
 
 class ProfessionalDirectoryListSerializer(serializers.ModelSerializer):
@@ -157,33 +180,6 @@ class ProfessionalDirectoryDetailSerializer(serializers.ModelSerializer):
 
     full_name = serializers.CharField(source="member.user.get_full_name", read_only=True)
     membership_tier = serializers.CharField(source="member.tier.name", read_only=True)
-    cv_preview_url = serializers.SerializerMethodField()
-    has_cv = serializers.SerializerMethodField()
-
-    def _can_view_cv(self):
-        request = self.context.get("request")
-        user = getattr(request, "user", None)
-        return bool(
-            user
-            and user.is_authenticated
-            and (user.is_member or user.is_board_admin or user.is_super_admin)
-        )
-
-    def get_cv_preview_url(self, obj):
-        if (
-            not self._can_view_cv()
-            or not obj.cv_file
-            or not obj.cv_file.name.lower().endswith(".pdf")
-        ):
-            return None
-        return reverse(
-            "members:directory_cv_preview",
-            kwargs={"member_id": obj.member_id},
-            request=self.context.get("request"),
-        )
-
-    def get_has_cv(self, obj):
-        return self._can_view_cv() and bool(obj.cv_file)
 
     class Meta:
         model = MemberProfile
@@ -202,6 +198,28 @@ class ProfessionalDirectoryDetailSerializer(serializers.ModelSerializer):
             "linkedin_url",
             "public_email",
             "photo",
-            "cv_preview_url",
-            "has_cv",
+            "cv_file",
+            "is_public",
+            "cv_public",
+            "email_public",
         )
+
+    def to_representation(self, instance):
+        """
+        CV na barua pepe vinaonekana kwa UMMA tu kama mwenyewe ameviruhusu
+        (cv_public / email_public). Mmiliki na Board/Super Admin wanaona vyote.
+        """
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        sees_all = bool(
+            user
+            and user.is_authenticated
+            and (user.is_super_admin or user.is_board_admin or instance.member.user_id == user.id)
+        )
+        if not sees_all:
+            if not instance.cv_public:
+                data["cv_file"] = None
+            if not instance.email_public:
+                data["public_email"] = None
+        return data

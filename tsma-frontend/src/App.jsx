@@ -29,6 +29,7 @@ import QuizTake from './pages/QuizTake.jsx'
 import NotFound from './pages/NotFound.jsx'
 import SecurityLogin from './pages/SecurityLogin.jsx'
 import SecurityDashboard from './pages/SecurityDashboard.jsx'
+import VerifyMember from './pages/VerifyMember.jsx'
 
 export default function App() {
   return (
@@ -52,6 +53,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/members" element={<Members />} />
+          {/* Ukurasa wa QR ya kadi ya uanachama (public) */}
+          <Route path="/verify-member/:code" element={<VerifyMember />} />
           <Route path="/conferences" element={<Conferences />} />
           <Route path="/conferences/:slug" element={<ConferenceDetail />} />
           <Route path="/publications" element={<Publications />} />

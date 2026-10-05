@@ -11,9 +11,12 @@ from django.core.files.base import ContentFile
 from PIL import Image, ImageDraw, ImageFont
 
 from common.branding import get_logo_image, paste_logo
+from common.fonts import get_font
 
 RECEIPT_WIDTH = 800
-RECEIPT_HEIGHT = 1000
+# 1000 ilikuwa fupi mno: QR (y=680..960) ilikatwa na footer (y=940) na maandishi
+# ya chini yalifichwa. Hesabu: QR inaishia y=960, maandishi y~980-1000, footer y>=1030.
+RECEIPT_HEIGHT = 1100
 
 COLOR_HEADER = (10, 35, 66)
 COLOR_ACCENT = (201, 162, 39)
@@ -22,12 +25,8 @@ COLOR_MUTED = (120, 120, 120)
 COLOR_WHITE = (255, 255, 255)
 
 
-def _get_font(size, bold=False):
-    font_name = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
-    try:
-        return ImageFont.truetype(font_name, size)
-    except OSError:
-        return ImageFont.load_default()
+# Font sasa inatoka common/fonts.py (font iko ndani ya repo, haitegemei Render)
+_get_font = get_font
 
 
 def generate_e_receipt(registration):
@@ -93,10 +92,13 @@ def generate_e_receipt(registration):
     img.paste(qr_img, (qr_x, y))
     y += 300
 
+    caption = "Onyesha QR hii mlangoni kuthibitisha uingiaji"
+    caption_font = _get_font(16)
+    caption_w = draw.textbbox((0, 0), caption, font=caption_font)[2]
     draw.text(
-        (qr_x - 20, y),
-        "Onyesha QR hii mlangoni kuthibitisha uingiaji",
-        font=_get_font(16),
+        ((RECEIPT_WIDTH - caption_w) // 2, y),
+        caption,
+        font=caption_font,
         fill=COLOR_MUTED,
     )
 

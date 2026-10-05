@@ -21,6 +21,7 @@ from django.core.files.base import ContentFile
 from PIL import Image, ImageDraw, ImageFont
 
 from common.branding import get_logo_image, paste_logo
+from common.fonts import get_font
 
 CARD_WIDTH = 1013  # px (sawa na kadi halisi 3.375in @ 300dpi)
 CARD_HEIGHT = 638  # px (sawa na kadi halisi 2.125in @ 300dpi)
@@ -32,17 +33,8 @@ COLOR_GOLD = (201, 162, 39)           # gold accent
 COLOR_WHITE = (255, 255, 255)
 
 
-def _get_font(size, bold=False):
-    """
-    Jaribu kutumia DejaVuSans (inapatikana default kwenye Pillow/Linux).
-    Kama TSMA itapata font rasmi ya brand (mfano Montserrat), weka
-    faili la .ttf kwenye static/fonts/ na libadilishe path hapa chini.
-    """
-    font_name = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
-    try:
-        return ImageFont.truetype(font_name, size)
-    except OSError:
-        return ImageFont.load_default()
+# Font sasa inatoka common/fonts.py (font iko ndani ya repo, haitegemei Render)
+_get_font = get_font
 
 
 def _vertical_gradient(width, height, top_color, bottom_color):

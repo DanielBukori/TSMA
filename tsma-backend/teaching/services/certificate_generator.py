@@ -12,6 +12,7 @@ from django.core.files.base import ContentFile
 from PIL import Image, ImageDraw, ImageFont
 
 from common.branding import get_logo_image, paste_logo
+from common.fonts import get_font
 
 CERT_WIDTH = 1200
 CERT_HEIGHT = 850
@@ -23,12 +24,8 @@ COLOR_MUTED = (110, 110, 110)
 COLOR_WHITE = (255, 255, 255)
 
 
-def _get_font(size, bold=False):
-    font_name = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
-    try:
-        return ImageFont.truetype(font_name, size)
-    except OSError:
-        return ImageFont.load_default()
+# Font sasa inatoka common/fonts.py (font iko ndani ya repo, haitegemei Render)
+_get_font = get_font
 
 
 def issue_certificate_if_needed(quiz_attempt):
