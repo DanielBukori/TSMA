@@ -78,7 +78,7 @@ export default function Publications() {
 
       {/* ============ SEARCH & FILTERS ============ */}
       <section className="max-w-6xl mx-auto px-5 md:px-8 -mt-6 relative z-10">
-        <div className="bg-white border border-black/10 rounded-xl shadow-lg p-4 md:p-5 grid grid-cols-1 md:grid-cols-5 gap-3">
+        <div className="bg-surface border border-black/10 rounded-xl shadow-lg p-4 md:p-5 grid grid-cols-1 md:grid-cols-5 gap-3">
           <input
             type="text"
             value={query}
@@ -151,7 +151,7 @@ function PublicationCard({ pub, isSw }) {
   return (
     <Link
       to={`/publications/${pub.slug}`}
-      className="group block rounded-xl overflow-hidden border border-black/10 hover:shadow-xl transition-shadow bg-white"
+      className="group block rounded-xl overflow-hidden border border-black/10 hover:shadow-xl transition-shadow bg-surface"
     >
       <div className="aspect-[3/4] bg-gradient-to-br from-navy to-green-dark relative overflow-hidden">
         {pub.cover_image ? (

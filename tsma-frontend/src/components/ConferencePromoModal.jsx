@@ -52,13 +52,13 @@ export default function ConferencePromoModal() {
   return (
     <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-5" onClick={dismiss}>
       <div
-        className="relative bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl animate-slide-up"
+        className="relative bg-surface rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={dismiss}
           aria-label="Funga"
-          className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-navy text-sm"
+          className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-surface/95 flex items-center justify-center text-navy text-sm"
         >
           ✕
         </button>

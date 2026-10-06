@@ -37,9 +37,10 @@ export default {
           dark: '#9C4218',
         },
         cream: {
-          DEFAULT: '#F3EFE4',
-          dark: '#E6DDC9',
+          DEFAULT: '#F2E6D5',
+          dark: '#E8D4B9',
         },
+        surface: '#FFF5E8',
         ink: {
           DEFAULT: '#1B211D',
           muted: '#6B7178',

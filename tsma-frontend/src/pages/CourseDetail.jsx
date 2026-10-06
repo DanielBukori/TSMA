@@ -56,7 +56,7 @@ export default function CourseDetail() {
                 <span>{isSw ? 'Maendeleo Yako' : 'Your Progress'}</span>
                 <span>{course.progress_percent || 0}%</span>
               </div>
-              <div className="h-2.5 bg-white rounded-full overflow-hidden">
+              <div className="h-2.5 bg-cream rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gold transition-all"
                   style={{ width: `${course.progress_percent || 0}%` }}
@@ -91,7 +91,7 @@ export default function CourseDetail() {
             <Link
               key={session.id}
               to={`/teaching/sessions/${session.slug}`}
-              className="flex items-center gap-4 bg-white border border-black/10 rounded-xl p-4 hover:shadow-md transition-shadow"
+              className="flex items-center gap-4 bg-surface border border-black/10 rounded-xl p-4 hover:shadow-md transition-shadow"
             >
               <div className="w-9 h-9 rounded-full bg-navy text-gold flex items-center justify-center text-xs font-bold shrink-0">
                 {i + 1}

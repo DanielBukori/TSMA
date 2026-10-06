@@ -94,7 +94,7 @@ function AlbumCard({ album, isSw }) {
   return (
     <Link
       to={`/gallery/${album.slug}`}
-      className="group block rounded-xl overflow-hidden border border-black/10 hover:shadow-xl transition-shadow bg-white"
+      className="group block rounded-xl overflow-hidden border border-black/10 hover:shadow-xl transition-shadow bg-surface"
     >
       <div className="aspect-[4/3] bg-gradient-to-br from-navy to-green-dark relative overflow-hidden">
         {album.cover_image ? (

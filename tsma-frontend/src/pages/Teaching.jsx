@@ -67,7 +67,7 @@ export default function Teaching() {
               <Link
                 key={course.id}
                 to={`/teaching/courses/${course.slug}`}
-                className="block bg-white border border-black/10 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                className="block bg-surface border border-black/10 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
               >
                 <div className="h-32 bg-gradient-to-br from-navy to-green-dark flex items-center justify-center">
                   <span className="text-white/80 text-3xl">🎓</span>
@@ -96,7 +96,7 @@ export default function Teaching() {
                 <Link
                   key={session.id}
                   to={`/teaching/sessions/${session.slug}`}
-                  className="flex items-center gap-4 bg-white border border-black/10 rounded-xl p-4 hover:shadow-md transition-shadow"
+                  className="flex items-center gap-4 bg-surface border border-black/10 rounded-xl p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="w-12 h-12 rounded-lg bg-navy text-gold flex items-center justify-center text-xl shrink-0">
                     {session.session_type === 'live' ? '🔴' : '▶️'}

@@ -6,7 +6,7 @@ const SEVERITY_COLOR = {
   critical: 'bg-terracotta text-white',
   high: 'bg-terracotta/15 text-terracotta',
   medium: 'bg-gold/20 text-gold-dark',
-  low: 'bg-black/5 text-ink-muted',
+  low: 'bg-cream text-ink-muted',
 }
 
 export default function SecurityDashboard() {
@@ -133,7 +133,7 @@ export default function SecurityDashboard() {
             <h2 className="font-serif font-bold text-navy mb-3">Zinasubiri Idhini Yako</h2>
             <div className="space-y-3">
               {pending.map((p) => (
-                <div key={p.id} className="bg-white border border-gold/30 rounded-lg p-4 flex items-center justify-between gap-4">
+                <div key={p.id} className="bg-surface border border-gold/30 rounded-lg p-4 flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-navy">{p.action_type}</p>
                     <p className="text-xs text-ink-muted">{p.target_description} — {p.reason}</p>
@@ -164,7 +164,7 @@ export default function SecurityDashboard() {
           {blockedIps.length === 0 ? (
             <p className="text-sm text-ink-muted">Hakuna IP iliyozuiwa sasa hivi.</p>
           ) : (
-            <div className="bg-white rounded-lg border border-black/10 divide-y divide-black/5">
+            <div className="bg-surface rounded-lg border border-black/10 divide-y divide-black/5">
               {blockedIps.map((ip) => (
                 <div key={ip.id} className="px-4 py-3 flex items-center justify-between gap-4">
                   <div className="min-w-0">
@@ -203,7 +203,7 @@ export default function SecurityDashboard() {
           {events.length === 0 ? (
             <p className="text-sm text-ink-muted">Hakuna matukio.</p>
           ) : (
-            <div className="bg-white rounded-lg border border-black/10 divide-y divide-black/5 max-h-[500px] overflow-y-auto">
+            <div className="bg-surface rounded-lg border border-black/10 divide-y divide-black/5 max-h-[500px] overflow-y-auto">
               {events.map((ev) => (
                 <div key={ev.id} className="px-4 py-3 flex items-start gap-3">
                   <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${SEVERITY_COLOR[ev.severity] || SEVERITY_COLOR.low}`}>
@@ -230,7 +230,7 @@ export default function SecurityDashboard() {
 
 function SummaryCard({ label, value, danger }) {
   return (
-    <div className={`rounded-xl p-4 border ${danger ? 'border-terracotta/40 bg-terracotta/5' : 'border-black/10 bg-white'}`}>
+    <div className={`rounded-xl p-4 border ${danger ? 'border-terracotta/40 bg-terracotta/5' : 'border-black/10 bg-surface'}`}>
       <div className={`font-serif font-black text-2xl ${danger ? 'text-terracotta' : 'text-navy'}`}>{value}</div>
       <div className="text-[11px] text-ink-muted font-bold uppercase tracking-wide mt-1">{label}</div>
     </div>

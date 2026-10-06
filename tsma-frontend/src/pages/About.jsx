@@ -114,7 +114,7 @@ export default function About() {
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
             {content.values.map((v) => (
-              <div key={v.id} className="bg-white rounded-xl p-6 text-center border border-black/5">
+              <div key={v.id} className="bg-surface rounded-xl p-6 text-center border border-black/5">
                 <div className="text-3xl mb-3">{v.icon}</div>
                 <h3 className="font-serif font-bold text-navy mb-1.5">
                   {isSw ? v.title_sw : v.title_en}

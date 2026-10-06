@@ -25,7 +25,7 @@ export default function LanguageToggle({ variant = 'light' }) {
     'font-sans font-extrabold text-[11px] tracking-wide px-3 py-1.5 rounded-full transition-colors'
 
   const activeClass =
-    variant === 'dark' ? 'bg-white text-navy' : 'bg-navy text-white'
+    variant === 'dark' ? 'bg-surface text-navy' : 'bg-navy text-white'
   const inactiveClass =
     variant === 'dark' ? 'text-white/70 hover:text-white' : 'text-navy/55 hover:text-navy'
 

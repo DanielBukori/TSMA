@@ -30,11 +30,11 @@ export default function BoardProfileModal({ member, onClose }) {
       onClick={onClose}
     >
       <div
-        className="bg-white w-full sm:max-w-lg sm:rounded-2xl max-h-[92vh] overflow-y-auto rounded-t-2xl"
+        className="bg-surface w-full sm:max-w-lg sm:rounded-2xl max-h-[92vh] overflow-y-auto rounded-t-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header: kubonyeza kufunga */}
-        <div className="sticky top-0 bg-white flex justify-end p-3 border-b border-black/5 z-10">
+        <div className="sticky top-0 bg-surface flex justify-end p-3 border-b border-black/5 z-10">
           <button
             onClick={onClose}
             aria-label="Funga"

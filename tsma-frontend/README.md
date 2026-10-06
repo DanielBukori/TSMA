@@ -32,8 +32,9 @@ src/
 
 ## Design System
 
-- **Rangi:** Navy (`#0E2A4A`), Gold (`#D9922E`), Green (`#157A52`),
-  Terracotta (`#C1541F`), Cream (`#F3EFE4`) — angalia `tailwind.config.js`
+- **Rangi:** Navy (`#0E2A4A`), Gold (`#C9A227`), Green (`#1EA34D`),
+  Terracotta (`#C1541F`), warm Cream (`#F2E6D5`), page background
+  (`#F2E6D5`) na ivory surfaces (`#FFF5E8`) — angalia `tailwind.config.js`
 - **Fonti:** Frank Ruhl Libre (vichwa/serif), Nunito Sans (maandishi/sans)
 - **Lugha:** Kitufe cha KISWAHILI/ENGLISH cha kudumu juu ya tovuti
   (`LanguageToggle.jsx`) — kinachobadilisha maandishi YOTE mara moja bila

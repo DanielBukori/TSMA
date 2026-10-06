@@ -76,7 +76,7 @@ export default function SecurityLogin() {
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-5 py-16 bg-navy-deep">
-      <div className="bg-white rounded-xl max-w-sm w-full p-8">
+      <div className="bg-surface rounded-xl max-w-sm w-full p-8">
         <div className="text-center mb-6">
           <span className="text-3xl">🛡️</span>
           <h1 className="font-serif font-bold text-lg text-navy mt-2">Security Dashboard</h1>

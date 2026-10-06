@@ -110,7 +110,7 @@ export default function Directory() {
           onClick={() => setSelected(null)}
         >
           <div
-            className="bg-white rounded-xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-7"
+            className="bg-surface rounded-xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-7"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-4 mb-5">

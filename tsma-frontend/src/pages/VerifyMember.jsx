@@ -99,7 +99,7 @@ export default function VerifyMember() {
               </p>
             </div>
 
-            <div className="bg-white rounded-lg px-4">
+            <div className="bg-surface rounded-lg px-4">
               <Field label={isSw ? 'Jina' : 'Name'} value={data.full_name} />
               <Field label={isSw ? 'Namba ya Uanachama' : 'Membership No.'} value={data.membership_number} />
               <Field label={isSw ? 'Daraja' : 'Tier'} value={data.tier} />

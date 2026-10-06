@@ -9,7 +9,11 @@ html {
 body {
   font-family: 'Nunito Sans', system-ui, sans-serif;
   color: #1B211D;
-  background: #FFFFFF;
+  background-color: #F2E6D5;
+  background-image:
+    linear-gradient(125deg, rgba(201, 162, 39, 0.09), transparent 48%),
+    radial-gradient(ellipse at 92% 16%, rgba(193, 84, 31, 0.12), transparent 34rem),
+    radial-gradient(ellipse at 8% 82%, rgba(201, 162, 39, 0.1), transparent 38rem);
 }
 
 h1, h2, h3, h4 {

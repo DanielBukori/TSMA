@@ -233,7 +233,7 @@ function PurchaseBlock({ pub, isSw, isAuthenticated }) {
 
   if (status === 'waiting' && manual?.bank_details) {
     return (
-      <div className="border border-black/10 bg-white rounded-xl p-6">
+      <div className="border border-black/10 bg-surface rounded-xl p-6">
         <ManualPaymentCard
           isSw={isSw}
           bankDetails={manual.bank_details}

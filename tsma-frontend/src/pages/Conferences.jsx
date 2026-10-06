@@ -83,7 +83,7 @@ export default function Conferences() {
         <section className="max-w-5xl mx-auto px-5 md:px-8 -mt-8 relative z-10">
           <Link
             to={`/conferences/${featured.slug}`}
-            className="block bg-white rounded-2xl shadow-2xl overflow-hidden border border-black/5 hover:shadow-[0_30px_60px_-20px_rgba(14,42,74,0.4)] transition-shadow"
+            className="block bg-surface rounded-2xl shadow-2xl overflow-hidden border border-black/5 hover:shadow-[0_30px_60px_-20px_rgba(14,42,74,0.4)] transition-shadow"
           >
             <div className="bg-gradient-to-br from-navy-deep via-navy to-green-dark text-white p-8 md:p-12 relative overflow-hidden">
               <div className="absolute inset-0 bg-track-lines opacity-40" />
@@ -164,7 +164,7 @@ function ConferenceCard({ conference, isSw, isPast }) {
   return (
     <Link
       to={`/conferences/${conference.slug}`}
-      className="block bg-white border border-black/10 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+      className="block bg-surface border border-black/10 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
     >
       <div
         className={`h-32 bg-gradient-to-br ${

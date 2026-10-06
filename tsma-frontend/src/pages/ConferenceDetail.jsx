@@ -93,7 +93,7 @@ export default function ConferenceDetail() {
 
                   <div className="pl-14 space-y-4">
                     {day.sessions?.map((session) => (
-                      <div key={session.id} className="bg-white border border-black/10 rounded-lg p-4">
+                      <div key={session.id} className="bg-surface border border-black/10 rounded-lg p-4">
                         <div className="flex justify-between items-start gap-3">
                           <div>
                             <h4 className="font-bold text-sm text-navy">{session.title}</h4>
@@ -219,7 +219,7 @@ function TicketPicker({ tickets, selectedId, onSelect, isSw }) {
 function PaymentStatusBlock({ status, message, reference, isSw, manual }) {
   if (status === 'waiting' && manual?.bank_details) {
     return (
-      <div className="border border-black/10 rounded-xl p-6 bg-white">
+      <div className="border border-black/10 rounded-xl p-6 bg-surface">
         <ManualPaymentCard
           isSw={isSw}
           bankDetails={manual.bank_details}

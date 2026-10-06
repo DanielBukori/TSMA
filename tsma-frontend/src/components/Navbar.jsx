@@ -84,7 +84,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-40 px-3 pt-3 md:px-5 md:pt-4">
       <div
-        className={`flex items-center justify-between gap-3 rounded-full bg-white/90 backdrop-blur-md px-4 md:px-6 py-2.5 transition-shadow ${
+        className={`flex items-center justify-between gap-3 rounded-full bg-surface/95 backdrop-blur-md px-4 md:px-6 py-2.5 transition-shadow ${
           scrolled ? 'shadow-lg shadow-black/10 ring-1 ring-black/5' : 'shadow-md shadow-black/5'
         }`}
       >
@@ -144,7 +144,7 @@ export default function Navbar() {
                   onClick={() => setMoreOpen(false)}
                   aria-hidden="true"
                 />
-                <div className="absolute right-0 top-full mt-3 w-52 bg-white rounded-2xl shadow-xl border border-black/5 py-2 z-50">
+                <div className="absolute right-0 top-full mt-3 w-52 bg-surface rounded-2xl shadow-xl border border-black/5 py-2 z-50">
                   {moreLinks.map((link) => (
                     <Link
                       key={link.to}
@@ -221,7 +221,7 @@ export default function Navbar() {
       />
 
       <aside
-        className={`fixed top-0 right-0 h-full w-[82%] max-w-sm bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out xl:hidden flex flex-col ${
+        className={`fixed top-0 right-0 h-full w-[82%] max-w-sm bg-surface z-50 shadow-2xl transform transition-transform duration-300 ease-in-out xl:hidden flex flex-col ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
