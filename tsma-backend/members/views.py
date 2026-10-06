@@ -1,5 +1,8 @@
+import mimetypes
+
 from django.db import transaction as db_transaction
 from django.db.models import Q
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -262,3 +265,32 @@ class ProfessionalDirectoryDetailView(generics.RetrieveAPIView):
                 return queryset
             return queryset.filter(Q(is_public=True) | Q(member__user=user))
         return queryset.filter(is_public=True)
+
+
+class ProfessionalDirectoryCVView(APIView):
+    """Serve CV file for a member profile when access is allowed."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, member_id):
+        profile = get_object_or_404(
+            MemberProfile.objects.select_related("member", "member__user"),
+            member_id=member_id,
+        )
+
+        user = request.user
+        allowed = (
+            profile.cv_public
+            or (user.is_authenticated and (user == profile.member.user or user.is_super_admin or user.is_board_admin))
+        )
+        if not allowed or not profile.cv_file:
+            raise Http404
+
+        file_handle = profile.cv_file.open("rb")
+        response = FileResponse(
+            file_handle,
+            as_attachment=True,
+            filename=profile.cv_file.name.split("/")[-1],
+        )
+        response["Content-Type"] = mimetypes.guess_type(profile.cv_file.name)[0] or "application/octet-stream"
+        return response
