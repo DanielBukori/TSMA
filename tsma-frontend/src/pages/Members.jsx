@@ -92,7 +92,6 @@ export default function Members() {
 
 function TierCard({ tier, isSw, isOpen, onChoose }) {
   const fee = Number(tier.annual_fee)
-  const benefits = Array.isArray(tier.benefits) ? tier.benefits : []
   return (
     <button
       onClick={onChoose}
@@ -106,9 +105,9 @@ function TierCard({ tier, isSw, isOpen, onChoose }) {
         {fee > 0 && <span className="text-sm font-sans font-normal text-ink-muted"> {tier.currency}/{isSw ? 'mwaka' : 'yr'}</span>}
       </div>
       <p className="text-sm text-ink-muted mt-3">{tier.description}</p>
-      {benefits.length > 0 && (
+      {tier.benefits?.length > 0 && (
         <ul className="mt-4 space-y-2 text-sm">
-          {benefits.map((b, i) => (
+          {tier.benefits.map((b, i) => (
             <li key={i} className="flex items-start gap-2">
               <span className="text-green mt-0.5">✓</span>
               <span>{b}</span>

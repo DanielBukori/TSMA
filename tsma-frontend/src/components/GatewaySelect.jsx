@@ -20,12 +20,8 @@ export default function GatewaySelect({ value, onChange, isSw }) {
   useEffect(() => {
     fetchAvailableGateways()
       .then((res) => {
-        const results = res.data?.gateways ?? res.data
-        if (!Array.isArray(results)) {
-          throw new TypeError('Payment gateways response must be an array.')
-        }
-        setGateways(results)
-        if (!value && results.length > 0) onChange(results[0])
+        setGateways(res.data)
+        if (!value && res.data.length > 0) onChange(res.data[0])
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false))

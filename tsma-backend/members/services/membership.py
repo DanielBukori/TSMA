@@ -7,6 +7,7 @@ app (kuepuka circular imports).
 
 from payments.models import PaymentPurpose
 
+from ..models import MembershipStatus
 from .card_generator import generate_membership_card
 
 
@@ -18,5 +19,11 @@ def handle_payment_succeeded(sender, transaction, **kwargs):
     if member is None:
         return
 
-    member.activate()
-    generate_membership_card(member)
+    # IDEMPOTENT (salama kurudia): usiweke upya tarehe ya kuisha kwa mwanachama
+    # aliyeshawezeshwa, na usitengeneze kadi upya kama ipo. Uanachama unawezeshwa
+    # KWANZA (unahifadhiwa mara moja) - kadi ikishindwa, uanachama unabaki ACTIVE
+    # na kosa linarekodiwa kwenye malipo ili lirudiwe baadaye.
+    if member.status != MembershipStatus.ACTIVE:
+        member.activate()
+    if not member.digital_card_image:
+        generate_membership_card(member)

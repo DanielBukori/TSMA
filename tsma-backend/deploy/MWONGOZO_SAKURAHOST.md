@@ -77,11 +77,15 @@ rsync -av --delete dist/ tsma@IP_YA_VPS:/srv/tsma/frontend-dist/
 ```bash
 cat > /etc/cron.d/tsma <<'CRON'
 */30 * * * * tsma cd /srv/tsma/tsma-backend && /srv/tsma/venv/bin/python manage.py expire_stale_manual_payments >> /var/log/tsma-cron.log 2>&1
+*/15 * * * * tsma cd /srv/tsma/tsma-backend && /srv/tsma/venv/bin/python manage.py reprocess_payments >> /var/log/tsma-cron.log 2>&1
+*/30 * * * * tsma cd /srv/tsma/tsma-backend && /srv/tsma/venv/bin/python manage.py regenerate_certificates >> /var/log/tsma-cron.log 2>&1
 15 2 * * *   tsma /srv/tsma/tsma-backend/deploy/backup.sh
 CRON
 touch /var/log/tsma-cron.log && chown tsma /var/log/tsma-cron.log
 ```
 Backup zinakaa `/srv/tsma/backups`. **Zinakili pia nje ya server** (kompyuta yako au Google Drive) - server ikiharibika, zote mbili zitapotea.
+
+`reprocess_payments` inarekebisha kiotomatiki malipo yaliyofanikiwa lakini uanachama/kadi/risiti/kitabu kimekwama; `regenerate_certificates` inatengeneza picha za vyeti zilizokosekana.
 
 ## 7. Thibitisha kila kitu kinafanya kazi
 1. `https://tsma.or.tz` inafunguka (lock ya SSL), `https://tsma.or.tz/admin/` inaingia.

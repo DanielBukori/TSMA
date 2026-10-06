@@ -13,12 +13,22 @@ export default function QuizTake() {
   const [loading, setLoading] = useState(true)
   const [result, setResult] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [loadError, setLoadError] = useState('')
+  const [submitError, setSubmitError] = useState('')
 
   useEffect(() => {
     apiClient
       .get(`/teaching/quizzes/${id}/`)
       .then((res) => setQuiz(res.data))
-      .catch(() => {})
+      .catch((err) => {
+        const detail = err.response?.data?.detail
+        setLoadError(
+          detail ||
+            (err.response?.status === 401
+              ? isSw ? 'Ingia kwanza ili kufanya quiz.' : 'Sign in first to take the quiz.'
+              : isSw ? 'Quiz haikupatikana.' : 'Quiz not found.'),
+        )
+      })
       .finally(() => setLoading(false))
   }, [id])
 
@@ -29,6 +39,7 @@ export default function QuizTake() {
   async function handleSubmit(e) {
     e.preventDefault()
     setSubmitting(true)
+    setSubmitError('')
 
     const payload = {
       answers: quiz.questions.map((q) => {
@@ -43,15 +54,19 @@ export default function QuizTake() {
     try {
       const res = await apiClient.post(`/teaching/quizzes/${id}/submit/`, payload)
       setResult(res.data)
-    } catch {
-      // no-op
+    } catch (err) {
+      const data = err.response?.data
+      setSubmitError(
+        (Array.isArray(data?.detail) ? data.detail[0] : data?.detail) ||
+          (isSw ? 'Imeshindikana kuwasilisha. Hakikisha umejibu maswali yote kisha jaribu tena.' : 'Could not submit. Make sure you answered every question and try again.'),
+      )
     } finally {
       setSubmitting(false)
     }
   }
 
   if (loading) return <div className="py-24 text-center text-ink-muted text-sm">{isSw ? 'Inapakia...' : 'Loading...'}</div>
-  if (!quiz) return <div className="py-24 text-center text-ink-muted text-sm">{isSw ? 'Quiz haikupatikana.' : 'Quiz not found.'}</div>
+  if (!quiz) return <div className="py-24 text-center text-ink-muted text-sm px-5">{loadError || (isSw ? 'Quiz haikupatikana.' : 'Quiz not found.')}</div>
 
   if (result) {
     return (
@@ -137,6 +152,12 @@ export default function QuizTake() {
             )}
           </div>
         ))}
+
+        {submitError && (
+          <div className="bg-terracotta/10 border border-terracotta/30 text-terracotta text-sm rounded-lg px-4 py-3">
+            {submitError}
+          </div>
+        )}
 
         <button
           type="submit"

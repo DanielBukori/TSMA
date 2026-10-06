@@ -115,6 +115,17 @@ class SessionDetailView(generics.RetrieveAPIView):
     def get_serializer_context(self):
         return {"request": self.request}
 
+    def retrieve(self, request, *args, **kwargs):
+        session = self.get_object()
+        # Mtu anayefungua kikao anachohaki kukifikia ANAHESABIWA kuwa ameingia
+        # (joined). Bila hili, quiz ya kikao huru ilikataliwa (403) mpaka mtu
+        # abonyeze "Nimekamilisha" kwanza - tazama _user_can_take_quiz().
+        if _user_can_access_session_media(request.user, session):
+            SessionAttendance.objects.get_or_create(
+                user=request.user, session=session, defaults={"joined_at": timezone.now()}
+            )
+        return Response(self.get_serializer(session).data)
+
 
 def _user_can_access_session_media(user, session):
     """Kikao huru (bila course) = wazi kwa mtumiaji yeyote aliye-login."""
@@ -303,7 +314,9 @@ class MyProgressView(APIView):
             "certificates": certificates,
             "quiz_attempts": quiz_attempts,
         }
-        return Response(MyProgressSerializer(data).data)
+        # context ya request: URL ya picha ya cheti iwe KAMILI (https://...), siyo '/media/..'
+        # (URL fupi ingeelekea domain ya frontend na kutoa 404).
+        return Response(MyProgressSerializer(data, context={"request": request}).data)
 
 
 class CertificateVerifyView(generics.RetrieveAPIView):

@@ -106,6 +106,37 @@ export default function CourseDetail() {
             </Link>
           ))}
         </div>
+
+        {course.quizzes?.length > 0 && (
+          <>
+            <h2 className="font-serif font-bold text-lg text-navy mt-10 mb-4">
+              {isSw ? 'Quiz za Kozi (pata cheti ukifaulu)' : 'Course Quizzes (earn a certificate when you pass)'}
+            </h2>
+            <div className="space-y-3">
+              {course.quizzes.map((quiz) =>
+                course.is_enrolled ? (
+                  <Link
+                    key={quiz.id}
+                    to={`/teaching/quiz/${quiz.id}`}
+                    className="flex items-center justify-between gap-4 bg-gold/10 border border-gold/30 rounded-xl p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-sm text-navy truncate">📝 {quiz.title}</h3>
+                      <p className="text-xs text-ink-muted mt-0.5">
+                        {quiz.total_questions} {isSw ? 'maswali' : 'questions'} · {isSw ? 'kufaulu' : 'pass'} {quiz.passing_score_percent}%
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold text-navy shrink-0">{isSw ? 'Anza →' : 'Start →'}</span>
+                  </Link>
+                ) : (
+                  <div key={quiz.id} className="bg-cream border border-black/10 rounded-xl p-4 text-sm text-ink-muted">
+                    📝 {quiz.title} — {isSw ? 'jiunge na kozi kwanza ili kufanya quiz hii.' : 'enroll in the course first to take this quiz.'}
+                  </div>
+                ),
+              )}
+            </div>
+          </>
+        )}
       </section>
     </>
   )

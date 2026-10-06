@@ -152,3 +152,36 @@ class PasswordResetToken(models.Model):
 
     def __str__(self):
         return f"Reset token of {self.user.email}"
+
+
+class EmailOTP(models.Model):
+    """
+    Namba ya siri ya tarakimu 6 (OTP) inayotumwa kwa barua pepe:
+    - VERIFY_EMAIL: kuthibitisha barua pepe kabla ya kuingia (login)
+    - RESET_PASSWORD: kubadili password ukisahau
+
+    Namba yenyewe HAIHIFADHIWI (tunahifadhi hash tu). Inaisha muda baada ya
+    dakika 10, na inaruhusu majaribio 5 tu (angalia accounts/otp.py).
+    """
+
+    class Purpose(models.TextChoices):
+        VERIFY_EMAIL = "verify_email", _("Verify email")
+        RESET_PASSWORD = "reset_password", _("Reset password")
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="email_otps")
+    purpose = models.CharField(max_length=20, choices=Purpose.choices)
+    code_hash = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    used = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["user", "purpose", "used"])]
+
+    def is_expired(self):
+        return timezone.now() >= self.expires_at
+
+    def __str__(self):
+        return f"OTP {self.purpose} ya {self.user.email}"

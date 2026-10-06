@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils import timezone
 
 from .models import ManualPaymentSettings, PaymentStatus, PaymentTransaction
-from .signals import payment_succeeded
+from .services import dispatch_payment_succeeded
 
 
 @admin.register(PaymentTransaction)
@@ -18,6 +18,7 @@ class PaymentTransactionAdmin(admin.ModelAdmin):
         "expires_at",
         "created_at",
         "paid_at",
+        "has_post_error",
     )
     list_filter = ("purpose", "gateway", "status", "payment_method")
     search_fields = (
@@ -36,9 +37,38 @@ class PaymentTransactionAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
         "paid_at",
+        "post_processing_error",
     )
     ordering = ("-created_at",)
-    actions = ["confirm_manual_payment"]
+    actions = ["confirm_manual_payment", "reprocess_after_payment"]
+
+    @admin.display(boolean=True, description="Hitilafu baada ya malipo?")
+    def has_post_error(self, obj):
+        return bool(obj.post_processing_error)
+
+    @admin.action(description="🔁 Rudia usindikaji baada ya malipo (uanachama/risiti/kitabu)")
+    def reprocess_after_payment(self, request, queryset):
+        """
+        Kwa malipo yaliyo SUCCESS lakini uanachama haukuwezeshwa, risiti/kadi
+        haikutengenezwa, au kitabu hakifunguki. Inaendesha tena hatua zote za
+        baada ya malipo (ni salama kurudia - hazibadilishi kilichokamilika).
+        """
+        fixed, still_failing = 0, 0
+        for txn in queryset.filter(status=PaymentStatus.SUCCESS):
+            errors = dispatch_payment_succeeded(txn)
+            if errors:
+                still_failing += 1
+                self.message_user(
+                    request,
+                    f"{txn.internal_reference}: bado kuna hitilafu - {errors[0][:300]}",
+                    level="error",
+                )
+            else:
+                fixed += 1
+        if fixed:
+            self.message_user(request, f"{fixed} zimekamilishwa kikamilifu.")
+        if not fixed and not still_failing:
+            self.message_user(request, "Hakuna malipo yenye hali ya SUCCESS kwenye uchaguzi.", level="warning")
 
     @admin.action(description="✅ Thibitisha malipo yamepokelewa (manual pekee)")
     def confirm_manual_payment(self, request, queryset):
@@ -72,7 +102,14 @@ class PaymentTransactionAdmin(admin.ModelAdmin):
                 continue
 
             txn.mark_success(raw_response={"confirmed_by_admin": request.user.email, "confirmed_at": str(timezone.now())})
-            payment_succeeded.send(sender=PaymentTransaction, transaction=txn)
+            errors = dispatch_payment_succeeded(txn)
+            if errors:
+                self.message_user(
+                    request,
+                    f"{txn.internal_reference}: malipo yamethibitishwa LAKINI hatua ya baadaye "
+                    f"imeshindwa ({errors[0][:300]}). Rekebisha kisha tumia 'Rudia usindikaji'.",
+                    level="error",
+                )
             confirmed += 1
 
         if confirmed:

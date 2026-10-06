@@ -24,10 +24,14 @@ export default function Login() {
       await login(form.email, form.password)
       navigate(redirectTo, { replace: true })
     } catch (err) {
-      setError(
-        err.response?.data?.detail ||
-          (isSw ? 'Email au password si sahihi.' : 'Invalid email or password.'),
-      )
+      const data = err.response?.data
+      // Barua pepe haijathibitishwa: backend imeshatuma namba mpya - mpeleke kwenye skrini ya OTP
+      if (data?.code === 'email_not_verified') {
+        navigate('/verify-email', { state: { email: data.email || form.email, emailSent: true } })
+        return
+      }
+      const detail = Array.isArray(data?.detail) ? data.detail[0] : data?.detail
+      setError(detail || (isSw ? 'Email au password si sahihi.' : 'Invalid email or password.'))
     } finally {
       setLoading(false)
     }
@@ -44,6 +48,12 @@ export default function Login() {
             {isSw ? 'Ingia kwenye akaunti yako ya TSMA' : 'Sign in to your TSMA account'}
           </p>
         </div>
+
+        {location.state?.notice && !error && (
+          <div className="bg-green/10 border border-green/30 text-green text-sm rounded-lg px-4 py-3 mb-5">
+            {location.state.notice}
+          </div>
+        )}
 
         {error && (
           <div className="bg-terracotta/10 border border-terracotta/30 text-terracotta text-sm rounded-lg px-4 py-3 mb-5">
@@ -68,6 +78,11 @@ export default function Login() {
             placeholder="••••••••"
             required
           />
+          <div className="text-right -mt-2">
+            <Link to="/forgot-password" className="text-xs font-bold text-navy hover:text-terracotta">
+              {isSw ? 'Umesahau password?' : 'Forgot password?'}
+            </Link>
+          </div>
 
           <button
             type="submit"

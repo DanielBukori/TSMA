@@ -1,5 +1,5 @@
 from payments.models import PaymentPurpose
-from payments.payment_services import initiate_payment
+from payments.services import initiate_payment
 
 from ..models import Publication, PublicationAccessType, PublicationPurchase
 

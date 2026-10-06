@@ -5,6 +5,7 @@ from .views import (
     CustomTokenObtainPairView,
     CustomTokenRefreshView,
     EmailVerificationConfirmView,
+    EmailVerificationResendView,
     LogoutView,
     MeView,
     PasswordResetConfirmView,
@@ -31,5 +32,10 @@ urlpatterns = [
         "email/verify/",
         EmailVerificationConfirmView.as_view(),
         name="email_verify",
+    ),
+    path(
+        "email/resend/",
+        EmailVerificationResendView.as_view(),
+        name="email_resend",
     ),
 ]

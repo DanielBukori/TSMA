@@ -182,7 +182,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Email verification enforcement (hiari)
-REQUIRE_EMAIL_VERIFICATION = env.bool("REQUIRE_EMAIL_VERIFICATION", default=False)
+# DEFAULT True: mtu lazima athibitishe barua pepe kwa OTP kabla ya kuingia.
+# Dharura (barua pepe haifanyi kazi): weka REQUIRE_EMAIL_VERIFICATION=False kwenye env,
+# au thibitisha mtumiaji kwa mkono kupitia Django Admin (is_email_verified).
+REQUIRE_EMAIL_VERIFICATION = env.bool("REQUIRE_EMAIL_VERIFICATION", default=True)
 
 # django-axes: lockout baada ya majaribio 5 yasiyofanikiwa
 AXES_FAILURE_LIMIT = 5
@@ -214,6 +217,9 @@ REST_FRAMEWORK = {
         # Scoped throttle kwa endpoints nyeti (throttle_scope kwenye views):
         "contact_form": "5/hour",
         "password_reset": "5/hour",
+        # OTP ya barua pepe (kwa IP). Kila mtumiaji ana kikomo chake pia (accounts/otp.py).
+        "otp_request": "10/hour",
+        "otp_verify": "30/hour",
     },
 }
 
@@ -325,8 +331,19 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Email
 # ---------------------------------------------------------------------------
 
+# EMAIL_PROVIDER:
+#   smtp  (default) - SMTP ya kawaida (Gmail, Sakurahost, Brevo SMTP...) - EMAIL_HOST n.k.
+#   brevo           - API ya Brevo kupitia HTTPS (BREVO_API_KEY). Tumia hii kwenye Render
+#                     ya BURE, kwa sababu Render inazuia ports zote za SMTP.
+# Wakati wa maendeleo (DJANGO_DEBUG=True) barua pepe zinaandikwa kwenye terminal (console),
+# kwa hiyo OTP unaiona hapo.
+EMAIL_PROVIDER = env("EMAIL_PROVIDER", default="smtp").lower()
+BREVO_API_KEY = env("BREVO_API_KEY", default="")
+
 if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+elif EMAIL_PROVIDER == "brevo":
+    EMAIL_BACKEND = "common.email_backends.BrevoEmailBackend"
 else:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = env("EMAIL_HOST", default="")

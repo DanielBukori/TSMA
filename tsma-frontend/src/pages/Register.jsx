@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 export default function Register() {
   const { i18n } = useTranslation()
   const isSw = i18n.language?.startsWith('sw')
-  const { register, login } = useAuth()
+  const { register } = useAuth()
   const navigate = useNavigate()
 
   const [form, setForm] = useState({
@@ -35,10 +35,12 @@ export default function Register() {
 
     setLoading(true)
     try {
-      await register(form)
-      // Baada ya usajili kufanikiwa, mwingize moja kwa moja (auto-login)
-      await login(form.email, form.password)
-      navigate('/dashboard', { replace: true })
+      const data = await register(form)
+      // Hakuna auto-login: lazima kwanza athibitishe barua pepe kwa namba ya tarakimu 6 (OTP)
+      navigate('/verify-email', {
+        replace: true,
+        state: { email: form.email, emailSent: data?.email_sent !== false },
+      })
     } catch (err) {
       const data = err.response?.data
       const firstError = data ? Object.values(data)[0] : null

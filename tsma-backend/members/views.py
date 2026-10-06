@@ -1,6 +1,5 @@
 from django.db import transaction as db_transaction
 from django.db.models import Q
-from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -11,7 +10,7 @@ from rest_framework.views import APIView
 from accounts.permissions import IsBoardAdmin, IsSuperAdmin
 from payments.gateways.base import GatewayError
 from payments.models import PaymentPurpose
-from payments.payment_services import initiate_payment
+from payments.services import initiate_payment
 
 from .models import Member, MemberProfile, MembershipStatus, MembershipTier
 from .serializers import (
@@ -263,35 +262,3 @@ class ProfessionalDirectoryDetailView(generics.RetrieveAPIView):
                 return queryset
             return queryset.filter(Q(is_public=True) | Q(member__user=user))
         return queryset.filter(is_public=True)
-
-
-class ProfessionalDirectoryCVView(generics.RetrieveAPIView):
-    """GET /api/members/directory/<uuid:member_id>/cv/ - download CV ya profaili ya umma."""
-
-    permission_classes = [AllowAny]
-    lookup_field = "member_id"
-    lookup_url_kwarg = "member_id"
-
-    def get_queryset(self):
-        queryset = MemberProfile.objects.select_related("member", "member__user")
-        user = self.request.user
-        if user.is_authenticated:
-            if user.is_super_admin or user.is_board_admin:
-                return queryset
-            return queryset.filter(Q(member__user=user) | Q(cv_public=True, is_public=True))
-        return queryset.filter(cv_public=True, is_public=True)
-
-    def get(self, request, *args, **kwargs):
-        profile = self.get_object()
-        if not profile.cv_file:
-            raise Http404("CV haipo kwa profaili hii.")
-
-        # We allow access only when the profile is public and has CV visibility enabled,
-        # or when the owner/admin is requesting it. The queryset enforces those rules.
-        file_handle = profile.cv_file.open("rb")
-        response = FileResponse(
-            file_handle,
-            as_attachment=True,
-            filename=profile.cv_file.name.split("/")[-1],
-        )
-        return response

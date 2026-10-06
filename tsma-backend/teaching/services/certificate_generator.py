@@ -5,6 +5,7 @@ mtandaoni (kama roadmap ilivyoainisha).
 """
 
 import io
+import logging
 
 import qrcode
 from django.conf import settings
@@ -13,6 +14,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 from common.branding import get_logo_image, paste_logo
 from common.fonts import get_font
+
+logger = logging.getLogger(__name__)
 
 CERT_WIDTH = 1200
 CERT_HEIGHT = 850
@@ -69,7 +72,14 @@ def issue_certificate_if_needed(quiz_attempt):
             quiz_attempt=quiz_attempt,
         )
 
-    generate_certificate_image(certificate)
+    # MUHIMU: picha ikishindwa (storage, font, n.k.) usivunje mtihani. Zamani kosa
+    # hapa lilipanda hadi QuizSubmitView (ndani ya transaction.atomic) na KUFUTA
+    # jaribio zima la mtumiaji (500). Sasa cheti kinabaki, picha inarudiwa baadaye
+    # (Admin -> Vyeti -> "Tengeneza upya picha" au `manage.py regenerate_certificates`).
+    try:
+        generate_certificate_image(certificate)
+    except Exception:
+        logger.exception("Picha ya cheti %s imeshindwa kutengenezwa", certificate.certificate_number)
     return certificate
 
 

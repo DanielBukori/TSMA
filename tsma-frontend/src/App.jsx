@@ -11,6 +11,8 @@ import CareerDetail from './pages/CareerDetail.jsx'
 import Founders from './pages/Founders.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
+import VerifyEmail from './pages/VerifyEmail.jsx'
+import ForgotPassword from './pages/ForgotPassword.jsx'
 import Members from './pages/Members.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Conferences from './pages/Conferences.jsx'
@@ -30,6 +32,7 @@ import NotFound from './pages/NotFound.jsx'
 import SecurityLogin from './pages/SecurityLogin.jsx'
 import SecurityDashboard from './pages/SecurityDashboard.jsx'
 import VerifyMember from './pages/VerifyMember.jsx'
+import VerifyCertificate from './pages/VerifyCertificate.jsx'
 
 export default function App() {
   return (
@@ -52,9 +55,13 @@ export default function App() {
           <Route path="/founders" element={<Founders />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ForgotPassword />} />
           <Route path="/members" element={<Members />} />
           {/* Ukurasa wa QR ya kadi ya uanachama (public) */}
           <Route path="/verify-member/:code" element={<VerifyMember />} />
+          <Route path="/verify-certificate/:code" element={<VerifyCertificate />} />
           <Route path="/conferences" element={<Conferences />} />
           <Route path="/conferences/:slug" element={<ConferenceDetail />} />
           <Route path="/publications" element={<Publications />} />

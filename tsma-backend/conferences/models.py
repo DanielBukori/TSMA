@@ -266,8 +266,17 @@ class ConferenceRegistrationBatch(models.Model):
     def confirm(self):
         self.status = RegistrationBatchStatus.CONFIRMED
         self.save(update_fields=["status", "updated_at"])
+        # Risiti ya mshiriki mmoja ikishindwa, usiwazuie wengine. Makosa yanakusanywa
+        # na kupandishwa MWISHONI ili yarekodiwe kwenye malipo (na kurudiwa baadaye -
+        # mark_confirmed inarukwa kwa waliokwisha pata risiti).
+        failures = []
         for attendee in self.attendees.all():
-            attendee.mark_confirmed()
+            try:
+                attendee.mark_confirmed()
+            except Exception as exc:
+                failures.append(f"{attendee.full_name}: {exc!r}")
+        if failures:
+            raise RuntimeError("Risiti hazikutengenezwa kwa: " + "; ".join(failures))
 
 
 class ConferenceRegistration(models.Model):

@@ -106,6 +106,13 @@ class PaymentTransaction(models.Model):
     # `expire_stale_manual_payments` management command.
     expires_at = models.DateTimeField(blank=True, null=True)
 
+    # Hitilafu zilizotokea BAADA ya malipo kufanikiwa (mfano: kadi/risiti
+    # imeshindwa kutengenezwa, uanachama haukuwezeshwa). Kama hapa pana
+    # maandishi, malipo yenyewe ni SAWA lakini kuna hatua ya baadaye iliyokwama:
+    # tumia action "Rudia usindikaji baada ya malipo" kwenye Django Admin
+    # (au `python manage.py reprocess_payments`) baada ya kurekebisha chanzo.
+    post_processing_error = models.TextField(blank=True, default="")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     paid_at = models.DateTimeField(blank=True, null=True)

@@ -11,10 +11,13 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import EmailVerificationToken, PasswordResetToken, User
+from .emails import send_otp_email
+from .models import EmailOTP, User
+from .otp import OTPThrottled, issue_otp, verify_otp
 from .serializers import (
     ChangePasswordSerializer,
     CustomTokenObtainPairSerializer,
+    EmailOnlySerializer,
     EmailVerificationConfirmSerializer,
     LogoutSerializer,
     PasswordResetConfirmSerializer,
@@ -25,50 +28,51 @@ from .serializers import (
 )
 
 
+def _send_otp(user, purpose):
+    """Tengeneza na utume OTP. Inarudisha True kama barua pepe imetumwa; False vinginevyo (si kosa kubwa)."""
+    try:
+        code = issue_otp(user, purpose)
+    except OTPThrottled:
+        return False
+    return send_otp_email(user, purpose, code)
+
+
 class RegisterView(generics.CreateAPIView):
-    """POST /api/auth/register/ - New User Registration."""
+    """
+    POST /api/auth/register/ - Usajili wa mtumiaji mpya.
+    Inatuma OTP (tarakimu 6) kwa barua pepe; mtumiaji lazima aithibitishe
+    (POST /api/auth/email/verify/) kabla ya kuingia.
+    """
 
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
+    throttle_scope = "otp_request"
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        # Tengeneza email verification token na (kwa production) tuma email
-        verification, _created = EmailVerificationToken.objects.get_or_create(user=user)
-        self._send_verification_email(user, verification.token)
+        email_sent = _send_otp(user, EmailOTP.Purpose.VERIFY_EMAIL)
 
         return Response(
             {
                 "user": UserSerializer(user).data,
+                "requires_email_verification": True,
+                "email_sent": email_sent,
                 "message": _(
-                    "Account Registration successifully. Please check your Email for account verification."
+                    "Usajili umefanikiwa. Tumetuma namba ya tarakimu 6 kwenye barua pepe yako - "
+                    "iingize kuthibitisha akaunti."
+                )
+                if email_sent
+                else _(
+                    "Usajili umefanikiwa, lakini barua pepe haikutumwa. "
+                    "Bonyeza 'Tuma namba tena' kwenye skrini ifuatayo."
                 ),
             },
             status=status.HTTP_201_CREATED,
         )
-
-    @staticmethod
-    def _send_verification_email(user, token):
-        verify_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
-        try:
-            send_mail(
-                subject="TSMA - Confirm your account",
-                message=(
-                    f"hello {user.first_name},\n\n"
-                    f"Please Click the link to Confirm your account:\n{verify_url}\n\n"
-                    "Thank you,\nTSMA Team"
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=True,
-            )
-        except Exception:
-            # Katika production, tumia logging badala ya kupuuza kimya kimya
-            pass
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -153,47 +157,28 @@ class ChangePasswordView(APIView):
 
 class PasswordResetRequestView(APIView):
     """
-    POST /api/auth/password/reset/
-    Mtumiaji anaomba reset link kwa email yake (forgot password).
+    POST /api/auth/password/reset/  {email}
+    Inatuma OTP (tarakimu 6) kwa barua pepe kwa ajili ya kubadili password.
+    Jibu ni LILELILE hata kama barua pepe haipo (kuzuia user enumeration).
     """
 
     permission_classes = [AllowAny]
+    throttle_scope = "password_reset"
 
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data["email"]
 
-        user = User.objects.filter(email__iexact=email).first()
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
         if user:
-            # Batilisha tokens zote za awali ambazo bado hazijatumika, kisha
-            # tengeneza moja mpya — kuepuka "reset tokens nyingi active" kwa
-            # wakati mmoja (moja ikiwa imevuja, zote zilizopita zinabaki hai).
-            PasswordResetToken.objects.filter(user=user, used=False).update(used=True)
+            _send_otp(user, EmailOTP.Purpose.RESET_PASSWORD)
 
-            reset_token = PasswordResetToken.objects.create(user=user)
-            reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token.token}"
-            try:
-                send_mail(
-                    subject="TSMA - Password Change",
-                    message=(
-                        f"Hello {user.first_name},\n\n"
-                        f"Use this link to change your password (valid for: 1 hour):\n{reset_url}\n\n"
-                        "if it's not requested Skip This email.\n\nThank you,\nTSMA Team"
-                    ),
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[user.email],
-                    fail_silently=True,
-                )
-            except Exception:
-                pass
-
-        # Tunarudisha jibu lile lile hata kama email haipo — kuepuka user enumeration
         return Response(
             {
                 "detail": _(
-                    "Kama email hiyo ipo kwenye mfumo, maelekezo ya kubadili password "
-                    "yametumwa."
+                    "Kama barua pepe hiyo ipo kwenye mfumo, tumetuma namba ya tarakimu 6 "
+                    "ya kubadili password."
                 )
             },
             status=status.HTTP_200_OK,
@@ -201,45 +186,36 @@ class PasswordResetRequestView(APIView):
 
 
 class PasswordResetConfirmView(APIView):
-    """POST /api/auth/password/reset/confirm/ - Kukamilisha reset ya password."""
+    """POST /api/auth/password/reset/confirm/  {email, code, new_password, new_password_confirm}"""
 
     permission_classes = [AllowAny]
+    throttle_scope = "otp_verify"
+
+    INVALID_MESSAGE = _("Namba si sahihi au imeisha muda. Omba namba mpya.")
 
     def post(self, request):
         serializer = PasswordResetConfirmSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
 
-        with db_transaction.atomic():
-            # select_for_update: kuzuia race condition endapo maombi mawili
-            # yatafika kwa wakati mmoja yakitumia token ile ile kabla
-            # 'used=True' kuhifadhiwa (mfano double-submit ya fomu).
-            reset_token = get_object_or_404(
-                PasswordResetToken.objects.select_for_update(),
-                token=serializer.validated_data["token"],
-                used=False,
+        user = User.objects.filter(email__iexact=data["email"], is_active=True).first()
+        if not user or not verify_otp(user, EmailOTP.Purpose.RESET_PASSWORD, data["code"]):
+            return Response(
+                {"detail": self.INVALID_MESSAGE}, status=status.HTTP_400_BAD_REQUEST
             )
 
-            if reset_token.is_expired():
-                return Response(
-                    {"detail": _("Token Expired. Request again.")},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        with db_transaction.atomic():
+            user.set_password(data["new_password"])
+            # Kupokea OTP kwenye barua pepe kunathibitisha mmiliki wa barua pepe hiyo.
+            user.is_email_verified = True
+            user.save(update_fields=["password", "is_email_verified"])
 
-            user = reset_token.user
-            user.set_password(serializer.validated_data["new_password"])
-            user.save(update_fields=["password"])
-
-            reset_token.used = True
-            reset_token.save(update_fields=["used"])
-
-            # USALAMA: baada ya password kubadilishwa, futa (blacklist)
-            # refresh tokens ZOTE zilizopo za mtumiaji huyu — endapo
-            # account ilikuwa imevamiwa, session za mvamizi zinakatika mara
-            # moja badala ya kuendelea kutumika hadi zitakapoisha muda wenyewe.
+            # USALAMA: futa (blacklist) refresh tokens ZOTE za mtumiaji - kama akaunti
+            # ilikuwa imevamiwa, session za mvamizi zinakatika mara moja.
             self._blacklist_all_refresh_tokens(user)
 
         return Response(
-            {"detail": _("Password changed. All existing Session closed. Now you can login (login).")},
+            {"detail": _("Password imebadilishwa. Sasa unaweza kuingia (login).")},
             status=status.HTTP_200_OK,
         )
 
@@ -260,30 +236,58 @@ class PasswordResetConfirmView(APIView):
 
 
 class EmailVerificationConfirmView(APIView):
-    """POST /api/auth/email/verify/ - Kuthibitisha email baada ya usajili."""
+    """POST /api/auth/email/verify/  {email, code} - Kuthibitisha barua pepe kwa OTP."""
 
     permission_classes = [AllowAny]
+    throttle_scope = "otp_verify"
 
     def post(self, request):
         serializer = EmailVerificationConfirmSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
 
-        verification = get_object_or_404(
-            EmailVerificationToken, token=serializer.validated_data["token"]
-        )
-
-        if verification.is_expired():
+        user = User.objects.filter(email__iexact=data["email"], is_active=True).first()
+        if not user or not verify_otp(user, EmailOTP.Purpose.VERIFY_EMAIL, data["code"]):
             return Response(
-                {"detail": _("Token Expired.")},
+                {"detail": _("Namba si sahihi au imeisha muda. Omba namba mpya.")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        user = verification.user
-        user.is_email_verified = True
-        user.save(update_fields=["is_email_verified"])
-        verification.delete()
+        if not user.is_email_verified:
+            user.is_email_verified = True
+            user.save(update_fields=["is_email_verified"])
 
         return Response(
-            {"detail": _("Email Verified successifully.")},
+            {"detail": _("Barua pepe imethibitishwa. Sasa unaweza kuingia (login).")},
+            status=status.HTTP_200_OK,
+        )
+
+
+class EmailVerificationResendView(APIView):
+    """
+    POST /api/auth/email/resend/  {email} - Tuma namba mpya ya uthibitisho.
+    Jibu ni LILELILE kila wakati (kuzuia user enumeration). Frontend inaonyesha
+    kipima-muda cha sekunde 60 chenyewe; backend inazuia kutuma kabla ya hapo.
+    """
+
+    permission_classes = [AllowAny]
+    throttle_scope = "otp_request"
+
+    def post(self, request):
+        serializer = EmailOnlySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = User.objects.filter(
+            email__iexact=serializer.validated_data["email"], is_active=True
+        ).first()
+        if user and not user.is_email_verified:
+            _send_otp(user, EmailOTP.Purpose.VERIFY_EMAIL)
+
+        return Response(
+            {
+                "detail": _(
+                    "Kama akaunti ipo na haijathibitishwa, tumetuma namba mpya ya tarakimu 6."
+                )
+            },
             status=status.HTTP_200_OK,
         )

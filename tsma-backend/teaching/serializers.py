@@ -44,6 +44,8 @@ class SessionDetailSerializer(serializers.ModelSerializer):
     """
 
     is_attended = serializers.SerializerMethodField()
+    can_access_media = serializers.SerializerMethodField()
+    quizzes = serializers.SerializerMethodField()
     meeting_link = serializers.SerializerMethodField()
     meeting_id = serializers.SerializerMethodField()
     meeting_password = serializers.SerializerMethodField()
@@ -68,7 +70,15 @@ class SessionDetailSerializer(serializers.ModelSerializer):
             "recording_url",
             "recording_file",
             "is_attended",
+            "can_access_media",
+            "quizzes",
         )
+
+    def get_can_access_media(self, obj):
+        return self._can_access_media(obj)
+
+    def get_quizzes(self, obj):
+        return QuizBriefSerializer(obj.quizzes.filter(is_published=True), many=True).data
 
     def _can_access_media(self, obj):
         user = self.context["request"].user
@@ -114,8 +124,19 @@ class CourseListSerializer(serializers.ModelSerializer):
         fields = ("id", "title", "slug", "description", "cover_image", "session_count")
 
 
+class QuizBriefSerializer(serializers.ModelSerializer):
+    """Muhtasari wa quiz (bila maswali) - kuonyesha kiungo cha 'Fanya Quiz'."""
+
+    total_questions = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Quiz
+        fields = ("id", "title", "passing_score_percent", "time_limit_minutes", "total_questions")
+
+
 class CourseDetailSerializer(serializers.ModelSerializer):
     sessions = SessionListSerializer(many=True, read_only=True)
+    quizzes = serializers.SerializerMethodField()
     is_enrolled = serializers.SerializerMethodField()
     progress_percent = serializers.SerializerMethodField()
 
@@ -128,9 +149,14 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             "description",
             "cover_image",
             "sessions",
+            "quizzes",
             "is_enrolled",
             "progress_percent",
         )
+
+    def get_quizzes(self, obj):
+        quizzes = obj.quizzes.filter(is_published=True)
+        return QuizBriefSerializer(quizzes, many=True).data
 
     def get_is_enrolled(self, obj):
         user = self.context["request"].user

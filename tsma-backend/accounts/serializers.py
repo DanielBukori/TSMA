@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import password_validation
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+from rest_framework.exceptions import APIException
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import User
@@ -83,6 +84,14 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         fields = ("first_name", "last_name", "phone_number")
 
 
+class EmailNotVerified(APIException):
+    """403 yenye `code: email_not_verified` - frontend inamwelekeza mtumiaji kwenye skrini ya OTP."""
+
+    status_code = 403
+    default_detail = "Email not verified."
+    default_code = "email_not_verified"
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
     Login serializer yenye custom claims (role) ndani ya JWT token,
@@ -99,23 +108,33 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
 
-        # HIARI (imedhibitiwa na settings.REQUIRE_EMAIL_VERIFICATION,
-        # default=False): TSMA inaweza kuamua kulazimisha uthibitisho wa
-        # email kabla ya login. Super/Board Admin wanapita ukaguzi huu
-        # (mfano akaunti za awali zilizotengenezwa na `createsuperuser`
-        # hazina email verification flow).
+        # Lazima uthibitishe barua pepe (OTP) kabla ya kuingia - inadhibitiwa na
+        # settings.REQUIRE_EMAIL_VERIFICATION (default True). Super/Board Admin
+        # wanapita ukaguzi huu (akaunti za `createsuperuser` hazina flow hiyo).
+        # Hapa tayari password ni sahihi (super().validate imepita), kwa hiyo
+        # ni salama kutuma namba mpya kiotomatiki na kumwelekeza kwenye skrini ya OTP.
         require_verification = getattr(settings, "REQUIRE_EMAIL_VERIFICATION", True)
         if (
             require_verification
             and not self.user.is_email_verified
             and not (self.user.is_super_admin or self.user.is_board_admin)
         ):
-            raise serializers.ValidationError(
+            from .emails import send_otp_email
+            from .models import EmailOTP
+            from .otp import OTPThrottled, issue_otp
+
+            try:
+                code = issue_otp(self.user, EmailOTP.Purpose.VERIFY_EMAIL)
+                send_otp_email(self.user, EmailOTP.Purpose.VERIFY_EMAIL, code)
+            except OTPThrottled:
+                pass  # namba ya karibuni bado inatumika - mtumiaji aitumie
+            raise EmailNotVerified(
                 {
                     "detail": _(
-                        "Confirm your email before login. "
-                        "Check your email for confirmation token."
-                    )
+                        "Thibitisha barua pepe yako kwanza. Tumekutumia namba ya tarakimu 6."
+                    ),
+                    "code": "email_not_verified",
+                    "email": self.user.email,
                 }
             )
 
@@ -159,8 +178,19 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
 
 
+class EmailOnlySerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+
+OTP_CODE_FIELD_KWARGS = dict(
+    regex=r"^\d{6}$",
+    error_messages={"invalid": "Namba lazima iwe tarakimu 6."},
+)
+
+
 class PasswordResetConfirmSerializer(serializers.Serializer):
-    token = serializers.UUIDField(required=True)
+    email = serializers.EmailField(required=True)
+    code = serializers.RegexField(**OTP_CODE_FIELD_KWARGS)
     new_password = serializers.CharField(required=True, style={"input_type": "password"})
     new_password_confirm = serializers.CharField(
         required=True, style={"input_type": "password"}
@@ -176,4 +206,5 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 
 class EmailVerificationConfirmSerializer(serializers.Serializer):
-    token = serializers.UUIDField(required=True)
+    email = serializers.EmailField(required=True)
+    code = serializers.RegexField(**OTP_CODE_FIELD_KWARGS)

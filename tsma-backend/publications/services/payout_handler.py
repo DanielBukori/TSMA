@@ -30,8 +30,9 @@ from django.db import transaction as db_transaction
 from django.utils import timezone
 
 from payments.gateways.base import GatewayError
+from payments.gateways.registry import is_gateway_enabled
 from payments.models import PaymentPurpose
-from payments.payment_services import disburse_payout
+from payments.services import disburse_payout
 
 from ..models import (
     PublicationCommissionSettings,
@@ -86,6 +87,20 @@ def attempt_author_payout(purchase_id):
             purchase.save(update_fields=["payout_status"])
             return purchase
 
+        # Gateway ya payout haijawashwa (mfano sasa ni 'manual' pekee): usijaribu
+        # kuita gateway (ingeshindwa na kutuma tahadhari za usalama zisizo na
+        # maana). Acha PENDING - Admin anamlipa mwandishi kwa mkono kisha
+        # anaweka status = PAID kwenye Django Admin.
+        configured_gateway = PublicationCommissionSettings.load().payout_gateway
+        if not is_gateway_enabled(configured_gateway):
+            purchase.payout_status = PublicationPayoutStatus.PENDING
+            purchase.payout_failure_reason = (
+                f"Payout ya mkono: gateway '{configured_gateway}' haijawashwa. "
+                "Mlipe mwandishi kwa mkono kisha uweke status = Imelipwa."
+            )[:255]
+            purchase.save(update_fields=["payout_status", "payout_failure_reason"])
+            return purchase
+
         # Weka PROCESSING KABLA ya kuita gateway (siyo baada) — hivyo hata
         # kama gateway inachukua muda, process nyingine inayoingia wakati
         # huo huo itaona PROCESSING na kuacha, siyo PENDING.
@@ -118,7 +133,7 @@ def attempt_author_payout(purchase_id):
             reference=reference,
             narration=f"TSMA Publication Payout - {publication.title[:50]}",
         )
-    except GatewayError as exc:
+    except Exception as exc:  # GatewayError AU kosa lolote lingine - usiache PROCESSING milele
         # Rudisha kwenye PENDING (siyo FAILED ya kudumu) ili
         # `retry_failed_payouts` iweze kujaribu tena baadaye — hitilafu ya
         # gateway (timeout, down kwa muda) SIYO uthibitisho wa kushindwa

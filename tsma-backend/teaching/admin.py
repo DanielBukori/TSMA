@@ -124,6 +124,24 @@ class CertificateAdmin(admin.ModelAdmin):
     list_display = ("certificate_number", "user", "title_earned", "issued_at")
     search_fields = ("certificate_number", "user__email")
     readonly_fields = ("certificate_number", "verification_code", "certificate_image", "issued_at")
+    actions = ["regenerate_images"]
+
+    @admin.action(description="🔁 Tengeneza upya picha ya cheti")
+    def regenerate_images(self, request, queryset):
+        from .services.certificate_generator import generate_certificate_image
+
+        done = failed = 0
+        for certificate in queryset:
+            try:
+                generate_certificate_image(certificate)
+                done += 1
+            except Exception as exc:
+                failed += 1
+                self.message_user(
+                    request, f"{certificate.certificate_number}: {exc!r}"[:300], level="error"
+                )
+        if done:
+            self.message_user(request, f"{done} picha za vyeti zimetengenezwa.")
 
 
 @admin.register(CourseEnrollment)

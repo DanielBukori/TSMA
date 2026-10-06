@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from accounts.permissions import IsBoardAdmin
 from payments.gateways.base import GatewayError
 from payments.models import PaymentPurpose
-from payments.payment_services import build_payment_response, initiate_payment
+from payments.services import build_payment_response, initiate_payment
 
 from .models import (
     Conference,
@@ -316,7 +316,7 @@ class CheckInView(APIView):
                 {
                     "allowed": False,
                     "reason": f"Tayari ameshaingia (check-in) saa {registration.checked_in_at}.",
-                    "attendee": ConferenceRegistrationSerializer(registration).data,
+                    "attendee": ConferenceRegistrationSerializer(registration, context={"request": request}).data,
                 },
                 status=status.HTTP_409_CONFLICT,
             )
@@ -326,7 +326,7 @@ class CheckInView(APIView):
             {
                 "allowed": True,
                 "reason": "Karibu! Uingiaji umethibitishwa.",
-                "attendee": ConferenceRegistrationSerializer(registration).data,
+                "attendee": ConferenceRegistrationSerializer(registration, context={"request": request}).data,
             }
         )
 

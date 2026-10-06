@@ -65,6 +65,17 @@ export default function SessionDetail() {
       )}
       {session.description && <p className="text-sm text-ink-muted mt-4 leading-relaxed">{session.description}</p>}
 
+      {session.can_access_media === false && (
+        <div className="mt-6 bg-gold/10 border border-gold/30 rounded-xl p-4 text-sm text-ink">
+          {isSw
+            ? 'Kikao hiki ni cha kozi. Jiunge na kozi husika kwanza ili uone link ya kikao/rekodi na kufanya quiz.'
+            : 'This session belongs to a course. Enroll in that course first to see the meeting link/recording and take the quiz.'}
+          <Link to="/teaching" className="block mt-2 font-bold text-navy border-b-2 border-gold w-fit">
+            {isSw ? 'Nenda kwenye Kozi →' : 'Go to Courses →'}
+          </Link>
+        </div>
+      )}
+
       <div className="mt-8">
         {session.session_type === 'live' ? (
           session.meeting_link ? (
@@ -116,6 +127,37 @@ export default function SessionDetail() {
           </button>
         )}
       </div>
+
+      {session.quizzes?.length > 0 && (
+        <div className="mt-10">
+          <h2 className="font-serif font-bold text-lg text-navy mb-4">
+            {isSw ? 'Quiz ya Kikao (pata cheti ukifaulu)' : 'Session Quiz (earn a certificate when you pass)'}
+          </h2>
+          <div className="space-y-3">
+            {session.quizzes.map((quiz) =>
+              session.can_access_media ? (
+                <Link
+                  key={quiz.id}
+                  to={`/teaching/quiz/${quiz.id}`}
+                  className="flex items-center justify-between gap-4 bg-gold/10 border border-gold/30 rounded-xl p-4 hover:shadow-md transition-shadow"
+                >
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-sm text-navy truncate">📝 {quiz.title}</h3>
+                    <p className="text-xs text-ink-muted mt-0.5">
+                      {quiz.total_questions} {isSw ? 'maswali' : 'questions'} · {isSw ? 'kufaulu' : 'pass'} {quiz.passing_score_percent}%
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold text-navy shrink-0">{isSw ? 'Anza →' : 'Start →'}</span>
+                </Link>
+              ) : (
+                <div key={quiz.id} className="bg-cream border border-black/10 rounded-xl p-4 text-sm text-ink-muted">
+                  📝 {quiz.title}
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+      )}
     </section>
   )
 }
