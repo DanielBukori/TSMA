@@ -8,6 +8,9 @@
 Kwa machapisho ya **PAID**:
 - Admin anaweka `price`, `currency`, `author_payout_name`,
   `author_payout_phone_number` kwenye chapisho husika.
+- PDF zinahifadhiwa Cloudinary kama resource type `raw` (si `image` au
+  `video`). Baada ya kubadili storage ya PDF, fungua chapisho kwenye Admin
+  na upakie PDF yake tena ili faili liwekwe kwenye resource type sahihi.
 - Mtu YEYOTE aliye-login (hata asiye mwanachama) ananunua kupitia
   `POST /api/publications/<slug>/purchase/`.
 - Malipo yakifanikiwa (Selcom webhook → `payment_succeeded` signal):

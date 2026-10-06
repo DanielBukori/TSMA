@@ -301,6 +301,7 @@ WHITENOISE_MANIFEST_STRICT = False  # Cloudinary URLs ni dynamic
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+CLOUDINARY_URL = env("CLOUDINARY_URL", default="")
 
 # MEDIA (uploads za Admin: board photos, gallery, news, partners,
 # publications...). Render ina disk ya ephemeral, kwa hiyo Cloudinary
@@ -309,7 +310,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 # (development ya ndani), inarudi kwenye FileSystemStorage.
 _MEDIA_BACKEND = (
     "cloudinary_storage.storage.MediaCloudinaryStorage"
-    if env("CLOUDINARY_URL", default="")
+    if CLOUDINARY_URL
     else "django.core.files.storage.FileSystemStorage"
 )
 

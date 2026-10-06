@@ -7,6 +7,8 @@ from django.utils.translation import gettext_lazy as _
 
 from common.validators import validate_document_max_15mb, validate_image_max_8mb, validate_pdf_max_20mb
 
+from .storage import PublicationFileStorage
+
 
 class PublicationCategory(models.Model):
     """
@@ -79,6 +81,7 @@ class Publication(models.Model):
     )
     file = models.FileField(
         _("Faili la Chapisho (PDF)"), upload_to="publications/files/",
+        storage=PublicationFileStorage(),
         help_text=_("Faili litakalopakuliwa au kusomwa online."),
         validators=validate_pdf_max_20mb,
     )
