@@ -15,6 +15,7 @@ export default function PublicationDetail() {
   const [pub, setPub] = useState(null)
   const [loading, setLoading] = useState(true)
   const [downloadState, setDownloadState] = useState('idle')
+  const [downloadError, setDownloadError] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -34,6 +35,7 @@ export default function PublicationDetail() {
 
   async function handleDownload() {
     setDownloadState('loading')
+    setDownloadError('')
     try {
       const res = await apiClient.get(`/publications/${slug}/download/`, {
         responseType: 'blob',
@@ -52,7 +54,41 @@ export default function PublicationDetail() {
       window.URL.revokeObjectURL(blobUrl)
       setDownloadState('idle')
     } catch (err) {
-      setDownloadState(err.response?.status === 403 ? 'denied' : 'error')
+      const status = err.response?.status
+      if (status === 403) {
+        setDownloadState('denied')
+        return
+      }
+
+      let detail = ''
+      if (err.response?.data instanceof Blob) {
+        try {
+          const body = JSON.parse(await err.response.data.text())
+          detail = typeof body.detail === 'string' ? body.detail : ''
+        } catch {
+          // The response may be an HTML error page rather than JSON.
+        }
+      }
+
+      setDownloadError(
+        status === 401
+          ? isSw
+            ? 'Ingia tena kwenye akaunti yako kisha ujaribu kupakua.'
+            : 'Please sign in again, then retry the download.'
+          : status === 404
+            ? isSw
+              ? 'Faili la chapisho halipatikani kwenye seva. Usinunue tena; wasiliana na TSMA ukiwa na taarifa hii.'
+              : 'The publication file is missing from the server. Do not purchase again; contact TSMA with this message.'
+            : detail ||
+              (status
+                ? isSw
+                  ? `Seva imeshindwa kuandaa upakuaji (kosa ${status}). Wasiliana na TSMA ukiwa na taarifa hii.`
+                  : `The server could not prepare the download (error ${status}). Contact TSMA with this message.`
+                : isSw
+                  ? 'Imeshindikana kuwasiliana na seva. Angalia intaneti kisha ujaribu tena.'
+                  : 'Could not reach the server. Check your connection and try again.'),
+      )
+      setDownloadState('error')
     }
   }
 
@@ -107,7 +143,7 @@ export default function PublicationDetail() {
                     : `⬇ ${isSw ? 'Pakua Chapisho' : 'Download Publication'}`}
                 </button>
                 {downloadState === 'error' && (
-                  <p className="text-xs text-terracotta mt-3">{isSw ? 'Imeshindikana. Jaribu tena.' : 'Failed. Please try again.'}</p>
+                  <p className="text-xs text-terracotta mt-3">{downloadError}</p>
                 )}
               </>
             )}

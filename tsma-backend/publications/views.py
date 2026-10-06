@@ -1,3 +1,5 @@
+import logging
+
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
@@ -32,6 +34,8 @@ from .serializers import (
     PublicationPurchaseSerializer,
 )
 from .services.purchase import initiate_publication_purchase
+
+logger = logging.getLogger(__name__)
 
 
 class PublicationCategoryListView(generics.ListAPIView):
@@ -135,18 +139,28 @@ class PublicationDownloadView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        publication.increment_downloads()
-
         from django.http import FileResponse
 
         try:
             file_handle = publication.file.open("rb")
-        except FileNotFoundError:
+        except OSError:
+            logger.exception(
+                "Publication file could not be opened (publication_id=%s, slug=%s, file=%s)",
+                publication.pk,
+                publication.slug,
+                publication.file.name,
+            )
             return Response(
-                {"detail": "Faili la chapisho hili halikupatikana kwenye seva."},
-                status=status.HTTP_404_NOT_FOUND,
+                {
+                    "detail": (
+                        "Faili la chapisho halipatikani kwenye hifadhi kwa sasa. "
+                        "Malipo yako hayajapotea; wasiliana na TSMA ili faili lipakiwe tena."
+                    )
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
+        publication.increment_downloads()
         response = FileResponse(
             file_handle,
             as_attachment=True,
