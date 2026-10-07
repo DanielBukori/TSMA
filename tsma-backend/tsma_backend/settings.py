@@ -309,9 +309,11 @@ MEDIA_ROOT = BASE_DIR / "media"
 # inatumika ikiwa CLOUDINARY_URL ipo (cloudinary://KEY:SECRET@CLOUD_NAME,
 # inasomwa moja kwa moja na maktaba kutoka environment). Bila hiyo
 # (development ya ndani), inarudi kwenye FileSystemStorage.
+CLOUDINARY_URL = env("CLOUDINARY_URL", default="")
+
 _MEDIA_BACKEND = (
     "cloudinary_storage.storage.MediaCloudinaryStorage"
-    if env("CLOUDINARY_URL", default="")
+    if CLOUDINARY_URL
     else "django.core.files.storage.FileSystemStorage"
 )
 
