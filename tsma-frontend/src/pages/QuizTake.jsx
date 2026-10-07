@@ -86,11 +86,32 @@ export default function QuizTake() {
             <p className="text-sm font-semibold text-ink mb-1">
               🏆 {isSw ? 'Cheti chako kimetengenezwa!' : 'Your certificate has been generated!'}
             </p>
-            <p className="text-xs text-ink-muted">
-              {isSw
-                ? 'Angalia Dashibodi Yako kupakua cheti chako.'
-                : 'Check your Dashboard to download your certificate.'}
-            </p>
+            {result.certificate?.certificate_image ? (
+              <>
+                <p className="text-xs text-ink-muted mb-4">
+                  {isSw ? 'Namba ya cheti' : 'Certificate no.'}: <b>{result.certificate.certificate_number}</b>
+                </p>
+                <a
+                  href={result.certificate.certificate_image}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-navy text-white font-extrabold text-sm px-6 py-3 rounded-md"
+                >
+                  ⬇️ {isSw ? 'Pakua Cheti' : 'Download Certificate'}
+                </a>
+                <p className="text-[11px] text-ink-muted mt-3">
+                  {isSw
+                    ? 'Kinafunguka kwenye ukurasa mpya - bonyeza na ushikilie picha (au chagua "Save image") kukihifadhi.'
+                    : 'Opens in a new tab - long-press the image (or choose "Save image") to keep it.'}
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-ink-muted">
+                {isSw
+                  ? 'Picha ya cheti inaandaliwa. Itaonekana kwenye Dashibodi Yako baada ya muda mfupi.'
+                  : 'Your certificate image is being prepared. It will appear on your Dashboard shortly.'}
+              </p>
+            )}
             <a href="/dashboard" className="inline-block mt-4 text-sm font-bold text-navy border-b-2 border-gold">
               {isSw ? 'Angalia Dashibodi →' : 'View Dashboard →'}
             </a>

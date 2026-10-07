@@ -8,6 +8,14 @@ from rest_framework.views import APIView
 
 from accounts.permissions import IsBoardAdmin, IsContentEditor
 
+from .access import (
+    session_has_content,
+    session_join_state,
+    user_can_access_session,
+    user_can_take_quiz,
+    user_enrolled,
+)
+
 from .models import (
     Certificate,
     Course,
@@ -63,7 +71,7 @@ class CourseDetailView(generics.RetrieveAPIView):
 
 
 class EnrollCourseView(APIView):
-    """POST /api/teaching/courses/<slug>/enroll/ - Jiunge na kozi (kwa progress tracking)."""
+    """POST /api/teaching/courses/<slug>/enroll/ - Jiunge na kozi (akaunti yoyote iliyoingia)."""
 
     permission_classes = [IsAuthenticated]
 
@@ -115,75 +123,81 @@ class SessionDetailView(generics.RetrieveAPIView):
     def get_serializer_context(self):
         return {"request": self.request}
 
-    def retrieve(self, request, *args, **kwargs):
-        session = self.get_object()
-        # Mtu anayefungua kikao anachohaki kukifikia ANAHESABIWA kuwa ameingia
-        # (joined). Bila hili, quiz ya kikao huru ilikataliwa (403) mpaka mtu
-        # abonyeze "Nimekamilisha" kwanza - tazama _user_can_take_quiz().
-        if _user_can_access_session_media(request.user, session):
-            SessionAttendance.objects.get_or_create(
-                user=request.user, session=session, defaults={"joined_at": timezone.now()}
-            )
-        return Response(self.get_serializer(session).data)
-
 
 def _user_can_access_session_media(user, session):
-    """Kikao huru (bila course) = wazi kwa mtumiaji yeyote aliye-login."""
-    if not session.course_id:
-        return True
-    return CourseEnrollment.objects.filter(user=user, course_id=session.course_id).exists()
+    """Imehifadhiwa kwa serializers: kikao huru = wazi kwa mwanachama; kozi = lazima ame-enroll."""
+    return user_can_access_session(user, session)
 
 
-class MarkSessionCompleteView(APIView):
+class SessionJoinView(APIView):
     """
-    POST /api/teaching/sessions/<slug>/complete/
-    Mtumiaji anaweka alama ameshahudhuria (live) au ameshamaliza kutazama
-    (recorded) — inasasisha progress ya kozi kama kikao kipo ndani ya kozi.
+    POST /api/teaching/sessions/<slug>/join/
+
+    Mshiriki anabofya "Jiunge" (live) au "Tazama" (rekodi/YouTube). Hapa ndipo
+    mfumo UNAPOREKODI ushiriki (SessionAttendance completed) - ndiyo inayofungua
+    quiz ya kikao. Link yenyewe inarudishwa HAPA TU (si kwenye detail), na kwa
+    live inaruhusiwa dakika 15 kabla ya kuanza.
+
+    KIKOMO: mfumo unaweza kuthibitisha kwamba mtu amebofya/ameanza kutazama, si
+    kwamba amesikiliza hadi mwisho (Zoom/YouTube hazitumi taarifa hizo hapa).
     """
 
     permission_classes = [IsAuthenticated]
 
     def post(self, request, slug):
         session = get_object_or_404(Session, slug=slug, is_published=True)
+
+        if not user_can_access_session(request.user, session):
+            return Response(
+                {
+                    "detail": "Jiunge na kozi ya kikao hiki kwanza.",
+                    "code": "enrollment_required",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if not session_has_content(session):
+            return Response(
+                {"detail": "Link/rekodi ya kikao hiki bado haijawekwa.", "code": "no_content"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        available, opens_at = session_join_state(session)
+        if not available:
+            return Response(
+                {
+                    "detail": "Kikao bado hakijaanza. Unaweza kujiunga dakika 15 kabla ya muda wa kuanza.",
+                    "code": "too_early",
+                    "opens_at": opens_at,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         attendance, _created = SessionAttendance.objects.get_or_create(
             user=request.user, session=session, defaults={"joined_at": timezone.now()}
         )
-        attendance.mark_completed()
-        return Response({"detail": "Kikao kimewekwa kama kimekamilika."})
+        if not attendance.completed:
+            attendance.mark_completed()
+
+        if session.session_type == SessionType.LIVE:
+            payload = {
+                "url": session.meeting_link,
+                "meeting_id": session.meeting_id,
+                "meeting_password": session.meeting_password,
+            }
+        else:
+            payload = {"url": session.recording_url or None}
+        payload.update({"is_attended": True})
+        return Response(payload)
 
 
 # ----------------------------------------------------------------------
 # Quiz — kuchukua na kuwasilisha
 # ----------------------------------------------------------------------
 
-def _quiz_linked_course_id(quiz):
-    """Rudisha course_id inayohusiana na quiz (kupitia quiz.course au quiz.session.course)."""
-    if quiz.course_id:
-        return quiz.course_id
-    if quiz.session_id and quiz.session.course_id:
-        return quiz.session.course_id
-    return None
-
-
 def _user_can_take_quiz(user, quiz):
-    """
-    USALAMA: mtu lazima awe 'mshiriki' halisi wa quiz hii — siyo account
-    yoyote iliyosajiliwa kwenye mfumo:
-      - Quiz ya course (au session ndani ya course) -> lazima ame-enroll
-        kwenye course hiyo.
-      - Quiz ya session huru (bila course) -> lazima awe na SessionAttendance
-        (yaani ameshaingia/ameshafikia kikao hicho angalau mara moja).
-    """
-    course_id = _quiz_linked_course_id(quiz)
-    if course_id:
-        return CourseEnrollment.objects.filter(user=user, course_id=course_id).exists()
-
-    if quiz.session_id:
-        return SessionAttendance.objects.filter(user=user, session_id=quiz.session_id).exists()
-
-    # Quiz isiyo na course wala session (haipaswi kutokea kwa validation
-    # ya AdminQuizSerializer, lakini fail-closed kama itatokea).
-    return False
+    """Angalia teaching/access.py::user_can_take_quiz (inatumiwa pia na serializers)."""
+    return user_can_take_quiz(user, quiz)
 
 
 class QuizTakeView(generics.RetrieveAPIView):
@@ -203,7 +217,8 @@ class QuizTakeView(generics.RetrieveAPIView):
             from rest_framework.exceptions import PermissionDenied
 
             raise PermissionDenied(
-                "Lazima uwe umejiunga na kozi/kikao husika kabla ya kufanya quiz hii."
+                "Quiz hii inafunguka baada ya kujiunga na kikao (live) au kubofya kutazama rekodi, "
+                "na (kwa kozi) kuwa umejiunga na kozi."
             )
         return quiz
 
@@ -228,7 +243,7 @@ class QuizSubmitView(APIView):
 
         if not _user_can_take_quiz(request.user, quiz):
             return Response(
-                {"detail": "Lazima uwe umejiunga na kozi/kikao husika kabla ya kufanya quiz hii."},
+                {"detail": "Quiz hii inafunguka baada ya kujiunga na kikao au kutazama rekodi."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -291,7 +306,8 @@ class QuizSubmitView(APIView):
             attempt.grade()
 
         return Response(
-            QuizAttemptResultSerializer(attempt).data, status=status.HTTP_201_CREATED
+            QuizAttemptResultSerializer(attempt, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
         )
 
 

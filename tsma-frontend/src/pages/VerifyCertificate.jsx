@@ -79,7 +79,7 @@ export default function VerifyCertificate() {
               <div className="text-4xl mb-1">✅</div>
               <p className="text-base font-extrabold text-green">{isSw ? 'Cheti halali' : 'Valid certificate'}</p>
             </div>
-            <div className="bg-surface rounded-lg px-4">
+            <div className="bg-white rounded-lg px-4">
               <Field label={isSw ? 'Jina' : 'Name'} value={data.full_name} />
               <Field label={isSw ? 'Mafunzo' : 'Course'} value={data.title_earned} />
               <Field label={isSw ? 'Namba ya Cheti' : 'Certificate No.'} value={data.certificate_number} />

@@ -65,6 +65,10 @@ class JoinMembershipSerializer(serializers.Serializer):
             tier = MembershipTier.objects.get(pk=value, is_active=True)
         except MembershipTier.DoesNotExist:
             raise serializers.ValidationError("Daraja hili halipatikani kwa sasa.")
+        # HAKUNA uanachama wa bure: kila daraja la kujiunga mwenyewe lazima liwe la
+        # kulipia (ada > 0). Honorary/Fellow/Founding hupewa na Admin, si self-join.
+        if not tier.requires_payment or not tier.annual_fee or tier.annual_fee <= 0:
+            raise serializers.ValidationError("Daraja hili halipatikani kwa sasa.")
         self.context["tier"] = tier
         return value
 

@@ -82,7 +82,7 @@ export default function News() {
       </PageBanner>
 
       <section className="max-w-2xl mx-auto px-5 md:px-8 -mt-6 relative z-10">
-        <div className="bg-surface border border-black/10 rounded-xl shadow-lg p-4 flex flex-col sm:flex-row gap-3">
+        <div className="bg-white border border-black/10 rounded-xl shadow-lg p-4 flex flex-col sm:flex-row gap-3">
           <input
             type="text"
             value={query}
@@ -119,7 +119,7 @@ export default function News() {
 
 function PostCard({ post, isSw }) {
   return (
-    <article className="bg-surface border border-black/10 rounded-xl overflow-hidden">
+    <article className="bg-white border border-black/10 rounded-xl overflow-hidden">
       {/* Header: kama post ya Instagram/YouTube — mwandishi + tarehe */}
       <div className="flex items-center gap-3 px-4 py-3.5">
         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-navy to-green flex items-center justify-center text-white font-serif font-bold text-xs shrink-0">

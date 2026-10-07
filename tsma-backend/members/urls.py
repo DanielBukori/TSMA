@@ -8,9 +8,9 @@ from .views import (
     MembershipTierListView,
     MyMembershipView,
     MyProfileView,
-    ProfessionalDirectoryCVView,
-    ProfessionalDirectoryDetailView,
     ProfessionalDirectoryListView,
+    ProfessionalDirectoryDetailView,
+    ProfessionalDirectoryCVView,
     VerifyMembershipCardView,
 )
 

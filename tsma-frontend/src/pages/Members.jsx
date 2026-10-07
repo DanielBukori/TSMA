@@ -95,7 +95,7 @@ function TierCard({ tier, isSw, isOpen, onChoose }) {
   return (
     <button
       onClick={onChoose}
-      className={`w-full text-left bg-surface border rounded-xl p-7 transition-all ${
+      className={`w-full text-left bg-white border rounded-xl p-7 transition-all ${
         isOpen ? 'border-gold ring-2 ring-gold/30' : 'border-black/10 hover:shadow-lg'
       }`}
     >
@@ -237,7 +237,7 @@ function JoinForm({ tier, isSw, onClose }) {
   }
 
   return (
-    <div className="mt-3 bg-surface border border-black/10 rounded-xl p-6">
+    <div className="mt-3 bg-white border border-black/10 rounded-xl p-6">
       {status === 'waiting' ? (
         bankDetails ? (
           <ManualPaymentCard

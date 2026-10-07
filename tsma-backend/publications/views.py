@@ -143,30 +143,40 @@ class PublicationDownloadView(APIView):
 
         try:
             file_handle = publication.file.open("rb")
-        except OSError:
-            logger.exception(
-                "Publication file could not be opened (publication_id=%s, slug=%s, file=%s)",
-                publication.pk,
-                publication.slug,
-                publication.file.name,
-            )
+        except FileNotFoundError:
+            # Sababu ya kawaida: faili lilipakiwa kwenye disk ya Render (ya muda) na
+            # likafutwa Render ilipoanza upya. Suluhisho: Cloudinary (au disk ya VPS)
+            # kisha pakia PDF tena kupitia Django Admin.
+            logger.error("PDF ya chapisho '%s' haipo kwenye storage: %s", slug, publication.file.name)
             return Response(
                 {
-                    "detail": (
-                        "Faili la chapisho halipatikani kwenye hifadhi kwa sasa. "
-                        "Malipo yako hayajapotea; wasiliana na TSMA ili faili lipakiwe tena."
-                    )
+                    "detail": "Faili la chapisho hili halikupatikana kwenye seva. "
+                    "Tafadhali wasiliana na TSMA ili lipakiwe tena.",
+                    "code": "file_missing",
                 },
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Exception:
+            # Storage ya nje (mfano Cloudinary) ikikataa/kushindwa - usirudishe 500 tupu.
+            logger.exception("Imeshindwa kufungua PDF ya chapisho '%s'", slug)
+            return Response(
+                {
+                    "detail": "Imeshindikana kupata faili kutoka kwenye hifadhi. "
+                    "Jaribu tena baadaye au wasiliana na TSMA.",
+                    "code": "storage_error",
+                },
+                status=status.HTTP_502_BAD_GATEWAY,
             )
 
+        # Hesabu upakuaji BAADA ya faili kufunguka (si kabla - zamani ulihesabiwa hata ukishindwa)
         publication.increment_downloads()
-        response = FileResponse(
+
+        return FileResponse(
             file_handle,
             as_attachment=True,
             filename=publication.file.name.split("/")[-1],
+            content_type="application/pdf",
         )
-        return response
 
 
 class PublicationPurchaseInitiateView(APIView):

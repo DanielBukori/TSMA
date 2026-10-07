@@ -93,7 +93,7 @@ export default function ConferenceDetail() {
 
                   <div className="pl-14 space-y-4">
                     {day.sessions?.map((session) => (
-                      <div key={session.id} className="bg-surface border border-black/10 rounded-lg p-4">
+                      <div key={session.id} className="bg-white border border-black/10 rounded-lg p-4">
                         <div className="flex justify-between items-start gap-3">
                           <div>
                             <h4 className="font-bold text-sm text-navy">{session.title}</h4>
@@ -216,19 +216,10 @@ function TicketPicker({ tickets, selectedId, onSelect, isSw }) {
   )
 }
 
-function PaymentStatusBlock({
-  status,
-  message,
-  reference,
-  isSw,
-  manual,
-  receipts,
-  receiptError,
-  onRetryReceipts,
-}) {
+function PaymentStatusBlock({ status, message, reference, isSw, manual }) {
   if (status === 'waiting' && manual?.bank_details) {
     return (
-      <div className="border border-black/10 rounded-xl p-6 bg-surface">
+      <div className="border border-black/10 rounded-xl p-6 bg-white">
         <ManualPaymentCard
           isSw={isSw}
           bankDetails={manual.bank_details}
@@ -253,57 +244,6 @@ function PaymentStatusBlock({
       <div className="text-center border border-green/30 bg-green/10 rounded-xl p-6">
         <div className="text-3xl mb-2">✅</div>
         <p className="text-sm font-semibold">{message}</p>
-        {receipts.length > 0 ? (
-          <div className="grid sm:grid-cols-2 gap-4 mt-6">
-            {receipts.map((receipt) => (
-              <a
-                key={receipt.id}
-                href={receipt.e_receipt_image}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-white border border-black/10 rounded-lg p-4 text-left"
-              >
-                <img
-                  src={receipt.e_receipt_image}
-                  alt={
-                    isSw
-                      ? `Tiketi ya QR: ${receipt.ticket_type_name}`
-                      : `QR ticket: ${receipt.ticket_type_name}`
-                  }
-                  className="w-full max-w-[280px] mx-auto rounded"
-                />
-                <span className="block text-xs font-bold text-navy mt-3">
-                  {receipt.conference_title} · {receipt.ticket_type_name}
-                </span>
-                <span className="block text-xs font-bold text-terracotta mt-2">
-                  {isSw ? 'Fungua au pakua tiketi (QR) →' : 'Open or download ticket (QR) →'}
-                </span>
-              </a>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-4">
-            <p className="text-xs text-ink-muted">
-              {receiptError ||
-                (isSw
-                  ? 'Usajili umethibitishwa. Tiketi yako ya QR inasubiri kutengenezwa.'
-                  : 'Registration is confirmed. Your QR ticket is being prepared.')}
-            </p>
-            <button
-              type="button"
-              onClick={onRetryReceipts}
-              className="text-xs font-bold text-terracotta mt-3 underline"
-            >
-              {isSw ? 'Angalia tiketi tena' : 'Check for ticket again'}
-            </button>
-            <a
-              href="/dashboard#my-conferences"
-              className="block text-xs font-bold text-navy mt-2"
-            >
-              {isSw ? 'Nenda kwenye Mikutano Yangu' : 'Go to My Conferences'}
-            </a>
-          </div>
-        )}
       </div>
     )
   }
@@ -317,53 +257,17 @@ function PaymentStatusBlock({
   return null
 }
 
-function usePaymentPolling(isSw) {
+function usePaymentPolling() {
   const [status, setStatus] = useState('idle')
   const [message, setMessage] = useState('')
   const [reference, setReference] = useState(null)
   const [manual, setManual] = useState(null)
-  const [batchId, setBatchId] = useState(null)
-  const [receipts, setReceipts] = useState([])
-  const [receiptError, setReceiptError] = useState('')
   const pollRef = useRef(null)
 
   useEffect(() => () => clearInterval(pollRef.current), [])
 
-  async function loadReceipts(id) {
-    setBatchId(id)
-    setReceiptError('')
-    try {
-      const res = await apiClient.get('/conferences/my-registrations/')
-      const batches = res.data?.results || res.data
-      if (!Array.isArray(batches)) {
-        throw new Error('Invalid conference registrations response.')
-      }
-      const batch = batches.find((item) => String(item.id) === String(id))
-      if (!batch || !Array.isArray(batch.attendees)) {
-        throw new Error('Conference registration was not found.')
-      }
-      const availableReceipts = batch.attendees.filter((attendee) => attendee.e_receipt_image)
-      setReceipts(availableReceipts)
-      if (availableReceipts.length === 0) {
-        setReceiptError(
-          isSw
-            ? 'Usajili umethibitishwa lakini QR bado haipatikani. Jaribu tena baada ya muda mfupi.'
-            : 'Registration is confirmed, but the QR ticket is not available yet. Please try again shortly.',
-        )
-      }
-    } catch {
-      setReceipts([])
-      setReceiptError(
-        isSw
-          ? 'Usajili umethibitishwa lakini tiketi haikuweza kupakiwa. Jaribu tena au angalia Mikutano Yangu.'
-          : 'Registration is confirmed, but the ticket could not be loaded. Please try again or check My Conferences.',
-      )
-    }
-  }
-
-  function startPolling(ref, id, payment) {
+  function startPolling(ref, isSw, payment) {
     setReference(ref)
-    setBatchId(id)
     setManual(payment?.bank_details ? payment : null)
     pollRef.current = setInterval(async () => {
       try {
@@ -372,7 +276,6 @@ function usePaymentPolling(isSw) {
           clearInterval(pollRef.current)
           setStatus('success')
           setMessage(isSw ? 'Malipo yamekamilika! Umesajiliwa.' : 'Payment complete! You are registered.')
-          await loadReceipts(id)
         } else if (res.data.status === 'failed') {
           clearInterval(pollRef.current)
           setStatus('error')
@@ -392,19 +295,7 @@ function usePaymentPolling(isSw) {
     }, 5000)
   }
 
-  return {
-    status,
-    setStatus,
-    message,
-    setMessage,
-    reference,
-    manual,
-    batchId,
-    receipts,
-    receiptError,
-    loadReceipts,
-    startPolling,
-  }
+  return { status, setStatus, message, setMessage, reference, manual, startPolling }
 }
 
 function SelfRegistrationForm({ conference, isSw }) {
@@ -412,19 +303,7 @@ function SelfRegistrationForm({ conference, isSw }) {
   const [phone, setPhone] = useState('')
   const [gateway, setGateway] = useState(null)
   const [method, setMethod] = useState('mobile_money')
-  const {
-    status,
-    setStatus,
-    message,
-    setMessage,
-    reference,
-    manual,
-    batchId,
-    receipts,
-    receiptError,
-    loadReceipts,
-    startPolling,
-  } = usePaymentPolling(isSw)
+  const { status, setStatus, message, setMessage, reference, manual, startPolling } = usePaymentPolling()
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -440,11 +319,10 @@ function SelfRegistrationForm({ conference, isSw }) {
       if (res.data.payment) {
         setMessage(res.data.payment.instructions)
         setStatus('waiting')
-        startPolling(res.data.payment.internal_reference, res.data.batch.id, res.data.payment)
+        startPolling(res.data.payment.internal_reference, isSw, res.data.payment)
       } else {
         setStatus('success')
         setMessage(isSw ? 'Umesajiliwa kwa mafanikio!' : 'Registered successfully!')
-        await loadReceipts(res.data.id)
       }
     } catch (err) {
       setStatus('error')
@@ -453,18 +331,7 @@ function SelfRegistrationForm({ conference, isSw }) {
   }
 
   if (status === 'waiting' || status === 'success' || status === 'error') {
-    return (
-      <PaymentStatusBlock
-        status={status}
-        message={message}
-        reference={reference}
-        isSw={isSw}
-        manual={manual}
-        receipts={receipts}
-        receiptError={receiptError}
-        onRetryReceipts={() => loadReceipts(batchId)}
-      />
-    )
+    return <PaymentStatusBlock status={status} message={message} reference={reference} isSw={isSw} manual={manual} />
   }
 
   return (
@@ -513,19 +380,7 @@ function BulkRegistrationForm({ conference, isSw }) {
   const [gateway, setGateway] = useState(null)
   const [method, setMethod] = useState('mobile_money')
   const [attendees, setAttendees] = useState([{ full_name: '', email: '', ticket_type_id: null }])
-  const {
-    status,
-    setStatus,
-    message,
-    setMessage,
-    reference,
-    manual,
-    batchId,
-    receipts,
-    receiptError,
-    loadReceipts,
-    startPolling,
-  } = usePaymentPolling(isSw)
+  const { status, setStatus, message, setMessage, reference, manual, startPolling } = usePaymentPolling()
 
   function updateAttendee(index, field, value) {
     setAttendees((prev) => prev.map((a, i) => (i === index ? { ...a, [field]: value } : a)))
@@ -551,11 +406,10 @@ function BulkRegistrationForm({ conference, isSw }) {
       if (res.data.payment) {
         setMessage(res.data.payment.instructions)
         setStatus('waiting')
-        startPolling(res.data.payment.internal_reference, res.data.batch.id, res.data.payment)
+        startPolling(res.data.payment.internal_reference, isSw, res.data.payment)
       } else {
         setStatus('success')
         setMessage(isSw ? 'Washiriki wamesajiliwa!' : 'Attendees registered!')
-        await loadReceipts(res.data.id)
       }
     } catch (err) {
       setStatus('error')
@@ -564,18 +418,7 @@ function BulkRegistrationForm({ conference, isSw }) {
   }
 
   if (status === 'waiting' || status === 'success' || status === 'error') {
-    return (
-      <PaymentStatusBlock
-        status={status}
-        message={message}
-        reference={reference}
-        isSw={isSw}
-        manual={manual}
-        receipts={receipts}
-        receiptError={receiptError}
-        onRetryReceipts={() => loadReceipts(batchId)}
-      />
-    )
+    return <PaymentStatusBlock status={status} message={message} reference={reference} isSw={isSw} manual={manual} />
   }
 
   return (

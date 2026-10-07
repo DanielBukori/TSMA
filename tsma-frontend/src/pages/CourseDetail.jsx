@@ -13,6 +13,7 @@ export default function CourseDetail() {
   const [course, setCourse] = useState(null)
   const [loading, setLoading] = useState(true)
   const [enrolling, setEnrolling] = useState(false)
+  const [enrollError, setEnrollError] = useState(null) // { code, message }
 
   useEffect(() => {
     fetchCourse()
@@ -28,11 +29,18 @@ export default function CourseDetail() {
 
   async function handleEnroll() {
     setEnrolling(true)
+    setEnrollError(null)
     try {
       await apiClient.post(`/teaching/courses/${slug}/enroll/`)
       fetchCourse()
-    } catch {
-      // no-op
+    } catch (err) {
+      const data = err.response?.data
+      setEnrollError({
+        code: data?.code,
+        message:
+          (Array.isArray(data?.detail) ? data.detail[0] : data?.detail) ||
+          (isSw ? 'Imeshindikana kujiunga. Jaribu tena.' : 'Could not enroll. Try again.'),
+      })
     } finally {
       setEnrolling(false)
     }
@@ -56,7 +64,7 @@ export default function CourseDetail() {
                 <span>{isSw ? 'Maendeleo Yako' : 'Your Progress'}</span>
                 <span>{course.progress_percent || 0}%</span>
               </div>
-              <div className="h-2.5 bg-cream rounded-full overflow-hidden">
+              <div className="h-2.5 bg-white rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gold transition-all"
                   style={{ width: `${course.progress_percent || 0}%` }}
@@ -83,6 +91,17 @@ export default function CourseDetail() {
           </div>
         )}
 
+        {enrollError && (
+          <div className="mb-8 bg-gold/10 border border-gold/30 rounded-xl p-4 text-sm text-ink">
+            {enrollError.message}
+            {enrollError.code === 'membership_required' && (
+              <Link to="/members" className="block mt-2 font-bold text-navy border-b-2 border-gold w-fit">
+                {isSw ? 'Jiunge / Fanya Upya Uanachama →' : 'Join / Renew Membership →'}
+              </Link>
+            )}
+          </div>
+        )}
+
         <h2 className="font-serif font-bold text-lg text-navy mb-4">
           {isSw ? 'Vikao vya Kozi' : 'Course Sessions'}
         </h2>
@@ -91,7 +110,7 @@ export default function CourseDetail() {
             <Link
               key={session.id}
               to={`/teaching/sessions/${session.slug}`}
-              className="flex items-center gap-4 bg-surface border border-black/10 rounded-xl p-4 hover:shadow-md transition-shadow"
+              className="flex items-center gap-4 bg-white border border-black/10 rounded-xl p-4 hover:shadow-md transition-shadow"
             >
               <div className="w-9 h-9 rounded-full bg-navy text-gold flex items-center justify-center text-xs font-bold shrink-0">
                 {i + 1}
@@ -114,14 +133,14 @@ export default function CourseDetail() {
             </h2>
             <div className="space-y-3">
               {course.quizzes.map((quiz) =>
-                course.is_enrolled ? (
+                quiz.is_unlocked ? (
                   <Link
                     key={quiz.id}
                     to={`/teaching/quiz/${quiz.id}`}
                     className="flex items-center justify-between gap-4 bg-gold/10 border border-gold/30 rounded-xl p-4 hover:shadow-md transition-shadow"
                   >
                     <div className="min-w-0">
-                      <h3 className="font-bold text-sm text-navy truncate">📝 {quiz.title}</h3>
+                      <h3 className="font-bold text-sm text-navy truncate">{quiz.passed ? '✅' : '📝'} {quiz.title}</h3>
                       <p className="text-xs text-ink-muted mt-0.5">
                         {quiz.total_questions} {isSw ? 'maswali' : 'questions'} · {isSw ? 'kufaulu' : 'pass'} {quiz.passing_score_percent}%
                       </p>
@@ -130,7 +149,10 @@ export default function CourseDetail() {
                   </Link>
                 ) : (
                   <div key={quiz.id} className="bg-cream border border-black/10 rounded-xl p-4 text-sm text-ink-muted">
-                    📝 {quiz.title} — {isSw ? 'jiunge na kozi kwanza ili kufanya quiz hii.' : 'enroll in the course first to take this quiz.'}
+                    🔒 {quiz.title} —{' '}
+                    {course.is_enrolled
+                      ? isSw ? 'maliza vikao vyote vya kozi (jiunge/tazama kila kimoja) ili kufungua quiz hii.' : 'complete every session (join/watch each one) to unlock this quiz.'
+                      : isSw ? 'jiunge na kozi kwanza.' : 'enroll in the course first.'}
                   </div>
                 ),
               )}

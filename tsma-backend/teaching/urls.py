@@ -15,11 +15,11 @@ from .views import (
     CourseDetailView,
     CourseListView,
     EnrollCourseView,
-    MarkSessionCompleteView,
     MyProgressView,
     QuizSubmitView,
     QuizTakeView,
     SessionDetailView,
+    SessionJoinView,
     SessionListView,
 )
 
@@ -34,9 +34,9 @@ urlpatterns = [
     path("sessions/", SessionListView.as_view(), name="session_list"),
     path("sessions/<slug:slug>/", SessionDetailView.as_view(), name="session_detail"),
     path(
-        "sessions/<slug:slug>/complete/",
-        MarkSessionCompleteView.as_view(),
-        name="session_complete",
+        "sessions/<slug:slug>/join/",
+        SessionJoinView.as_view(),
+        name="session_join",
     ),
     # Quiz
     path("quizzes/<int:pk>/", QuizTakeView.as_view(), name="quiz_take"),

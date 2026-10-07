@@ -46,6 +46,9 @@ class SessionDetailSerializer(serializers.ModelSerializer):
     is_attended = serializers.SerializerMethodField()
     can_access_media = serializers.SerializerMethodField()
     quizzes = serializers.SerializerMethodField()
+    has_content = serializers.SerializerMethodField()
+    join_available = serializers.SerializerMethodField()
+    join_opens_at = serializers.SerializerMethodField()
     meeting_link = serializers.SerializerMethodField()
     meeting_id = serializers.SerializerMethodField()
     meeting_password = serializers.SerializerMethodField()
@@ -72,13 +75,18 @@ class SessionDetailSerializer(serializers.ModelSerializer):
             "is_attended",
             "can_access_media",
             "quizzes",
+            "has_content",
+            "join_available",
+            "join_opens_at",
         )
 
     def get_can_access_media(self, obj):
         return self._can_access_media(obj)
 
     def get_quizzes(self, obj):
-        return QuizBriefSerializer(obj.quizzes.filter(is_published=True), many=True).data
+        return QuizBriefSerializer(
+            obj.quizzes.filter(is_published=True), many=True, context=self.context
+        ).data
 
     def _can_access_media(self, obj):
         user = self.context["request"].user
@@ -88,17 +96,35 @@ class SessionDetailSerializer(serializers.ModelSerializer):
 
         return _user_can_access_session_media(user, obj)
 
+    # Link za live/YouTube HAZITOLEWI kwenye detail: zinarudishwa na POST
+    # /sessions/<slug>/join/ ambayo ndiyo inayorekodi ushiriki (na kuzuia kujiunga
+    # mapema mno). Hizi tunazibakisha kwa umbo la API tu (zinarudi null).
     def get_meeting_link(self, obj):
-        return obj.meeting_link if self._can_access_media(obj) else None
+        return None
 
     def get_meeting_id(self, obj):
-        return obj.meeting_id if self._can_access_media(obj) else None
+        return None
 
     def get_meeting_password(self, obj):
-        return obj.meeting_password if self._can_access_media(obj) else None
+        return None
 
     def get_recording_url(self, obj):
-        return obj.recording_url if self._can_access_media(obj) else None
+        return None
+
+    def get_has_content(self, obj):
+        from .access import session_has_content
+
+        return session_has_content(obj)
+
+    def get_join_available(self, obj):
+        from .access import session_join_state
+
+        return bool(self._can_access_media(obj) and session_join_state(obj)[0])
+
+    def get_join_opens_at(self, obj):
+        from .access import session_join_state
+
+        return session_join_state(obj)[1]
 
     def get_recording_file(self, obj):
         if not self._can_access_media(obj) or not obj.recording_file:
@@ -128,10 +154,37 @@ class QuizBriefSerializer(serializers.ModelSerializer):
     """Muhtasari wa quiz (bila maswali) - kuonyesha kiungo cha 'Fanya Quiz'."""
 
     total_questions = serializers.IntegerField(read_only=True)
+    is_unlocked = serializers.SerializerMethodField()
+    passed = serializers.SerializerMethodField()
 
     class Meta:
         model = Quiz
-        fields = ("id", "title", "passing_score_percent", "time_limit_minutes", "total_questions")
+        fields = (
+            "id",
+            "title",
+            "passing_score_percent",
+            "time_limit_minutes",
+            "total_questions",
+            "is_unlocked",
+            "passed",
+        )
+
+    def _user(self):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        return user if user and user.is_authenticated else None
+
+    def get_is_unlocked(self, obj):
+        user = self._user()
+        if not user:
+            return False
+        from .access import user_can_take_quiz
+
+        return user_can_take_quiz(user, obj)
+
+    def get_passed(self, obj):
+        user = self._user()
+        return bool(user and obj.attempts.filter(user=user, passed=True).exists())
 
 
 class CourseDetailSerializer(serializers.ModelSerializer):
@@ -156,7 +209,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
 
     def get_quizzes(self, obj):
         quizzes = obj.quizzes.filter(is_published=True)
-        return QuizBriefSerializer(quizzes, many=True).data
+        return QuizBriefSerializer(quizzes, many=True, context=self.context).data
 
     def get_is_enrolled(self, obj):
         user = self.context["request"].user
@@ -233,6 +286,7 @@ class QuizAnswerResultSerializer(serializers.ModelSerializer):
 class QuizAttemptResultSerializer(serializers.ModelSerializer):
     answers = QuizAnswerResultSerializer(many=True, read_only=True)
     quiz_title = serializers.CharField(source="quiz.title", read_only=True)
+    certificate = serializers.SerializerMethodField()
 
     class Meta:
         model = QuizAttempt
@@ -244,8 +298,25 @@ class QuizAttemptResultSerializer(serializers.ModelSerializer):
             "started_at",
             "submitted_at",
             "answers",
+            "certificate",
         )
         read_only_fields = fields
+
+    def get_certificate(self, obj):
+        certificate = getattr(obj, "certificate", None)
+        if certificate is None:
+            return None
+        request = self.context.get("request")
+        image_url = None
+        if certificate.certificate_image:
+            image_url = certificate.certificate_image.url
+            if request:
+                image_url = request.build_absolute_uri(image_url)
+        return {
+            "certificate_number": certificate.certificate_number,
+            "verification_code": str(certificate.verification_code),
+            "certificate_image": image_url,
+        }
 
 
 # ----------------------------------------------------------------------

@@ -242,6 +242,8 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS", default=["http://localhost:5173"]
 )
+# Frontend (domain nyingine) isome jina halisi la faili wakati wa kupakua PDF
+CORS_EXPOSE_HEADERS = ["Content-Disposition"]
 CORS_ALLOW_CREDENTIALS = True
 # Sekunde 7200 = kikomo cha juu ambacho Chrome inakubali kuhifadhi preflight.
 CORS_PREFLIGHT_MAX_AGE = 7200
@@ -301,7 +303,6 @@ WHITENOISE_MANIFEST_STRICT = False  # Cloudinary URLs ni dynamic
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-CLOUDINARY_URL = env("CLOUDINARY_URL", default="")
 
 # MEDIA (uploads za Admin: board photos, gallery, news, partners,
 # publications...). Render ina disk ya ephemeral, kwa hiyo Cloudinary
@@ -310,7 +311,7 @@ CLOUDINARY_URL = env("CLOUDINARY_URL", default="")
 # (development ya ndani), inarudi kwenye FileSystemStorage.
 _MEDIA_BACKEND = (
     "cloudinary_storage.storage.MediaCloudinaryStorage"
-    if CLOUDINARY_URL
+    if env("CLOUDINARY_URL", default="")
     else "django.core.files.storage.FileSystemStorage"
 )
 
