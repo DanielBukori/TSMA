@@ -33,7 +33,10 @@ from .serializers import (
     PublicationPurchaseInitiateSerializer,
     PublicationPurchaseSerializer,
 )
-from .services.purchase import initiate_publication_purchase
+from .services.purchase import (
+    get_pending_publication_payment,
+    initiate_publication_purchase,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -197,6 +200,25 @@ class PublicationPurchaseInitiateView(APIView):
             return Response(
                 {"detail": "Tayari umeshanunua chapisho hili."},
                 status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        pending_payment = get_pending_publication_payment(
+            user=request.user,
+            publication=publication,
+        )
+        if pending_payment is not None:
+            return Response(
+                {
+                    "detail": (
+                        "Malipo ya chapisho hili bado yanasubiri uthibitisho. "
+                        "Usianzishe malipo mengine."
+                    ),
+                    "payment": {
+                        "internal_reference": pending_payment.internal_reference,
+                        "status": pending_payment.status,
+                    },
+                },
+                status=status.HTTP_409_CONFLICT,
             )
 
         serializer = PublicationPurchaseInitiateSerializer(data=request.data)

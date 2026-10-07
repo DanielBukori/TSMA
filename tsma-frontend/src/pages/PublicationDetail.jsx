@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
@@ -16,6 +16,11 @@ export default function PublicationDetail() {
   const [loading, setLoading] = useState(true)
   const [downloadState, setDownloadState] = useState('idle')
   const [downloadMessage, setDownloadMessage] = useState('')
+
+  const refreshPublication = useCallback(async () => {
+    const res = await apiClient.get(`/publications/${slug}/`)
+    setPub(res.data)
+  }, [slug])
 
   useEffect(() => {
     let cancelled = false
@@ -104,8 +109,19 @@ export default function PublicationDetail() {
           </div>
 
           <div className="mt-8">
-            {pub.access_type === 'paid' && !pub.has_purchased ? (
-              <PurchaseBlock pub={pub} isSw={isSw} isAuthenticated={isAuthenticated} />
+            {pub.access_type === 'paid' && !pub.has_purchased && pub.pending_payment ? (
+              <PendingPurchaseBlock
+                payment={pub.pending_payment}
+                isSw={isSw}
+                onRefreshPublication={refreshPublication}
+              />
+            ) : pub.access_type === 'paid' && !pub.has_purchased ? (
+              <PurchaseBlock
+                pub={pub}
+                isSw={isSw}
+                isAuthenticated={isAuthenticated}
+                onRefreshPublication={refreshPublication}
+              />
             ) : downloadState === 'denied' ? (
               <LockedBlock pub={pub} isSw={isSw} isAuthenticated={isAuthenticated} />
             ) : (
@@ -166,7 +182,59 @@ function LockedBlock({ pub, isSw, isAuthenticated }) {
   )
 }
 
-function PurchaseBlock({ pub, isSw, isAuthenticated }) {
+function PendingPurchaseBlock({ payment, isSw, onRefreshPublication }) {
+  useEffect(() => {
+    if (payment.status === 'success') return undefined
+
+    const poll = async () => {
+      try {
+        const res = await apiClient.get(`/payments/status/${payment.internal_reference}/`)
+        if (['success', 'failed', 'expired'].includes(res.data.status)) {
+          await onRefreshPublication()
+        }
+      } catch {
+        // Retry on the next poll while the payment is pending.
+      }
+    }
+
+    const interval = setInterval(poll, 5000)
+    return () => clearInterval(interval)
+  }, [payment.internal_reference, payment.status, onRefreshPublication])
+
+  const paymentConfirmed = payment.status === 'success'
+  return (
+    <div className="border border-gold/40 bg-gold/5 rounded-xl p-6">
+      <p className="text-sm font-bold text-navy">
+        {paymentConfirmed
+          ? isSw
+            ? 'Malipo yamethibitishwa. Ufikiaji wa chapisho unasasishwa.'
+            : 'Payment confirmed. Publication access is being updated.'
+          : payment.gateway === 'manual'
+            ? isSw
+              ? 'Malipo yako ya mkono yanasubiri uthibitisho wa TSMA. Baada ya kutuma risiti, subiri uthibitisho; usilipe tena.'
+              : 'Your manual payment is awaiting TSMA confirmation. After sending your receipt, wait for confirmation; do not pay again.'
+            : isSw
+              ? 'Malipo yako bado yanachakatwa. Usilipe tena wakati huu.'
+              : 'Your payment is still processing. Please do not pay again.'}
+      </p>
+      <p className="text-xs text-ink-muted mt-3">
+        {isSw ? 'Reference ya malipo: ' : 'Payment reference: '}
+        <span className="font-bold">{payment.internal_reference}</span>
+      </p>
+      {paymentConfirmed && (
+        <button
+          type="button"
+          onClick={() => onRefreshPublication()}
+          className="mt-4 text-sm font-bold text-navy border-b-2 border-gold pb-0.5"
+        >
+          {isSw ? 'Angalia ufikiaji tena' : 'Check access again'}
+        </button>
+      )}
+    </div>
+  )
+}
+
+function PurchaseBlock({ pub, isSw, isAuthenticated, onRefreshPublication }) {
   const [phone, setPhone] = useState('')
   const [gateway, setGateway] = useState(null)
   const [method, setMethod] = useState('mobile_money')
@@ -198,6 +266,13 @@ function PurchaseBlock({ pub, isSw, isAuthenticated }) {
             clearInterval(pollRef.current)
             setStatus('success')
             setMessage(isSw ? 'Malipo yamekamilika! Unaweza kupakua sasa.' : 'Payment complete! You can download now.')
+            onRefreshPublication().catch(() => {
+              setMessage(
+                isSw
+                  ? 'Malipo yamethibitishwa, lakini hali ya ufikiaji haikuweza kusasishwa. Jaribu kuangalia tena.'
+                  : 'Payment is confirmed, but access could not be refreshed. Please check again.',
+              )
+            })
           } else if (statusRes.data.status === 'failed') {
             clearInterval(pollRef.current)
             setStatus('error')
@@ -218,6 +293,15 @@ function PurchaseBlock({ pub, isSw, isAuthenticated }) {
     } catch (err) {
       setStatus('error')
       setMessage(err.response?.data?.detail || (isSw ? 'Imeshindikana.' : 'Something went wrong.'))
+      if (err.response?.status === 409) {
+        onRefreshPublication().catch(() => {
+          setMessage(
+            isSw
+              ? 'Tayari kuna malipo yanayosubiri. Imeshindikana kusasisha hali; pakia upya ukurasa.'
+              : 'A payment is already pending. Could not refresh its status; reload the page.',
+          )
+        })
+      }
     }
   }
 
@@ -239,9 +323,13 @@ function PurchaseBlock({ pub, isSw, isAuthenticated }) {
       <div className="text-center border border-green/30 bg-green/10 rounded-xl p-6">
         <div className="text-3xl mb-2">✅</div>
         <p className="text-sm font-semibold mb-4">{message}</p>
-        <a href={`/publications/${pub.slug}`} onClick={() => window.location.reload()} className="inline-block bg-navy text-white font-extrabold text-sm px-7 py-3 rounded-md">
-          ⬇ {isSw ? 'Pakua Sasa' : 'Download Now'}
-        </a>
+        <button
+          type="button"
+          onClick={() => onRefreshPublication()}
+          className="inline-block bg-navy text-white font-extrabold text-sm px-7 py-3 rounded-md"
+        >
+          {isSw ? 'Angalia Ufikiaji' : 'Refresh Access'}
+        </button>
       </div>
     )
   }

@@ -9,6 +9,7 @@ from .models import (
     PublicationCommissionSettings,
     PublicationPurchase,
 )
+from .services.purchase import get_pending_publication_payment
 
 
 class PublicationCategorySerializer(serializers.ModelSerializer):
@@ -62,6 +63,7 @@ class PublicationDetailSerializer(serializers.ModelSerializer):
     category = PublicationCategorySerializer(read_only=True)
     can_access_file = serializers.SerializerMethodField()
     has_purchased = serializers.SerializerMethodField()
+    pending_payment = serializers.SerializerMethodField()
 
     class Meta:
         model = Publication
@@ -79,6 +81,7 @@ class PublicationDetailSerializer(serializers.ModelSerializer):
             "currency",
             "can_access_file",
             "has_purchased",
+            "pending_payment",
             "download_count",
             "view_count",
             "purchase_count",
@@ -93,6 +96,20 @@ class PublicationDetailSerializer(serializers.ModelSerializer):
         if not user.is_authenticated:
             return False
         return obj.purchases.filter(buyer=user, status="completed").exists()
+
+    def get_pending_payment(self, obj):
+        transaction = get_pending_publication_payment(
+            user=self.context["request"].user,
+            publication=obj,
+        )
+        if transaction is None:
+            return None
+        return {
+            "gateway": transaction.gateway,
+            "status": transaction.status,
+            "internal_reference": transaction.internal_reference,
+            "expires_at": transaction.expires_at,
+        }
 
 
 class PublicationPurchaseInitiateSerializer(serializers.Serializer):
