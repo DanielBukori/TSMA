@@ -57,17 +57,13 @@ export default function Footer() {
 
   return (
     <footer className="bg-navy-deep text-white/80">
-      <svg
-        className="block h-4 w-full"
-        viewBox="0 0 100 24"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <path fill="#1EB53A" d="M0 0h100L0 24z" />
-        <path fill="#00A3DD" d="M0 24h100V0z" />
-        <path fill="#FCD116" d="M0 17.5 100 0v6.5L0 24z" />
-        <path fill="#000000" d="M0 19.5 100 1.5v3L0 22.5z" />
-      </svg>
+      <div className="flex h-1 w-full" aria-hidden="true">
+        <span className="flex-1 bg-[#1EB53A]" />
+        <span className="flex-1 bg-[#FCD116]" />
+        <span className="flex-1 bg-black" />
+        <span className="flex-1 bg-[#FCD116]" />
+        <span className="flex-1 bg-[#00A3DD]" />
+      </div>
 
       <div className="max-w-6xl mx-auto px-5 md:px-8 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
         <div>
