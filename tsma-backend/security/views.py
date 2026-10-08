@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
@@ -21,6 +23,7 @@ from .serializers import (
     ConfirmTotpSetupSerializer,
     LoginStep1Serializer,
     LoginStep2Serializer,
+    ManualBlockSerializer,
     PendingApprovalActionSerializer,
     SecurityEventSerializer,
 )
@@ -142,7 +145,19 @@ class ConfirmTotpSetupView(APIView):
         operator.register_successful_login(get_client_ip(request))
 
         token = auth_tokens.issue_full_session(operator, get_client_ip(request))
-        return Response({"token": token, "detail": "2FA imewekwa. Umeingia."})
+        return Response(
+            {
+                "token": token,
+                "detail": "2FA imewekwa. Umeingia.",
+                # Dashibodi inahitaji kujua jina/ruhusa za operator (zamani hazikurudishwa
+                # hapa, kwa hiyo mara ya kwanza ya kuingia jina halikuonekana).
+                "operator": {
+                    "email": operator.email,
+                    "full_name": operator.full_name,
+                    "is_superuser_operator": operator.is_superuser_operator,
+                },
+            }
+        )
 
 
 class LoginStep2View(APIView):
@@ -210,6 +225,7 @@ class SecurityEventListView(generics.ListAPIView):
     authentication_classes = [SecurityAdminAuthentication]
     permission_classes = [IsSecurityOperator]
     serializer_class = SecurityEventSerializer
+    pagination_class = None  # tayari tunarudisha kiwango cha juu cha 200 (angalia get_queryset)
 
     def get_queryset(self):
         qs = SecurityEvent.objects.all()
@@ -222,6 +238,22 @@ class SecurityEventListView(generics.ListAPIView):
         return qs[:200]
 
 
+class MarkEventReviewedView(APIView):
+    """
+    POST /api/security/events/<uuid:pk>/review/ - Weka tukio kuwa "limeangaliwa".
+    (reviewed_by inabaki tupu: FK yake ni kwa accounts.User, si SecurityAdminUser.)
+    """
+
+    authentication_classes = [SecurityAdminAuthentication]
+    permission_classes = [IsSecurityOperator]
+
+    def post(self, request, pk):
+        updated = SecurityEvent.objects.filter(pk=pk).update(is_reviewed=True, reviewed_at=timezone.now())
+        if not updated:
+            return Response({"detail": "Tukio halipatikani."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "Tukio limewekwa kuwa limeangaliwa.", "id": str(pk), "is_reviewed": True})
+
+
 class SecurityDashboardSummaryView(APIView):
     """GET /api/security/summary/ - namba za haraka kwa dashboard cards."""
 
@@ -229,7 +261,7 @@ class SecurityDashboardSummaryView(APIView):
     permission_classes = [IsSecurityOperator]
 
     def get(self, request):
-        last_24h = timezone.now() - timezone.timedelta(hours=24)
+        last_24h = timezone.now() - timedelta(hours=24)
         return Response(
             {
                 "events_last_24h": SecurityEvent.objects.filter(created_at__gte=last_24h).count(),
@@ -248,7 +280,52 @@ class BlockedIPListView(generics.ListAPIView):
     authentication_classes = [SecurityAdminAuthentication]
     permission_classes = [IsSecurityOperator]
     serializer_class = BlockedIPSerializer
-    queryset = BlockedIP.objects.all()
+    pagination_class = None  # orodha kamili (hadi 500) - ukurasa wa kwanza tu ungepoteza IP zingine
+
+    def get_queryset(self):
+        return BlockedIP.objects.all()[:500]
+
+    def post(self, request):
+        """
+        POST /api/security/blocked-ips/  {ip_address, reason, duration_hours, permanent}
+        Operator anazuia IP kwa mkono. Kuzuia KUDUMU ni kwa Superuser Operator pekee.
+        Huwezi kuzuia IP yako mwenyewe (kuepuka kujifungia nje).
+        """
+        serializer = ManualBlockSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        ip = data["ip_address"]
+        if ip == get_client_ip(request):
+            return Response(
+                {"detail": "Huwezi kuzuia IP yako mwenyewe - ungejifungia nje."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if data["permanent"] and not request.user.is_superuser_operator:
+            return Response(
+                {"detail": "Ni Superuser Operator pekee anayeweza kuzuia IP kwa kudumu."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        block, _created = BlockedIP.objects.update_or_create(
+            ip_address=ip,
+            defaults={
+                "reason": f"Kwa mkono na {request.user.email}: {data['reason']}"[:255],
+                "is_permanent": data["permanent"],
+                "blocked_until": None
+                if data["permanent"]
+                else timezone.now() + timedelta(hours=data["duration_hours"]),
+                "blocked_by_system": False,
+                "approved_by": request.user if data["permanent"] else None,
+            },
+        )
+        log_event(
+            event_type=SecurityEventType.OTHER,
+            severity=SecuritySeverity.MEDIUM,
+            ip_address=ip,
+            description=f"IP imezuiwa kwa mkono na {request.user.email}: {data['reason']}",
+        )
+        return Response(BlockedIPSerializer(block).data, status=status.HTTP_201_CREATED)
 
 
 class UnblockIPView(APIView):
@@ -266,6 +343,7 @@ class PendingApprovalListView(generics.ListAPIView):
     authentication_classes = [SecurityAdminAuthentication]
     permission_classes = [IsSecurityOperator]
     serializer_class = PendingApprovalActionSerializer
+    pagination_class = None
 
     def get_queryset(self):
         return PendingApprovalAction.objects.filter(status=PendingApprovalAction.Status.PENDING)

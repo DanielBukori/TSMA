@@ -7,6 +7,7 @@ from .views import (
     LoginStep1View,
     LoginStep2View,
     LogoutView,
+    MarkEventReviewedView,
     PendingApprovalListView,
     SecurityDashboardSummaryView,
     SecurityEventListView,
@@ -25,6 +26,7 @@ urlpatterns = [
     # Dashboard
     path("summary/", SecurityDashboardSummaryView.as_view(), name="summary"),
     path("events/", SecurityEventListView.as_view(), name="events"),
+    path("events/<uuid:pk>/review/", MarkEventReviewedView.as_view(), name="event_review"),
     path("blocked-ips/", BlockedIPListView.as_view(), name="blocked_ips"),
     path("blocked-ips/<int:pk>/unblock/", UnblockIPView.as_view(), name="unblock_ip"),
     path("pending-actions/", PendingApprovalListView.as_view(), name="pending_actions"),

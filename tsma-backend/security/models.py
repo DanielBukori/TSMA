@@ -247,6 +247,18 @@ class SecurityAdminUser(models.Model):
     def __str__(self):
         return f"{self.full_name} <{self.email}>"
 
+    # MUHIMU: DRF (throttle za kimataifa: AnonRateThrottle/UserRateThrottle) zinasoma
+    # `request.user.is_authenticated` kwa kila ombi. Model hii si AbstractBaseUser, kwa
+    # hiyo haikuwa na sifa hiyo -> AttributeError -> kila endpoint ya dashibodi ya usalama
+    # ilirudisha 500 na ukurasa ukaonyesha "Imeshindikana kupakua data".
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
     def set_password(self, raw_password):
         from django.contrib.auth.hashers import make_password
 

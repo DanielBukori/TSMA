@@ -19,10 +19,12 @@ class ConfirmTotpSetupSerializer(serializers.Serializer):
 
 
 class SecurityEventSerializer(serializers.ModelSerializer):
+    event_type_display = serializers.CharField(source="get_event_type_display", read_only=True)
+
     class Meta:
         model = SecurityEvent
         fields = (
-            "id", "event_type", "severity", "ip_address", "path", "description",
+            "id", "event_type", "event_type_display", "severity", "ip_address", "path", "description",
             "metadata", "auto_action_taken", "is_reviewed", "created_at",
         )
         read_only_fields = fields
@@ -42,14 +44,24 @@ class BlockedIPSerializer(serializers.ModelSerializer):
 
 class PendingApprovalActionSerializer(serializers.ModelSerializer):
     related_event = SecurityEventSerializer(read_only=True)
+    action_type_display = serializers.CharField(source="get_action_type_display", read_only=True)
 
     class Meta:
         model = PendingApprovalAction
         fields = (
-            "id", "action_type", "related_event", "target_description",
+            "id", "action_type", "action_type_display", "related_event", "target_description",
             "reason", "status", "decided_at", "created_at",
         )
         read_only_fields = fields
+
+
+class ManualBlockSerializer(serializers.Serializer):
+    """Operator anazuia IP kwa mkono (kutoka dashibodi)."""
+
+    ip_address = serializers.IPAddressField()
+    reason = serializers.CharField(max_length=200)
+    duration_hours = serializers.IntegerField(min_value=1, max_value=720, default=24)
+    permanent = serializers.BooleanField(default=False)
 
 
 class ApprovalDecisionSerializer(serializers.Serializer):
