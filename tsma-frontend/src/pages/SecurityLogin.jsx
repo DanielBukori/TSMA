@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import securityClient from '../api/securityClient.js'
+import PasswordInput from '../components/PasswordInput.jsx'
 
 // Hatua: 'credentials' -> (ikihitaji) 'setup_totp' -> 'totp' -> imekamilika
 export default function SecurityLogin() {
@@ -109,8 +110,7 @@ export default function SecurityLogin() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-black/15 rounded-md px-3 py-2.5 text-sm"
             />
-            <input
-              type="password"
+            <PasswordInput
               required
               placeholder="Password"
               value={password}

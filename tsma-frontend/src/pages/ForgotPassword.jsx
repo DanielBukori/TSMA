@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { confirmPasswordReset, requestPasswordReset } from '../api/auth.js'
+import PasswordInput from '../components/PasswordInput.jsx'
 
 const COOLDOWN_SECONDS = 60
 
@@ -169,11 +170,11 @@ export default function ForgotPassword() {
             </div>
             <div>
               <label className="block text-xs font-bold text-ink mb-1.5">{isSw ? 'Password Mpya' : 'New Password'}</label>
-              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} />
+              <PasswordInput required autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} />
             </div>
             <div>
               <label className="block text-xs font-bold text-ink mb-1.5">{isSw ? 'Rudia Password Mpya' : 'Confirm New Password'}</label>
-              <input type="password" required value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} className={inputClass} />
+              <PasswordInput required autoComplete="new-password" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} className={inputClass} />
             </div>
             <button
               type="submit"

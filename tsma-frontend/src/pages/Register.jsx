@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext.jsx'
+import PasswordInput from '../components/PasswordInput.jsx'
 
 export default function Register() {
   const { i18n } = useTranslation()
@@ -106,6 +107,7 @@ export default function Register() {
             value={form.password}
             onChange={(v) => update('password', v)}
             placeholder="••••••••"
+            autoComplete="new-password"
             required
           />
           <Field
@@ -114,6 +116,7 @@ export default function Register() {
             value={form.password_confirm}
             onChange={(v) => update('password_confirm', v)}
             placeholder="••••••••"
+            autoComplete="new-password"
             required
           />
 
@@ -137,12 +140,14 @@ export default function Register() {
   )
 }
 
-function Field({ label, type = 'text', value, onChange, placeholder, required }) {
+function Field({ label, type = 'text', value, onChange, placeholder, required, autoComplete }) {
+  const InputTag = type === 'password' ? PasswordInput : 'input' // password: kitufe cha kuonyesha/kuficha
   return (
     <div>
       <label className="block text-xs font-bold text-ink mb-1.5">{label}</label>
-      <input
+      <InputTag
         type={type}
+        autoComplete={autoComplete}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}

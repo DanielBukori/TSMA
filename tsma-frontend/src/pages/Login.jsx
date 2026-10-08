@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext.jsx'
+import PasswordInput from '../components/PasswordInput.jsx'
 
 export default function Login() {
   const { t, i18n } = useTranslation()
@@ -105,10 +106,11 @@ export default function Login() {
 }
 
 function Field({ label, type, value, onChange, placeholder, required }) {
+  const InputTag = type === 'password' ? PasswordInput : 'input' // password: kitufe cha kuonyesha/kuficha
   return (
     <div>
       <label className="block text-xs font-bold text-ink mb-1.5">{label}</label>
-      <input
+      <InputTag
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
