@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import LanguageToggle from './LanguageToggle.jsx'
 import UserAvatar, { useProfilePhoto } from './UserAvatar.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useSiteSettings } from '../context/SiteSettingsContext.jsx'
+import SectionLink from './SectionLink.jsx'
+import { useActiveSection } from '../utils/sectionScroll.js'
+import { SECTION_ROUTES, SINGLE_PAGE } from '../config/layout.js'
 
 /**
  * Navbar — "pill" inayoelea (feel ya snippe.sh) badala ya bar ya kawaida
@@ -27,27 +30,65 @@ export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth()
   const { logoUrl } = useSiteSettings()
   const navigate = useNavigate()
+  const location = useLocation()
+  const onHome = location.pathname === '/'
+  const activeSection = useActiveSection(onHome && SINGLE_PAGE) // sehemu inayoonekana sasa (kuangaza kiungo)
   const photo = useProfilePhoto(user)
 
+  // `section` = sehemu ya ukurasa wa Home (inaruka); `to` = ukurasa tofauti.
   const links = [
-    { to: '/about', label: t('nav.about') },
-    { to: '/board', label: t('nav.board') },
-    { to: '/management', label: t('nav.management') },
-    { to: '/publications', label: t('nav.publications') },
-    { to: '/teaching', label: t('nav.teaching') },
-    { to: '/conferences', label: t('nav.conferences') },
-    { to: '/members', label: t('nav.members') },
-    { to: '/directory', label: t('nav.directory') },
-    { to: '/news', label: t('nav.news') },
-    { to: '/gallery', label: t('nav.gallery') },
-    { to: '/contact', label: t('nav.contact') },
-    { to: '/careers', label: t('nav.careers') },
+    { key: 'about', section: 'about', label: t('nav.about') },
+    { key: 'board', section: 'board', label: t('nav.board') },
+    { key: 'publications', section: 'publications', label: t('nav.publications') },
+    { key: 'teaching', section: 'teaching', label: t('nav.teaching') },
+    { key: 'conferences', section: 'conferences', label: t('nav.conferences') },
+    { key: 'members', section: 'members', label: t('nav.members') },
+    { key: 'news', section: 'news', label: t('nav.news') },
+    { key: 'gallery', section: 'gallery', label: t('nav.gallery') },
+    { key: 'contact', section: 'contact', label: t('nav.contact') },
+    { key: 'management', to: '/management', label: t('nav.management') },
+    { key: 'directory', to: '/directory', label: t('nav.directory') },
+    { key: 'careers', to: '/careers', label: t('nav.careers') },
   ]
 
   // Viungo vikuu vinaonekana kwenye upau; vingine vinaingia kwenye "Zaidi"
-  const primaryPaths = ['/about', '/publications', '/teaching', '/conferences', '/members']
-  const primaryLinks = links.filter((l) => primaryPaths.includes(l.to))
-  const moreLinks = links.filter((l) => !primaryPaths.includes(l.to))
+  const primaryKeys = ['about', 'publications', 'teaching', 'conferences', 'members']
+  const primaryLinks = links.filter((l) => primaryKeys.includes(l.key))
+  const moreLinks = links.filter((l) => !primaryKeys.includes(l.key))
+
+  // Kiungo cha sehemu (kinaruka) au cha ukurasa tofauti; kinaangazwa kikiwa ndicho kinachoonekana
+  function renderLink(link, className, onClick) {
+    if (link.section) {
+      const isActive = SINGLE_PAGE
+        ? onHome && activeSection === link.section
+        : location.pathname === SECTION_ROUTES[link.section] || location.pathname.startsWith(`${SECTION_ROUTES[link.section]}/`)
+      return (
+        <SectionLink
+          key={link.key}
+          section={link.section}
+          onClick={onClick}
+          className={`${className} ${isActive ? '!text-navy underline decoration-gold decoration-2 underline-offset-8' : ''}`}
+        >
+          {link.label}
+        </SectionLink>
+      )
+    }
+    return (
+      <Link key={link.key} to={link.to} onClick={onClick} className={className}>
+        {link.label}
+      </Link>
+    )
+  }
+
+  // Nembo: tukiwa Home, inarudisha juu ya ukurasa
+  function handleLogoClick(e) {
+    setOpen(false)
+    if (onHome) {
+      e.preventDefault()
+      window.history.replaceState(null, '', '/')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
@@ -84,11 +125,11 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-40 px-3 pt-3 md:px-5 md:pt-4">
       <div
-        className={`flex items-center justify-between gap-3 rounded-full bg-surface/95 backdrop-blur-md px-4 md:px-6 py-2.5 transition-shadow ${
+        className={`flex items-center justify-between gap-3 rounded-full bg-white/95 px-4 md:px-6 py-2.5 transition-shadow ${
           scrolled ? 'shadow-lg shadow-black/10 ring-1 ring-black/5' : 'shadow-md shadow-black/5'
         }`}
       >
-        <Link to="/" className="flex items-center gap-2.5 shrink-0" onClick={() => setOpen(false)}>
+        <Link to="/" className="flex items-center gap-2.5 shrink-0" onClick={handleLogoClick}>
           {logoUrl ? (
             // rounded-lg (SI rounded-full) — logo halisi ya TSMA ina
             // umbo la "shield" lenye maandishi ndani yake; duara
@@ -119,15 +160,9 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <nav className="hidden xl:flex items-center gap-5">
-          {primaryLinks.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className="text-sm font-semibold text-ink hover:text-navy transition-colors whitespace-nowrap"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {primaryLinks.map((link) =>
+            renderLink(link, 'text-sm font-semibold text-ink hover:text-navy transition-colors whitespace-nowrap'),
+          )}
           <div className="relative">
             <button
               type="button"
@@ -144,17 +179,14 @@ export default function Navbar() {
                   onClick={() => setMoreOpen(false)}
                   aria-hidden="true"
                 />
-                <div className="absolute right-0 top-full mt-3 w-52 bg-surface rounded-2xl shadow-xl border border-black/5 py-2 z-50">
-                  {moreLinks.map((link) => (
-                    <Link
-                      key={link.to}
-                      to={link.to}
-                      onClick={() => setMoreOpen(false)}
-                      className="block px-4 py-2.5 text-sm font-semibold text-ink hover:bg-cream hover:text-navy whitespace-nowrap"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
+                <div className="absolute right-0 top-full mt-3 w-52 bg-white rounded-2xl shadow-xl border border-black/5 py-2 z-50">
+                  {moreLinks.map((link) =>
+                    renderLink(
+                      link,
+                      'block px-4 py-2.5 text-sm font-semibold text-ink hover:bg-cream hover:text-navy whitespace-nowrap',
+                      () => setMoreOpen(false),
+                    ),
+                  )}
                 </div>
               </>
             )}
@@ -187,15 +219,15 @@ export default function Navbar() {
               >
                 {t('common.login')}
               </Link>
-              <Link
-                to="/members"
+              <SectionLink
+                section="members"
                 className="flex items-center gap-2 bg-ink hover:bg-navy-deep text-white font-bold text-sm pl-5 pr-2 py-2 rounded-full transition-colors whitespace-nowrap"
               >
                 {t('nav.registerNow')}
                 <span className="w-7 h-7 rounded-full bg-gold flex items-center justify-center text-navy-deep text-sm shrink-0">
                   →
                 </span>
-              </Link>
+              </SectionLink>
             </div>
           )}
         </div>
@@ -221,7 +253,7 @@ export default function Navbar() {
       />
 
       <aside
-        className={`fixed top-0 right-0 h-full w-[82%] max-w-sm bg-surface z-50 shadow-2xl transform transition-transform duration-300 ease-in-out xl:hidden flex flex-col ${
+        className={`fixed top-0 right-0 h-full w-[82%] max-w-sm bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out xl:hidden flex flex-col ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
@@ -260,16 +292,9 @@ export default function Navbar() {
               {user?.full_name || (t('common.dashboard', 'Dashibodi Yangu'))}
             </Link>
           )}
-          {links.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              onClick={() => setOpen(false)}
-              className="block text-[15px] font-semibold text-ink py-3.5 border-b border-black/5"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {links.map((link) =>
+            renderLink(link, 'block text-[15px] font-semibold text-ink py-3.5 border-b border-black/5', () => setOpen(false)),
+          )}
         </nav>
 
         <div className="px-5 py-5 border-t border-black/5">
@@ -289,13 +314,13 @@ export default function Navbar() {
               >
                 {t('common.login')}
               </Link>
-              <Link
-                to="/members"
+              <SectionLink
+                section="members"
                 onClick={() => setOpen(false)}
                 className="block bg-ink text-white font-extrabold text-sm text-center px-5 py-3.5 rounded-full"
               >
                 {t('nav.registerNow')}
-              </Link>
+              </SectionLink>
             </div>
           )}
         </div>
