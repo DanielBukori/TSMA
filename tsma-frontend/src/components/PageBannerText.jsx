@@ -21,7 +21,7 @@ export default function PageBannerText({
   pageKey,
   isSw,
   fallback,
-  titleClassName = 'font-serif font-bold text-3xl md:text-5xl',
+  titleClassName = 'font-serif font-bold text-2xl md:text-4xl text-navy-deep',
 }) {
   const { banner } = useBannerContent(pageKey)
   const b = banner || fallback
@@ -35,13 +35,13 @@ export default function PageBannerText({
   return (
     <>
       {badge && (
-        <span className="inline-block border border-gold/50 text-gold text-xs font-extrabold tracking-widest px-5 py-2 rounded-full mb-6">
+        <span className="inline-block border border-navy/15 text-navy text-xs font-extrabold tracking-widest px-4 py-1.5 rounded-full mb-3">
           {badge}
         </span>
       )}
       <h1 className={titleClassName}>{isSw ? b.title_sw : b.title_en}</h1>
       {subtitle && (
-        <p className="text-white/75 max-w-lg mx-auto mt-4 px-5">{subtitle}</p>
+        <p className="text-ink-muted max-w-2xl mx-auto mt-3 px-5">{subtitle}</p>
       )}
       {ctaText && b.cta_url && (
         <Link

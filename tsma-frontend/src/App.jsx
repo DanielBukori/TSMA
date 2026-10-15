@@ -50,6 +50,7 @@ const QuizTake = lazy(() => import('./pages/QuizTake.jsx'))
 const NotFound = lazy(() => import('./pages/NotFound.jsx'))
 const SecurityLogin = lazy(() => import('./pages/SecurityLogin.jsx'))
 const SecurityDashboard = lazy(() => import('./pages/SecurityDashboard.jsx'))
+const EditorDashboard = lazy(() => import('./pages/EditorDashboard.jsx'))
 const VerifyMember = lazy(() => import('./pages/VerifyMember.jsx'))
 const VerifyCertificate = lazy(() => import('./pages/VerifyCertificate.jsx'))
 
@@ -64,6 +65,9 @@ export default function App() {
             umma), na ina mfumo wake wa login (SecurityAdminUser). */}
         <Route path="/security/login" element={<SecurityLogin />} />
         <Route path="/security" element={<SecurityDashboard />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/editor" element={<EditorDashboard />} />
+        </Route>
 
         <Route element={<Layout />}>
           {/* Home = ukurasa mmoja mrefu wenye sehemu zote (About, Board, Publications, Teaching,
