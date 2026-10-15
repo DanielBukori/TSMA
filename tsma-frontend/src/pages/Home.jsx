@@ -54,30 +54,13 @@ export default function Home() {
         <NewsPreview />
         <ConferenceCallout />
         <Testimonials />
-        <PartnersStrip isSw={isSw} />
-      </>
-    )
-  }
-
-  return (
-    <>
-      <HeroSlideshow />
-      <InfoBox />
-      <QuickLinks />
-      <ConferenceCallout />
-
-      {SECTIONS_BEFORE_PARTNERS.map(({ id, Component }) => (
-        <LazySection key={id} id={id}>
-          <Component />
-        </LazySection>
-      ))}
-
-      <Testimonials />
-      <PartnersStrip isSw={isSw} />
 
       <LazySection id="contact">
         <Contact />
       </LazySection>
+
+      {/* Washirika wote wanaosimamiwa Django Admin waonekane mara moja, juu ya Footer. */}
+      <PartnersStrip isSw={isSw} />
     </>
   )
 }

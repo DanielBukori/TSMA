@@ -51,9 +51,20 @@ export default function CourseDetail() {
 
   return (
     <>
-      <section className="bg-navy-deep bg-track-lines text-white text-center py-14 md:py-16 px-5">
-        <h1 className="font-serif font-bold text-2xl md:text-4xl max-w-2xl mx-auto">{course.title}</h1>
-        <p className="text-white/70 text-sm mt-3 max-w-xl mx-auto">{course.description}</p>
+      <section className="relative bg-navy-deep bg-track-lines text-white text-center px-5 overflow-hidden">
+        {course.cover_image && (
+          <img
+            src={course.cover_image}
+            alt={course.title ? `${course.title} cover` : 'Course cover'}
+            className="absolute inset-0 h-full w-full object-cover opacity-25"
+            onError={(event) => { event.currentTarget.style.display = 'none' }}
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-navy-deep/75 to-navy-deep/95" />
+        <div className="relative z-10 py-14 md:py-16">
+          <h1 className="font-serif font-bold text-2xl md:text-4xl max-w-2xl mx-auto">{course.title}</h1>
+          <p className="text-white/80 text-sm mt-3 max-w-xl mx-auto">{course.description}</p>
+        </div>
       </section>
 
       <section className="max-w-3xl mx-auto px-5 md:px-8 py-10">

@@ -69,8 +69,21 @@ export default function Teaching() {
                 to={`/teaching/courses/${course.slug}`}
                 className="block bg-surface border border-black/10 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
               >
-                <div className="h-32 bg-gradient-to-br from-navy to-green-dark flex items-center justify-center">
-                  <span className="text-white/80 text-3xl">🎓</span>
+                <div className="relative h-44 bg-gradient-to-br from-navy to-green-dark overflow-hidden">
+                  {course.cover_image ? (
+                    <img
+                      src={course.cover_image}
+                      alt={course.title ? `${course.title} cover` : 'Course cover'}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                      onError={(event) => { event.currentTarget.style.display = 'none' }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center" aria-label={isSw ? 'Picha ya kozi haijawekwa' : 'No course cover uploaded'}>
+                      <span className="text-white/85 text-4xl" aria-hidden="true">🎓</span>
+                    </div>
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/35 to-transparent pointer-events-none" />
                 </div>
                 <div className="p-5">
                   <h3 className="font-serif font-bold text-navy text-base">{course.title}</h3>

@@ -12,7 +12,7 @@ const FALLBACK_INFO = {
   whatsapp_link: 'https://wa.me/255700000000',
   email: 'info@tsma.or.tz',
   email_mailto_link: 'mailto:info@tsma.or.tz',
-  physical_address: 'Airport road, Dar es Salaam, Tanzania',
+  physical_address: 'Barabara ya Uwanja wa Ndege, Dar es Salaam, Tanzania',
   postal_address: 'S.L.P 12345, Dar es Salaam',
   google_maps_link: '',
   facebook_url: '#',
