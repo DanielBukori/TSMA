@@ -59,3 +59,23 @@ h1, h2, h3, h4 {
   }
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* Gentle scroll-reveal animation; respects accessibility preferences. */
+.tsma-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 650ms ease, transform 650ms cubic-bezier(.2,.7,.2,1);
+}
+.tsma-reveal.tsma-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .tsma-reveal,
+  .tsma-reveal.tsma-reveal--visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

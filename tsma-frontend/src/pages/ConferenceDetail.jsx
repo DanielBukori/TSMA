@@ -127,14 +127,18 @@ export default function ConferenceDetail() {
       )}
 
       {/* ============ REGISTRATION ============ */}
-      {!conference.is_past && conference.is_registration_still_open && (
-        <RegistrationSection conference={conference} isSw={isSw} />
+      {!conference.is_past && (
+        <RegistrationSection
+          conference={conference}
+          isSw={isSw}
+          registrationOpen={Boolean(conference.is_registration_still_open)}
+        />
       )}
     </>
   )
 }
 
-function RegistrationSection({ conference, isSw }) {
+function RegistrationSection({ conference, isSw, registrationOpen }) {
   const { isAuthenticated } = useAuth()
   const [mode, setMode] = useState('self') // self | bulk
 
@@ -149,34 +153,108 @@ function RegistrationSection({ conference, isSw }) {
         </h2>
       </div>
 
-      {!isAuthenticated ? (
-        <div className="text-center border border-dashed border-black/20 rounded-xl p-8">
-          <p className="text-sm text-ink-muted mb-4">
-            {isSw ? 'Ingia kwenye akaunti yako kuendelea na usajili.' : 'Sign in to your account to continue registering.'}
-          </p>
-          <a href="/login" className="inline-block bg-gold text-navy-deep font-extrabold text-sm px-7 py-3.5 rounded-md">
-            {isSw ? 'Ingia →' : 'Sign In →'}
-          </a>
+      {!registrationOpen && (
+        <div role="status" className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-center text-sm text-amber-900">
+          {isSw ? 'Usajili wa mkutano huu umefungwa kwa sasa. Tiketi zimeonyeshwa kwa taarifa tu.' : 'Registration for this conference is currently closed. Tickets are shown for information only.'}
         </div>
-      ) : (
-        <>
-          <div className="flex justify-center gap-2 mb-8">
-            <ModeButton active={mode === 'self'} onClick={() => setMode('self')}>
-              {isSw ? '👤 Mimi Mwenyewe' : '👤 Myself'}
-            </ModeButton>
-            <ModeButton active={mode === 'bulk'} onClick={() => setMode('bulk')}>
-              {isSw ? '🏢 Taasisi (Wengi)' : '🏢 Organization (Bulk)'}
-            </ModeButton>
-          </div>
-
-          {mode === 'self' ? (
-            <SelfRegistrationForm conference={conference} isSw={isSw} />
-          ) : (
-            <BulkRegistrationForm conference={conference} isSw={isSw} />
-          )}
-        </>
       )}
+
+      {/* Tiketi zinaonekana hata kwa wageni; usajili na malipo bado huhitaji akaunti. */}
+      {!isAuthenticated && (
+        <div className="mb-6">
+          <PublicTicketList tickets={conference.ticket_types} isSw={isSw} />
+          {registrationOpen && (
+            <div className="text-center border border-dashed border-black/20 rounded-xl p-6 mt-5">
+              <p className="text-sm text-ink-muted mb-4">
+                {isSw ? 'Chagua tiketi kisha ingia au fungua akaunti ili kuendelea na usajili na malipo.' : 'Review the tickets, then sign in or create an account to register and pay.'}
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <a href={`/login?next=${encodeURIComponent(`/conferences/${conference.slug}#register`)}`} className="inline-block bg-gold text-navy-deep font-extrabold text-sm px-7 py-3.5 rounded-md">
+                  {isSw ? 'Ingia →' : 'Sign In →'}
+                </a>
+                <a href={`/register?next=${encodeURIComponent(`/conferences/${conference.slug}#register`)}`} className="inline-block border border-navy text-navy font-extrabold text-sm px-7 py-3.5 rounded-md">
+                  {isSw ? 'Fungua Akaunti' : 'Create Account'}
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+        {isAuthenticated && registrationOpen ? (
+      <>
+        <div className="flex justify-center gap-2 mb-8">
+          <ModeButton active={mode === 'self'} onClick={() => setMode('self')}>
+            {isSw ? '👤 Mimi Mwenyewe' : '👤 Myself'}
+          </ModeButton>
+
+          <ModeButton active={mode === 'bulk'} onClick={() => setMode('bulk')}>
+            {isSw ? '🏢 Taasisi (Wengi)' : '🏢 Organization (Bulk)'}
+          </ModeButton>
+        </div>
+
+        {mode === 'self' ? (
+          <SelfRegistrationForm conference={conference} isSw={isSw} />
+        ) : (
+          <BulkRegistrationForm conference={conference} isSw={isSw} />
+        )}
+      </>
+    ) : (
+      isAuthenticated && (
+        <PublicTicketList
+          tickets={conference.ticket_types}
+          isSw={isSw}
+        />
+      )
+    )}
     </section>
+    )
+    }
+
+function PublicTicketList({ tickets, isSw }) {
+  const availableTickets = (Array.isArray(tickets) ? tickets : []).filter(
+    (ticket) => ticket && ticket.is_available !== false,
+  )
+  if (!availableTickets.length) {
+    return (
+      <div className="rounded-lg border border-dashed border-black/20 bg-cream/60 p-5 text-center text-sm text-ink-muted" role="status">
+        {isSw ? 'Hakuna tiketi zilizowekwa au zinazopatikana kwa sasa. Tafadhali wasiliana na TSMA.' : 'No tickets have been configured or are currently available. Please contact TSMA.'}
+      </div>
+    )
+  }
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {availableTickets.map((ticket) => {
+        const name = String(ticket.name || '')
+        const desc = String(ticket.description || '')
+        const lower = `${name} ${desc}`.toLowerCase()
+        const member = /member|mwanachama/.test(lower)
+        const nonMember = /non.?member|not.?member|asiye mwanachama|wasio wanachama/.test(lower)
+        const bulk = /bulk|group|corporate|institution|taasisi|kikundi/.test(lower)
+        const label = bulk
+          ? (isSw ? 'Usajili wa Kikundi' : 'Group / Bulk')
+          : member && !nonMember
+            ? (isSw ? 'Mwanachama wa TSMA' : 'TSMA Member')
+            : nonMember
+              ? (isSw ? 'Asiye Mwanachama' : 'Non-member')
+              : (isSw ? 'Tiketi ya Mkutano' : 'Conference ticket')
+        return (
+          <article key={ticket.id} className="rounded-xl border border-black/10 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="inline-block rounded-full bg-cream px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide text-navy">{label}</span>
+                <h3 className="mt-3 font-serif text-lg font-bold text-navy">{ticket.name}</h3>
+              </div>
+              <div className="shrink-0 text-right">
+                <div className="font-serif text-xl font-bold text-green">{Number(ticket.price || 0).toLocaleString()}</div>
+                <div className="text-xs text-ink-muted">{ticket.currency || 'TZS'}</div>
+              </div>
+            </div>
+            {ticket.description && <p className="mt-3 text-sm leading-relaxed text-ink-muted">{ticket.description}</p>}
+          </article>
+        )
+      })}
+    </div>
   )
 }
 
