@@ -181,28 +181,35 @@ function RegistrationSection({ conference, isSw, registrationOpen }) {
         </div>
       )}
 
-      {isAuthenticated && registrationOpen ? (
-        <>
-          <div className="flex justify-center gap-2 mb-8">
-            <ModeButton active={mode === 'self'} onClick={() => setMode('self')}>
-              {isSw ? '👤 Mimi Mwenyewe' : '👤 Myself'}
-            </ModeButton>
-            <ModeButton active={mode === 'bulk'} onClick={() => setMode('bulk')}>
-              {isSw ? '🏢 Taasisi (Wengi)' : '🏢 Organization (Bulk)'}
-            </ModeButton>
-          </div>
+          {isAuthenticated && registrationOpen ? (
+      <>
+        <div className="flex justify-center gap-2 mb-8">
+          <ModeButton active={mode === 'self'} onClick={() => setMode('self')}>
+            {isSw ? '👤 Mimi Mwenyewe' : '👤 Myself'}
+          </ModeButton>
 
-          {mode === 'self' ? (
-            <SelfRegistrationForm conference={conference} isSw={isSw} />
-          ) : (
-            <BulkRegistrationForm conference={conference} isSw={isSw} />
-          )}
-        </>
-      )}
-      {isAuthenticated && !registrationOpen && <PublicTicketList tickets={conference.ticket_types} isSw={isSw} />}
+          <ModeButton active={mode === 'bulk'} onClick={() => setMode('bulk')}>
+            {isSw ? '🏢 Taasisi (Wengi)' : '🏢 Organization (Bulk)'}
+          </ModeButton>
+        </div>
+
+        {mode === 'self' ? (
+          <SelfRegistrationForm conference={conference} isSw={isSw} />
+        ) : (
+          <BulkRegistrationForm conference={conference} isSw={isSw} />
+        )}
+      </>
+    ) : (
+      isAuthenticated && (
+        <PublicTicketList
+          tickets={conference.ticket_types}
+          isSw={isSw}
+        />
+      )
+    )}
     </section>
-  )
-}
+    )
+    }
 
 function PublicTicketList({ tickets, isSw }) {
   const availableTickets = (Array.isArray(tickets) ? tickets : []).filter(
