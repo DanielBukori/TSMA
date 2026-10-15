@@ -58,13 +58,13 @@ export default function ConferenceDetail() {
         </p>
       </section>
 
-      <section className="max-w-3xl mx-auto px-5 md:px-8 py-12 text-center">
+      <section data-reveal className="max-w-3xl mx-auto px-5 md:px-8 py-12 text-center">
         <p className="text-ink leading-relaxed">{conference.description}</p>
       </section>
 
       {/* ============ FULL AGENDA (timeline kwa siku) ============ */}
       {conference.days?.length > 0 && (
-        <section className="bg-cream py-14 md:py-20">
+        <section data-reveal className="bg-cream py-14 md:py-20">
           <div className="max-w-3xl mx-auto px-5 md:px-8">
             <div className="text-center mb-12">
               <div className="text-terracotta font-extrabold text-xs tracking-widest mb-2">
@@ -78,7 +78,7 @@ export default function ConferenceDetail() {
 
             <div className="space-y-10">
               {conference.days.map((day) => (
-                <div key={day.id}>
+                <div data-reveal key={day.id}>
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-11 h-11 rounded-full bg-navy text-gold font-serif font-black text-sm flex items-center justify-center shrink-0">
                       {day.day_number}
@@ -93,7 +93,7 @@ export default function ConferenceDetail() {
 
                   <div className="pl-14 space-y-4">
                     {day.sessions?.map((session) => (
-                      <div key={session.id} className="bg-white border border-black/10 rounded-lg p-4">
+                      <div data-reveal key={session.id} className="bg-white border border-black/10 rounded-lg p-4 transition-transform duration-300 hover:-translate-y-1">
                         <div className="flex justify-between items-start gap-3">
                           <div>
                             <h4 className="font-bold text-sm text-navy">{session.title}</h4>
@@ -139,7 +139,7 @@ function RegistrationSection({ conference, isSw }) {
   const [mode, setMode] = useState('self') // self | bulk
 
   return (
-    <section id="register" className="max-w-3xl mx-auto px-5 md:px-8 py-14 md:py-20">
+    <section data-reveal id="register" className="max-w-3xl mx-auto px-5 md:px-8 py-14 md:py-20">
       <div className="text-center mb-10">
         <div className="text-terracotta font-extrabold text-xs tracking-widest mb-2">
           {isSw ? 'JISAJILI' : 'REGISTER'}
@@ -194,21 +194,30 @@ function ModeButton({ active, onClick, children }) {
 }
 
 function TicketPicker({ tickets, selectedId, onSelect, isSw }) {
+  const availableTickets = (Array.isArray(tickets) ? tickets : []).filter((ticket) => ticket && ticket.is_available !== false)
+  if (availableTickets.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed border-black/20 bg-cream/60 p-5 text-center text-sm text-ink-muted" role="status">
+        {isSw ? 'Hakuna tiketi zinazopatikana kwa sasa. Tafadhali wasiliana na TSMA au jaribu tena baadaye.' : 'No tickets are currently available. Please contact TSMA or try again later.'}
+      </div>
+    )
+  }
   return (
-    <div className="grid grid-cols-2 gap-3">
-      {tickets.map((ticket) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {availableTickets.map((ticket) => (
         <button
           key={ticket.id}
           type="button"
           onClick={() => onSelect(ticket.id)}
-          className={`text-left border rounded-lg p-4 transition-all ${
-            selectedId === ticket.id ? 'border-gold ring-2 ring-gold/30' : 'border-black/10'
+          aria-pressed={selectedId === ticket.id}
+          className={`text-left border rounded-lg p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
+            String(selectedId) === String(ticket.id) ? 'border-gold ring-2 ring-gold/30 bg-cream/40' : 'border-black/10 bg-white'
           }`}
         >
           <div className="text-xs font-extrabold text-navy uppercase">{ticket.name}</div>
           <div className="font-serif font-bold text-green text-lg mt-1.5">
-            {Number(ticket.price).toLocaleString()}{' '}
-            <span className="text-xs font-sans font-normal text-ink-muted">{ticket.currency}</span>
+            {Number(ticket.price || 0).toLocaleString()}{' '}
+            <span className="text-xs font-sans font-normal text-ink-muted">{ticket.currency || 'TZS'}</span>
           </div>
         </button>
       ))}
@@ -380,9 +389,11 @@ function BulkRegistrationForm({ conference, isSw }) {
   const [gateway, setGateway] = useState(null)
   const [method, setMethod] = useState('mobile_money')
   const [attendees, setAttendees] = useState([{ full_name: '', email: '', ticket_type_id: null }])
+  const [formError, setFormError] = useState('')
   const { status, setStatus, message, setMessage, reference, manual, startPolling } = usePaymentPolling()
 
   function updateAttendee(index, field, value) {
+    setFormError('')
     setAttendees((prev) => prev.map((a, i) => (i === index ? { ...a, [field]: value } : a)))
   }
   function addAttendee() {
@@ -394,6 +405,11 @@ function BulkRegistrationForm({ conference, isSw }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (!attendees.length || attendees.some((attendee) => !attendee.ticket_type_id)) {
+      setFormError(isSw ? 'Chagua tiketi kwa kila mshiriki kabla ya kuendelea.' : 'Please choose a ticket for every attendee before continuing.')
+      return
+    }
+    setFormError('')
     setStatus('submitting')
     try {
       const res = await apiClient.post(`/conferences/${conference.slug}/register-bulk/`, {
@@ -423,6 +439,7 @@ function BulkRegistrationForm({ conference, isSw }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {formError && <p role="alert" className="rounded-md bg-terracotta/10 p-3 text-sm font-semibold text-terracotta">{formError}</p>}
       <div>
         <label className="block text-xs font-bold text-ink mb-1.5">
           {isSw ? 'Jina la Taasisi' : 'Organization Name'}

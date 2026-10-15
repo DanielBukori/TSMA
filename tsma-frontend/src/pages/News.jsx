@@ -119,7 +119,7 @@ export default function News() {
 
 function PostCard({ post, isSw }) {
   return (
-    <article className="bg-white border border-black/10 rounded-xl overflow-hidden">
+    <article data-reveal className="bg-white border border-black/10 rounded-xl overflow-hidden transition-shadow duration-300 hover:shadow-lg">
       {/* Header: kama post ya Instagram/YouTube — mwandishi + tarehe */}
       <div className="flex items-center gap-3 px-4 py-3.5">
         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-navy to-green flex items-center justify-center text-white font-serif font-bold text-xs shrink-0">
@@ -155,14 +155,28 @@ function PostCard({ post, isSw }) {
 }
 
 function ImageCarousel({ images }) {
+  const safeImages = (Array.isArray(images) ? images : []).filter((item) => item?.image)
   const [index, setIndex] = useState(0)
-  const hasMultiple = images.length > 1
+  const hasMultiple = safeImages.length > 1
+
+  useEffect(() => {
+    setIndex(0)
+  }, [safeImages.length])
+
+  useEffect(() => {
+    if (!hasMultiple) return undefined
+    const timer = window.setInterval(() => setIndex((current) => (current + 1) % safeImages.length), 5000)
+    return () => window.clearInterval(timer)
+  }, [hasMultiple, safeImages.length])
+
+  if (!safeImages.length) return null
+  const activeIndex = index % safeImages.length
 
   return (
     <div className="relative bg-black">
       <div className="aspect-square overflow-hidden">
         <img
-          src={images[index].image}
+          src={safeImages[activeIndex].image}
           alt=""
           className="w-full h-full object-cover"
         />
@@ -171,33 +185,33 @@ function ImageCarousel({ images }) {
       {hasMultiple && (
         <>
           <button
-            onClick={() => setIndex((i) => (i === 0 ? images.length - 1 : i - 1))}
+            onClick={() => setIndex((i) => (i === 0 ? safeImages.length - 1 : i - 1))}
             className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center text-sm"
             aria-label="Previous"
           >
             ‹
           </button>
           <button
-            onClick={() => setIndex((i) => (i === images.length - 1 ? 0 : i + 1))}
+            onClick={() => setIndex((i) => (i === safeImages.length - 1 ? 0 : i + 1))}
             className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center text-sm"
             aria-label="Next"
           >
             ›
           </button>
           <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {images.map((_, i) => (
+            {safeImages.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setIndex(i)}
                 aria-label={`Image ${i + 1}`}
                 className={`h-1.5 rounded-full transition-all ${
-                  i === index ? 'w-5 bg-gold' : 'w-1.5 bg-white/50'
+                  i === activeIndex ? 'w-5 bg-gold' : 'w-1.5 bg-white/50'
                 }`}
               />
             ))}
           </div>
           <span className="absolute top-2.5 right-2.5 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-            {index + 1}/{images.length}
+            {activeIndex + 1}/{safeImages.length}
           </span>
         </>
       )}

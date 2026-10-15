@@ -6,6 +6,7 @@ import BoardMemberCard from '../components/BoardMemberCard.jsx'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
 import BoardProfileModal from '../components/BoardProfileModal.jsx'
+import BoardPhotoSlideshow from '../components/BoardPhotoSlideshow.jsx'
 
 /**
  * Fallback ya DEV pekee — inaonekana tu endapo backend haijaunganishwa.
@@ -75,7 +76,9 @@ export default function Board() {
         />
       </PageBanner>
 
-      <section className="max-w-6xl mx-auto px-5 md:px-8 py-14 md:py-20">
+      <BoardPhotoSlideshow members={members} isSw={isSw} />
+
+      <section data-reveal className="max-w-6xl mx-auto px-5 md:px-8 py-14 md:py-20">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {members.map((member) => (
             <BoardMemberCard key={member.id} member={member} onOpen={openMember} />

@@ -7,7 +7,7 @@ export default function BoardMemberCard({ member, onOpen }) {
   return (
     <button
       onClick={() => onOpen(member)}
-      className="group text-left border border-black/10 rounded-xl overflow-hidden hover:shadow-lg transition-shadow bg-surface"
+      data-reveal className="group text-left border border-black/10 rounded-xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 bg-surface"
     >
       <div className="aspect-square bg-gradient-to-br from-navy to-green-dark relative overflow-hidden">
         {member.photo ? (
