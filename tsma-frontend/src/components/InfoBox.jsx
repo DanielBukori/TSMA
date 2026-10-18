@@ -28,6 +28,13 @@ export default function InfoBox() {
   const big = stats.find((s) => s.kind === 'big')
   const tiles = stats.filter((s) => s.kind === 'tile').slice(0, 4)
 
+  // A conference year is an identifier, not a quantity: never render it with thousands separators.
+  const displayValue = (value, label) => {
+    const isConferenceYear = /next conference|upcoming conference/i.test(String(label || '')) || /mkutano unaofuata|mkutano ujao/i.test(String(label || ''))
+    if (isConferenceYear) return String(value ?? '').replace(/[,\s]/g, '')
+    return value
+  }
+
   if (!big && tiles.length === 0) return null
 
   return (
@@ -36,7 +43,7 @@ export default function InfoBox() {
         {big && (
           <>
             <div className="font-serif font-black text-5xl md:text-6xl text-gold">
-              {big.value}
+              {displayValue(big.value, isSw ? big.label_sw : big.label_en)}
             </div>
             <div className="text-sm text-white/80 mt-2">
               {isSw ? big.label_sw : big.label_en}
@@ -48,7 +55,7 @@ export default function InfoBox() {
           {tiles.map((tile, i) => (
             <Tile
               key={tile.id ?? i}
-              num={tile.value}
+              num={displayValue(tile.value, isSw ? tile.label_sw : tile.label_en)}
               label={isSw ? tile.label_sw : tile.label_en}
             />
           ))}

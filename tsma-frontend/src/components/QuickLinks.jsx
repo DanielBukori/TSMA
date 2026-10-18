@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { SINGLE_PAGE } from '../config/layout.js'
 
 const LINK_CONFIG = [
   { key: 'about', to: '/about', accent: 'bg-navy' },
@@ -27,7 +28,7 @@ export default function QuickLinks() {
         {LINK_CONFIG.map(({ key, to, accent }) => (
           <Link
             key={key}
-            to={to}
+            to={SINGLE_PAGE ? `/#${key === 'membership' ? 'members' : key}` : to}
             className="group border border-black/10 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
           >
             <div className={`h-1.5 ${accent}`} />
