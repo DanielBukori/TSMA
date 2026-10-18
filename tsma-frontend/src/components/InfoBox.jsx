@@ -2,27 +2,12 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 
-/**
- * Takwimu za FALLBACK — yale yale namba/maneno yaliyokuwa hardcoded hapa
- * kabla ya mfumo huu. Yanatumika tu endapo API bado haijajibu, au bado
- * hakuna data kabisa kwenye database (mfano kabla ya `seed_home_stats`
- * kuendeshwa). Mara HomeStat ikiwa na rekodi, hizo ndizo zinazoonekana
- * daima — Admin anahariri kupitia Django Admin (sitecontent -> Takwimu
- * za Home) bila kugusa code.
- */
-const FALLBACK_BIG = { value: '26', label_sw: 'Miaka ya Uzoefu', label_en: 'Years of Experience' }
-const FALLBACK_TILES = [
-  { value: '1,200+', label_sw: 'Wanachama', label_en: 'Members' },
-  { value: 'TZS 5M', label_sw: 'Faida ya Kiuchumi', label_en: 'Economic Impact' },
-  { value: '18', label_sw: 'Mikoa', label_en: 'Regions' },
-  { value: 'Dar es Salaam', label_sw: 'Makao Makuu', label_en: 'Headquarters' },
-]
-
+// Home statistics come only from Django. Avoid displaying sample figures as if they were real TSMA data.
 export default function InfoBox() {
   const { i18n } = useTranslation()
   const isSw = i18n.language?.startsWith('sw')
 
-  const [stats, setStats] = useState(null) // null = bado haijafika/haipo
+  const [stats, setStats] = useState([])
 
   useEffect(() => {
     let cancelled = false
@@ -30,20 +15,20 @@ export default function InfoBox() {
       .get('/content/home-stats/')
       .then((res) => {
         const results = res.data?.results || res.data
-        if (!cancelled && Array.isArray(results) && results.length > 0) {
-          setStats(results)
-        }
+        if (!cancelled && Array.isArray(results)) setStats(results)
       })
       .catch(() => {
-        // Kimya - itatumia FALLBACK
+        // No sample figures are shown when the API is unavailable.
       })
     return () => {
       cancelled = true
     }
   }, [])
 
-  const big = stats ? stats.find((s) => s.kind === 'big') : FALLBACK_BIG
-  const tiles = stats ? stats.filter((s) => s.kind === 'tile').slice(0, 4) : FALLBACK_TILES
+  const big = stats.find((s) => s.kind === 'big')
+  const tiles = stats.filter((s) => s.kind === 'tile').slice(0, 4)
+
+  if (!big && tiles.length === 0) return null
 
   return (
     <section className="max-w-4xl mx-auto px-5 md:px-8 -mt-4 md:-mt-8 relative z-10">

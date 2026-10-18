@@ -43,11 +43,12 @@ export default function ConferenceCallout() {
             return null
           }
         }))
-        const openConference = details
-          .filter((item) => item?.is_registration_still_open === true && item?.slug)
+        // Show the nearest upcoming conference from real API data, whether or not registration has opened yet.
+        const nextConference = details
+          .filter((item) => item?.slug && item?.start_date && item?.is_past !== true)
           .sort((a, b) => String(a.start_date).localeCompare(String(b.start_date)))[0] || null
 
-        if (!cancelled) setConference(openConference)
+        if (!cancelled) setConference(nextConference)
       } catch {
         if (!cancelled) setConference(null)
       }
@@ -68,7 +69,7 @@ export default function ConferenceCallout() {
     <section id="conference" className="bg-navy-deep bg-track-lines text-white py-16 md:py-20">
       <div className="max-w-4xl mx-auto px-5 md:px-8 text-center">
         <div className="text-gold font-extrabold text-xs tracking-widest mb-2">
-          {isSw ? 'USAJILI UMEFUNGULIWA' : 'REGISTRATION OPEN'}
+          {conference.is_registration_still_open ? (isSw ? 'USAJILI UMEFUNGULIWA' : 'REGISTRATION OPEN') : (isSw ? 'CONFERENCE IJAYO' : 'UPCOMING CONFERENCE')}
         </div>
         <h2 className="font-serif font-bold text-2xl md:text-4xl">{conference.title}</h2>
         {conference.theme && (
@@ -103,7 +104,7 @@ export default function ConferenceCallout() {
           to={`/conferences/${conference.slug}`}
           className="inline-block mt-9 bg-gold hover:bg-gold-dark text-navy-deep font-extrabold text-sm px-9 py-4 rounded-md transition-colors"
         >
-          {isSw ? 'Jisajili Sasa' : (t('conference.cta') || 'Register Now')} →
+          {conference.is_registration_still_open ? (isSw ? 'Jisajili Sasa' : (t('conference.cta') || 'Register Now')) : (isSw ? 'Tazama Maelezo' : 'View Details')} →
         </Link>
       </div>
     </section>
