@@ -5,7 +5,7 @@ export default function PageLoader() {
   return (
     <div className="min-h-[45vh] flex flex-col items-center justify-center gap-4 px-5" role="status" aria-live="polite">
       <div className="h-10 w-10 rounded-full border-4 border-gold/30 border-t-gold animate-spin" aria-hidden="true" />
-      <p className="text-sm font-semibold text-navy">{t('common.loading', 'Inapakia...')}</p>
+      <p className="text-sm font-semibold text-navy">{t('common.loading', 'Loading...')}</p>
     </div>
   )
 }

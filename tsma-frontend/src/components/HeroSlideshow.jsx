@@ -21,16 +21,19 @@ export default function HeroSlideshow() {
   return (
     <section className="relative overflow-hidden bg-navy-deep text-white">
       {/* Slideshow layer - picha halisi za TSMA (Admin -> Picha za Background) */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 bg-[#071b2b]">
         {images.length > 0 ? (
           images.map((img, index) => (
             <div
               key={img.id}
-              className={`absolute inset-0 bg-cover bg-center transition-opacity duration-[1500ms] ease-in-out ${
+              className={`absolute inset-0 bg-contain bg-center bg-no-repeat transition-opacity duration-[1500ms] ease-in-out ${
                 index === activeIndex ? 'opacity-100' : 'opacity-0'
               }`}
               style={{
                 backgroundImage: `url(${img.image})`,
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
                 animation: index === activeIndex ? 'kenburns 6s ease-in-out forwards' : 'none',
               }}
               aria-hidden={index !== activeIndex}

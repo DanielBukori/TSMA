@@ -13,15 +13,14 @@ i18n
       sw: { translation: sw },
       en: { translation: en },
     },
-    fallbackLng: 'sw',
+    fallbackLng: 'en',
     supportedLngs: ['sw', 'en'],
     interpolation: {
       escapeValue: false,
     },
     detection: {
-      // Angalia localStorage KWANZA (chaguo la mtumiaji ni la kudumu),
-      // kisha lugha ya kivinjari, kisha fallback ya sw.
-      order: ['localStorage', 'navigator'],
+      // English is the first-visit default; preserve only an explicit saved choice.
+      order: ['localStorage'],
       caches: ['localStorage'],
       lookupLocalStorage: 'tsma_lang',
     },

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
-import PartnersStrip from '../components/PartnersStrip.jsx'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
 
@@ -188,7 +187,6 @@ export default function About() {
         </Link>
       </section>
 
-      <PartnersStrip isSw={isSw} />
     </>
   )
 }

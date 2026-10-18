@@ -75,7 +75,7 @@ export default function Teaching() {
                       src={course.cover_image}
                       alt={course.title ? `${course.title} cover` : 'Course cover'}
                       loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                      className="h-full w-full object-contain p-2 transition-transform duration-500"
                       onError={(event) => { event.currentTarget.style.display = 'none' }}
                     />
                   ) : (

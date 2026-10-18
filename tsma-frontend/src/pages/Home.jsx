@@ -1,12 +1,9 @@
-import { lazy, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
-import { scrollToSection } from '../utils/sectionScroll.js'
+import { lazy } from 'react'
 import HeroSlideshow from '../components/HeroSlideshow.jsx'
 import InfoBox from '../components/InfoBox.jsx'
 import QuickLinks from '../components/QuickLinks.jsx'
 import ConferenceCallout from '../components/ConferenceCallout.jsx'
 import Testimonials from '../components/Testimonials.jsx'
-import PartnersStrip from '../components/PartnersStrip.jsx'
 import LazySection from '../components/LazySection.jsx'
 import AboutSummary from '../components/AboutSummary.jsx'
 import NewsPreview from '../components/NewsPreview.jsx'
@@ -43,22 +40,6 @@ const SECTIONS_BEFORE_PARTNERS = [
 
 export default function Home() {
   const { i18n } = useTranslation()
-  const location = useLocation()
-
-  // Handle direct links such as /#conferences, including lazy-loaded sections.
-  useEffect(() => {
-    const sectionId = location.hash?.slice(1)
-    if (!sectionId) return
-    let attempts = 0
-    let timer
-    const jump = () => {
-      const target = document.getElementById(sectionId)
-      if (target) { scrollToSection(sectionId); return }
-      if (attempts++ < 20) timer = window.setTimeout(jump, 100)
-    }
-    timer = window.setTimeout(jump, 50)
-    return () => window.clearTimeout(timer)
-  }, [location.hash])
   const isSw = i18n.language?.startsWith('sw')
 
   // Kurasa tofauti (VITE_SINGLE_PAGE=false): Home ya kawaida yenye muhtasari tu
@@ -72,7 +53,6 @@ export default function Home() {
         <NewsPreview />
         <ConferenceCallout />
         <Testimonials />
-        <PartnersStrip isSw={isSw} />
       </>
     )
   }
@@ -91,7 +71,6 @@ export default function Home() {
       ))}
 
       <Testimonials />
-      <PartnersStrip isSw={isSw} />
 
       <LazySection id="contact">
         <Contact />
