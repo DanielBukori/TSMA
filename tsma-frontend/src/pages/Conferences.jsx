@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
+import ConferenceMemories from '../components/ConferenceMemories.jsx'
 
 const FALLBACK = {
   upcoming: [
@@ -77,6 +78,8 @@ export default function Conferences() {
           }}
         />
       </PageBanner>
+
+      <ConferenceMemories />
 
       {/* ============ FEATURED: mkutano wa mwaka huu, JUU SANA ============ */}
       {featured && (

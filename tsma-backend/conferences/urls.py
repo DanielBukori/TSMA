@@ -14,6 +14,7 @@ from .views import (
     ConferenceAnalyticsView,
     ConferenceDetailView,
     ConferenceListView,
+    ConferenceMemoryListView,
     MyConferenceRegistrationsView,
     SelfRegistrationView,
 )
@@ -23,6 +24,7 @@ app_name = "conferences"
 urlpatterns = [
     # Public
     path("", ConferenceListView.as_view(), name="list"),
+    path("memories/", ConferenceMemoryListView.as_view(), name="memories"),
     path("my-registrations/", MyConferenceRegistrationsView.as_view(), name="my_registrations"),
     path("check-in/", CheckInView.as_view(), name="check_in"),
     # Admin — mkutano/siku/vikao/tiketi

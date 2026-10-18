@@ -79,6 +79,35 @@ class Conference(models.Model):
         return not self.is_past
 
 
+class ConferenceMemory(models.Model):
+    """Photo/video memory attached to a conference; years come from Conference dates."""
+    MEDIA_IMAGE = "image"
+    MEDIA_YOUTUBE = "youtube"
+    MEDIA_TIKTOK = "tiktok"
+    MEDIA_INSTAGRAM = "instagram"
+    MEDIA_CHOICES = [
+        (MEDIA_IMAGE, "Photo"), (MEDIA_YOUTUBE, "YouTube"),
+        (MEDIA_TIKTOK, "TikTok"), (MEDIA_INSTAGRAM, "Instagram"),
+    ]
+    conference = models.ForeignKey(Conference, on_delete=models.CASCADE, related_name="memories")
+    event_title = models.CharField(max_length=200, help_text="Mfano: Ufunguzi, Tuzo, Networking")
+    description = models.TextField(blank=True)
+    media_type = models.CharField(max_length=20, choices=MEDIA_CHOICES)
+    image = models.ImageField(upload_to="conferences/memories/", blank=True, null=True)
+    video_url = models.URLField(blank=True, help_text="Link ya YouTube, TikTok au Instagram")
+    display_order = models.PositiveIntegerField(default=0)
+    is_published = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["display_order", "-created_at"]
+        verbose_name = "Conference memory"
+        verbose_name_plural = "Conference memories"
+
+    def __str__(self):
+        return f"{self.conference.title} — {self.event_title}"
+
+
 class ConferenceDay(models.Model):
     """Siku moja ya mkutano (mfano: 'Siku ya 1 — Ufunguzi')."""
 

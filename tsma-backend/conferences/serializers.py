@@ -330,3 +330,10 @@ class ConferenceAnalyticsSerializer(serializers.Serializer):
     total_paid = serializers.IntegerField()
     total_checked_in = serializers.IntegerField()
     by_ticket_type = serializers.ListField()
+
+
+class ConferenceMemorySerializer(serializers.ModelSerializer):
+    class Meta:
+        from .models import ConferenceMemory
+        model = ConferenceMemory
+        fields = ("id", "conference", "event_title", "description", "media_type", "image", "video_url", "display_order")

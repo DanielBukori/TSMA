@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import (
     Conference,
+    ConferenceMemory,
     ConferenceDay,
     ConferenceRegistration,
     ConferenceRegistrationBatch,
@@ -120,3 +121,12 @@ class ConferenceRegistrationAdmin(admin.ModelAdmin):
     list_filter = ("checked_in", "ticket_type")
     search_fields = ("full_name", "email", "verification_code")
     readonly_fields = ("verification_code", "e_receipt_image")
+
+
+@admin.register(ConferenceMemory)
+class ConferenceMemoryAdmin(admin.ModelAdmin):
+    list_display = ("event_title", "conference", "media_type", "is_published", "display_order")
+    list_filter = ("conference", "media_type", "is_published")
+    search_fields = ("event_title", "description", "conference__title")
+    list_editable = ("is_published", "display_order")
+    autocomplete_fields = ("conference",)
