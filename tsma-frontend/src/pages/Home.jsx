@@ -64,12 +64,15 @@ export default function Home() {
       <HeroSlideshow />
       <InfoBox />
       <QuickLinks />
-      <ConferenceCallout />
 
       {SECTIONS_BEFORE_PARTNERS.map(({ id, Component }) => (
-        <LazySection key={id} id={id}>
-          <Component />
-        </LazySection>
+        <div key={id} className="contents">
+          <LazySection id={id}>
+            <Component />
+          </LazySection>
+          {/* Maelezo ya TSMA yaonekane kabla ya banner ya conference. */}
+          {id === 'about' && <ConferenceCallout />}
+        </div>
       ))}
 
       <Testimonials />

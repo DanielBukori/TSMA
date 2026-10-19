@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
-import PartnersStrip from '../components/PartnersStrip.jsx'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
 
@@ -13,31 +12,35 @@ import PageBannerText from '../components/PageBannerText.jsx'
  * yanayohaririwa na Admin kupitia Django Admin (SiteContent -> About).
  */
 const FALLBACK_CONTENT = {
-  history_title_sw: 'Historia Yetu',
-  history_title_en: 'Our History',
+  history_title_sw: 'Historia na Mwelekeo Wetu',
+  history_title_en: 'Our Story and Direction',
   history_body_sw:
-    'Tanzania Sports Management Association (TSMA) ilianzishwa kwa lengo la kuunganisha wataalamu, wasomi, na wadau wa sekta ya michezo nchini Tanzania, kwa ajili ya kujenga uchumi wa michezo wenye tija na endelevu.',
+    'TSMA inalenga kuwa chama cha kitaaluma kinachokuza viwango vya kitaaluma, utafiti, elimu, uongozi, ubunifu, mitandao ya ushirikiano na maendeleo ya uwezo katika usimamizi wa michezo. Mwelekeo huu umeelezwa katika Rasimu ya Katiba ya TSMA. Taarifa mahususi za tarehe za kuanzishwa na matukio ya kihistoria zitaongezwa zitakapothibitishwa rasmi.',
   history_body_en:
-    "The Tanzania Sports Management Association (TSMA) was founded to connect professionals, academics, and stakeholders in Tanzania's sports sector to build a productive and sustainable sports economy.",
+    'TSMA aims to be a professional association that advances professional standards, research, education, leadership, innovation, networking and capacity development in sports management. This direction is set out in the TSMA Draft Constitution. Specific founding dates and historical events will be added when officially verified.',
   vision_sw:
-    'Kuwa taasisi inayoongoza kwa uwezeshaji wa uchumi wa michezo Tanzania, inayotambulika kikanda na kimataifa kwa taaluma na uwazi.',
+    'Kuwa chama cha kitaaluma kinachoongoza katika kuendeleza ubora wa usimamizi wa michezo na maendeleo endelevu ya michezo nchini Tanzania na Afrika.',
   vision_en:
-    "To be the leading institution empowering Tanzania's sports economy, recognized regionally and internationally for professionalism and transparency.",
+    'To be the leading professional body advancing excellence in sports management and sustainable sports development in Tanzania and Africa.',
   mission_sw:
-    'Kuunganisha wataalamu, wanachama, wadhamini na wawekezaji kujenga mfumo wa michezo unaojiendesha wenyewe, wenye kutengeneza ajira na fursa za kiuchumi kwa Watanzania.',
+    'Kukuza viwango vya kitaaluma, utafiti, elimu, uongozi, ubunifu, mitandao ya ushirikiano na maendeleo ya uwezo katika usimamizi wa michezo kwa ajili ya maendeleo ya michezo na jamii.',
   mission_en:
-    'To connect professionals, members, sponsors and investors in building a self-sustaining sports ecosystem that creates jobs and economic opportunities for Tanzanians.',
+    'To promote professional standards, research, education, leadership, innovation, networking, and capacity development in sports management for the advancement of sport and society.',
   values: [
-    { id: 1, icon: '🎯', title_sw: 'Weledi', title_en: 'Professionalism', description_sw: 'Tunatekeleza majukumu yetu kwa uadilifu na taaluma.', description_en: 'We work with integrity and high professional standards.' },
-    { id: 2, icon: '🔍', title_sw: 'Uwazi', title_en: 'Transparency', description_sw: 'Uwazi katika uongozi, fedha na maamuzi.', description_en: 'Transparency in leadership, finances, and decisions.' },
-    { id: 3, icon: '🤝', title_sw: 'Ushirikiano', title_en: 'Collaboration', description_sw: 'Tunaunganisha wadau kufikia malengo ya pamoja.', description_en: 'We bring stakeholders together for shared goals.' },
-    { id: 4, icon: '💡', title_sw: 'Ubunifu', title_en: 'Innovation', description_sw: 'Tunatafuta suluhisho mpya za kiuchumi.', description_en: 'We seek innovative economic solutions.' },
+    { id: 1, icon: '🏅', title_sw: 'Weledi', title_en: 'Professionalism', description_sw: 'Kutekeleza majukumu kwa viwango vya kitaaluma.', description_en: 'Carrying out our work to professional standards.' },
+    { id: 2, icon: '🤝', title_sw: 'Uadilifu', title_en: 'Integrity', description_sw: 'Kuwa waaminifu na kushikilia misingi sahihi ya maadili.', description_en: 'Being honest and adhering to sound ethical principles.' },
+    { id: 3, icon: '🧭', title_sw: 'Uwajibikaji', title_en: 'Accountability', description_sw: 'Kuwajibika kwa maamuzi na matendo yetu.', description_en: 'Taking responsibility for our decisions and actions.' },
+    { id: 4, icon: '🔎', title_sw: 'Uwazi', title_en: 'Transparency', description_sw: 'Kufanya kazi kwa uwazi na kutoa taarifa kwa uwajibikaji.', description_en: 'Working openly and sharing information responsibly.' },
+    { id: 5, icon: '⭐', title_sw: 'Ubora', title_en: 'Excellence', description_sw: 'Kujitahidi kufikia viwango vya juu katika usimamizi wa michezo.', description_en: 'Striving for high standards in sports management.' },
+    { id: 6, icon: '🌍', title_sw: 'Ushirikishwaji', title_en: 'Inclusiveness', description_sw: 'Kupanua fursa za ushiriki na mchango wa wadau.', description_en: 'Creating opportunities for stakeholders to participate and contribute.' },
+    { id: 7, icon: '💡', title_sw: 'Ubunifu', title_en: 'Innovation', description_sw: 'Kukaribisha mawazo na mbinu mpya za kuboresha michezo.', description_en: 'Welcoming new ideas and approaches to improve sport.' },
+    { id: 8, icon: '🫱🏽‍🫲🏾', title_sw: 'Kazi ya Pamoja', title_en: 'Teamwork', description_sw: 'Kushirikiana kufikia malengo ya pamoja.', description_en: 'Working together to achieve shared goals.' },
+    { id: 9, icon: '🌈', title_sw: 'Kuheshimu Tofauti', title_en: 'Respect for Diversity', description_sw: 'Kuheshimu tofauti za watu na mitazamo yao.', description_en: 'Respecting differences among people and their perspectives.' },
+    { id: 10, icon: '⚖️', title_sw: 'Uongozi wa Kimaadili', title_en: 'Ethical Leadership', description_sw: 'Kuongoza kwa haki, maadili na mfano mwema.', description_en: 'Leading fairly, ethically and by positive example.' },
+    { id: 11, icon: '❤️', title_sw: 'Huduma kwa Jamii', title_en: 'Service to Society', description_sw: 'Kuchangia maendeleo ya michezo na ustawi wa jamii.', description_en: 'Contributing to the advancement of sport and the well-being of society.' },
   ],
-  milestones: [
-    { id: 1, year: 2020, title_sw: 'Kuanzishwa kwa TSMA', title_en: 'TSMA Founded', description_sw: '', description_en: '' },
-    { id: 2, year: 2023, title_sw: 'Mkutano wa Kwanza wa Kitaifa', title_en: 'First National Conference', description_sw: '', description_en: '' },
-    { id: 3, year: 2026, title_sw: 'Uzinduzi wa Jukwaa la Kidijitali', title_en: 'Digital Platform Launch', description_sw: '', description_en: '' },
-  ],
+  // Dates and milestones must come from the live backend; never invent timeline entries here.
+  milestones: [],
 }
 
 export default function About() {
@@ -151,7 +154,19 @@ export default function About() {
         <div className="relative max-w-2xl mx-auto">
           <div className="absolute left-[27px] top-2 bottom-2 w-px bg-black/10" />
           <div className="space-y-10">
-            {content.milestones.map((m) => (
+            {(Array.isArray(content.milestones) ? content.milestones : []).length === 0 ? (
+              <div className="rounded-xl border border-black/10 bg-cream/60 px-6 py-8 text-center">
+                <div className="text-3xl mb-3" aria-hidden="true">🗓️</div>
+                <h3 className="font-serif font-bold text-lg text-navy mb-2">
+                  {isSw ? 'Taarifa za historia zinakuja hivi karibuni' : 'Our timeline is coming soon'}
+                </h3>
+                <p className="text-sm text-ink-muted leading-relaxed max-w-xl mx-auto">
+                  {isSw
+                    ? 'Tarehe na matukio rasmi yataonekana hapa mara tu yatakapowekwa na kuthibitishwa kwenye mfumo.'
+                    : 'Official dates and milestones will appear here as soon as they are added and verified in our system.'}
+                </p>
+              </div>
+            ) : (Array.isArray(content.milestones) ? content.milestones : []).map((m) => (
               <div key={m.id} className="relative pl-16">
                 <div className="absolute left-0 top-0 w-14 h-14 rounded-full bg-navy text-gold font-serif font-black text-sm flex items-center justify-center border-4 border-cream">
                   {m.year}
@@ -188,7 +203,6 @@ export default function About() {
         </Link>
       </section>
 
-      <PartnersStrip isSw={isSw} />
     </>
   )
 }

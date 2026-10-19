@@ -6,6 +6,16 @@ const AuthContext = createContext(null)
 const ACCESS_KEY = 'tsma_access_token'
 const REFRESH_KEY = 'tsma_refresh_token'
 
+function accessTokenHasEditorMfa() {
+  try {
+    const token = localStorage.getItem(ACCESS_KEY)
+    if (!token) return false
+    const payload = token.split('.')[1]?.replace(/-/g, '+').replace(/_/g, '/')
+    if (!payload) return false
+    return JSON.parse(atob(payload.padEnd(Math.ceil(payload.length / 4) * 4, '='))).editor_mfa === true
+  } catch { return false }
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -36,6 +46,22 @@ export function AuthProvider({ children }) {
     return res.data.user
   }
 
+  async function completeLogin(access, refresh) {
+    // Called only after the Editor MFA endpoint has verified the one-time code.
+    localStorage.setItem(ACCESS_KEY, access)
+    localStorage.setItem(REFRESH_KEY, refresh)
+    try {
+      const res = await fetchMe()
+      setUser(res.data)
+      return res.data
+    } catch (error) {
+      localStorage.removeItem(ACCESS_KEY)
+      localStorage.removeItem(REFRESH_KEY)
+      setUser(null)
+      throw error
+    }
+  }
+
   async function register(data) {
     const res = await registerUser(data)
     return res.data
@@ -56,8 +82,10 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     isAuthenticated: Boolean(user),
+    hasEditorMfa: accessTokenHasEditorMfa(),
     loading,
     login,
+    completeLogin,
     register,
     logout,
     refreshUser: () => fetchMe().then((res) => setUser(res.data)),
