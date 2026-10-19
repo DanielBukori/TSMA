@@ -10,14 +10,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.permissions import IsBoardAdmin
+from accounts.permissions import IsBoardAdmin, IsContentEditor
 from payments.gateways.base import GatewayError
 from payments.models import PaymentPurpose
 from payments.services import build_payment_response, initiate_payment
 
 from .models import (
     Conference,
-    ConferenceMemory,
     ConferenceDay,
     ConferenceRegistration,
     ConferenceRegistrationBatch,
@@ -34,7 +33,6 @@ from .serializers import (
     CheckInSerializer,
     ConferenceAnalyticsSerializer,
     ConferenceDetailSerializer,
-    ConferenceMemorySerializer,
     ConferenceListSerializer,
     ConferenceRegistrationBatchSerializer,
     ConferenceRegistrationSerializer,
@@ -65,23 +63,6 @@ class ConferenceListView(generics.ListAPIView):
             queryset = queryset.filter(end_date__lt=today)
         return queryset
 
-
-
-
-class ConferenceMemoryListView(generics.ListAPIView):
-    """Public gallery records; filter by conference id. Years are derived from conference dates."""
-    serializer_class = ConferenceMemorySerializer
-    permission_classes = [AllowAny]
-
-    def get_queryset(self):
-        qs = ConferenceMemory.objects.filter(is_published=True, conference__is_published=True).select_related("conference")
-        conference_id = self.request.query_params.get("conference")
-        if conference_id:
-            qs = qs.filter(conference_id=conference_id)
-        year = self.request.query_params.get("year")
-        if year and year.isdigit():
-            qs = qs.filter(conference__start_date__year=int(year))
-        return qs
 
 class ConferenceDetailView(generics.RetrieveAPIView):
     """GET /api/conferences/<slug>/ - Mkutano kamili + ajenda + tiketi."""
@@ -356,7 +337,7 @@ class CheckInView(APIView):
 
 class AdminConferenceListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminConferenceSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = Conference.objects.all().order_by("-start_date")
 
     def perform_create(self, serializer):
@@ -365,31 +346,31 @@ class AdminConferenceListCreateView(generics.ListCreateAPIView):
 
 class AdminConferenceDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminConferenceSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = Conference.objects.all()
 
 
 class AdminConferenceDayListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminConferenceDaySerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = ConferenceDay.objects.all()
 
 
 class AdminConferenceDayDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminConferenceDaySerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = ConferenceDay.objects.all()
 
 
 class AdminConferenceSessionListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminConferenceSessionSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = ConferenceSession.objects.all()
 
 
 class AdminConferenceSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminConferenceSessionSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = ConferenceSession.objects.all()
 
 

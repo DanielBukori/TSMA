@@ -6,7 +6,7 @@ from .models import GalleryAlbum, GalleryImage
 class GalleryImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = GalleryImage
-        fields = ("id", "image", "caption", "display_order")
+        fields = ("id", "image", "video", "caption", "display_order")
 
 
 class GalleryAlbumListSerializer(serializers.ModelSerializer):
@@ -71,9 +71,18 @@ class AdminGalleryAlbumSerializer(serializers.ModelSerializer):
 
 
 class AdminGalleryImageUploadSerializer(serializers.ModelSerializer):
-    """Kwa kupakia picha moja (au nyingi kwa loop) ndani ya albamu fulani."""
+    """Kwa kupakia picha au video ndani ya albamu fulani."""
+
+    def validate(self, attrs):
+        image = attrs.get("image", getattr(self.instance, "image", None))
+        video = attrs.get("video", getattr(self.instance, "video", None))
+        if not image and not video:
+            raise serializers.ValidationError("Weka picha au video.")
+        if image and video:
+            raise serializers.ValidationError("Pakia picha au video moja kwa rekodi, si vyote kwa pamoja.")
+        return attrs
 
     class Meta:
         model = GalleryImage
-        fields = ("id", "album", "image", "caption", "display_order")
+        fields = ("id", "album", "image", "video", "caption", "display_order")
         read_only_fields = ("id",)

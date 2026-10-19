@@ -32,8 +32,8 @@ export default function GalleryAlbumDetail() {
     function handleKey(e) {
       if (lightboxIndex === null || !album) return
       if (e.key === 'Escape') setLightboxIndex(null)
-      if (e.key === 'ArrowRight') setLightboxIndex((i) => (i + 1) % album.images.length)
-      if (e.key === 'ArrowLeft') setLightboxIndex((i) => (i - 1 + album.images.length) % album.images.length)
+      if (e.key === 'ArrowRight') setLightboxIndex((i) => (i + 1) % album.images.filter((item) => item.image && !item.video).length)
+      if (e.key === 'ArrowLeft') setLightboxIndex((i) => (i - 1 + album.images.filter((item) => item.image && !item.video).length) % album.images.filter((item) => item.image && !item.video).length)
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
@@ -50,7 +50,7 @@ export default function GalleryAlbumDetail() {
         </Link>
         <h1 className="font-serif font-bold text-2xl md:text-4xl">{album.title}</h1>
         <p className="text-white/70 text-sm mt-2">
-          {album.event_year} · {album.images?.length || 0} {isSw ? 'picha' : 'photos'}
+          {album.event_year} · {album.images?.length || 0} {isSw ? 'media' : 'items'}
         </p>
         {album.description && (
           <p className="text-white/75 text-sm max-w-xl mx-auto mt-4">{album.description}</p>
@@ -60,24 +60,27 @@ export default function GalleryAlbumDetail() {
       <section className="max-w-5xl mx-auto px-4 md:px-8 py-10">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
           {album.images?.map((img, index) => (
-            <button
-              key={img.id}
-              onClick={() => setLightboxIndex(index)}
-              className="aspect-square rounded-lg overflow-hidden bg-cream hover:opacity-90 transition-opacity"
-            >
-              <img src={img.image} alt={img.caption || ''} className="w-full h-full object-cover" />
-            </button>
+            <div key={img.id} className="aspect-square rounded-lg overflow-hidden bg-cream">
+              {img.video ? (
+                <video src={img.video} controls preload="metadata" aria-label={img.caption || 'Video ya kumbukumbu'} className="w-full h-full object-cover" />
+              ) : (
+                <button onClick={() => setLightboxIndex(index)} className="w-full h-full hover:opacity-90 transition-opacity" aria-label={img.caption || 'Angalia picha'}>
+                  <img src={img.image} alt={img.caption || ''} className="w-full h-full object-cover" />
+                </button>
+              )}
+              {img.caption && <p className="text-xs p-1 truncate">{img.caption}</p>}
+            </div>
           ))}
         </div>
       </section>
 
-      {lightboxIndex !== null && (
+      {lightboxIndex !== null && album.images?.filter((item) => item.image && !item.video).length > 0 && (
         <Lightbox
-          images={album.images}
+          images={album.images.filter((item) => item.image && !item.video)}
           index={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
-          onNext={() => setLightboxIndex((i) => (i + 1) % album.images.length)}
-          onPrev={() => setLightboxIndex((i) => (i - 1 + album.images.length) % album.images.length)}
+          onNext={() => setLightboxIndex((i) => (i + 1) % album.images.filter((item) => item.image && !item.video).length)}
+          onPrev={() => setLightboxIndex((i) => (i - 1 + album.images.filter((item) => item.image && !item.video).length) % album.images.filter((item) => item.image && !item.video).length)}
         />
       )}
     </>

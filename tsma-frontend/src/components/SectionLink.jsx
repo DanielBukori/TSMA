@@ -14,29 +14,19 @@ export default function SectionLink({ section, onClick, children, ...props }) {
     onClick?.(e)
     if (e.defaultPrevented) return
     const plainClick = e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
-    if (location.pathname === '/' && plainClick) {
-      e.preventDefault()
-      // subiri menyu (drawer) ifungwe ili ukurasa uweze kusogea
-      if (location.hash === `#${section}`) {
-        setTimeout(() => scrollToSection(section), 80) // bofya kiungo kile kile tena: ruka bila kubadili URL
-      } else {
-        // replace: kuhama kati ya sehemu hakujazi historia - "Back" inarudi ukurasa uliotoka
-        navigate({ pathname: '/', hash: `#${section}` }, { replace: true })
-      }
+    if (!plainClick) return
+    e.preventDefault()
+    if (!SINGLE_PAGE) {
+      navigate(SECTION_ROUTES[section] || '/', { replace: false })
+      return
     }
-  }
-
-  // Kurasa tofauti: kiungo cha kawaida kwenda ukurasa wa sehemu hiyo
-  if (!SINGLE_PAGE) {
-    return (
-      <Link {...props} to={SECTION_ROUTES[section] || '/'} onClick={onClick}>
-        {children}
-      </Link>
-    )
+    // URL safi bila #; scroll baada ya React kutoa Home ikiwa unatoka ukurasa mwingine.
+    if (location.pathname !== '/') navigate('/', { replace: false })
+    window.setTimeout(() => scrollToSection(section), location.pathname === '/' ? 0 : 180)
   }
 
   return (
-    <Link {...props} to={`/#${section}`} onClick={handleClick}>
+    <Link {...props} to={SINGLE_PAGE ? '/' : (SECTION_ROUTES[section] || '/')} onClick={handleClick}>
       {children}
     </Link>
   )

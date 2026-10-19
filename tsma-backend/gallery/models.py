@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import FileExtensionValidator
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
@@ -69,6 +70,11 @@ class GalleryImage(models.Model):
     )
     image = models.ImageField(
         _("Picha"), upload_to="gallery/images/", validators=validate_image_max_8mb,
+        blank=True, null=True,
+    )
+    video = models.FileField(
+        _("Video"), upload_to="gallery/videos/", blank=True, null=True,
+        validators=[FileExtensionValidator(allowed_extensions=["mp4", "webm", "mov", "m4v"])],
     )
     caption = models.CharField(_("Maelezo Mafupi"), max_length=255, blank=True)
     display_order = models.PositiveIntegerField(default=0)
