@@ -4,6 +4,7 @@ import InfoBox from '../components/InfoBox.jsx'
 import QuickLinks from '../components/QuickLinks.jsx'
 import ConferenceCallout from '../components/ConferenceCallout.jsx'
 import Testimonials from '../components/Testimonials.jsx'
+import PartnersStrip from '../components/PartnersStrip.jsx'
 import LazySection from '../components/LazySection.jsx'
 import AboutSummary from '../components/AboutSummary.jsx'
 import NewsPreview from '../components/NewsPreview.jsx'
@@ -53,6 +54,7 @@ export default function Home() {
         <NewsPreview />
         <ConferenceCallout />
         <Testimonials />
+        <PartnersStrip isSw={isSw} />
       </>
     )
   }
@@ -71,6 +73,7 @@ export default function Home() {
       ))}
 
       <Testimonials />
+      <PartnersStrip isSw={isSw} />
 
       <LazySection id="contact">
         <Contact />
