@@ -37,17 +37,3 @@ export function confirmPasswordReset(payload) {
   // payload: { email, code, new_password, new_password_confirm }
   return apiClient.post('/auth/password/reset/confirm/', payload)
 }
-
-
-// Editor-only two-step sign-in. No access/refresh token is issued before OTP verification.
-export function startEditorLogin(email, password) {
-  return apiClient.post('/auth/editor/login/', { email, password })
-}
-
-export function verifyEditorLogin(challenge, code) {
-  return apiClient.post('/auth/editor/verify/', { challenge, code })
-}
-
-export function resendEditorLoginCode(challenge) {
-  return apiClient.post('/auth/editor/resend/', { challenge })
-}
