@@ -3,6 +3,15 @@ from rest_framework.permissions import BasePermission
 from .models import User
 
 
+def has_editor_mfa(request):
+    """Only a JWT issued after Editor's second factor may use editorial APIs."""
+    token = getattr(request, "auth", None)
+    try:
+        return bool(token and token.get("editor_mfa", False))
+    except AttributeError:
+        return False
+
+
 class IsSuperAdmin(BasePermission):
     """Ruhusa: Super Administrator pekee."""
 
@@ -26,6 +35,7 @@ class IsBoardAdmin(BasePermission):
             request.user
             and request.user.is_authenticated
             and (request.user.is_board_admin or request.user.is_super_admin)
+            and has_editor_mfa(request)
         )
 
 
@@ -43,6 +53,7 @@ class IsContentEditor(BasePermission):
                 or request.user.is_board_admin
                 or request.user.is_super_admin
             )
+            and has_editor_mfa(request)
         )
 
 

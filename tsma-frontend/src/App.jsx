@@ -50,7 +50,9 @@ const QuizTake = lazy(() => import('./pages/QuizTake.jsx'))
 const NotFound = lazy(() => import('./pages/NotFound.jsx'))
 const SecurityLogin = lazy(() => import('./pages/SecurityLogin.jsx'))
 const SecurityDashboard = lazy(() => import('./pages/SecurityDashboard.jsx'))
+const EditorAccessLogin = lazy(() => import('./pages/EditorAccessLogin.jsx'))
 const EditorDashboard = lazy(() => import('./pages/EditorDashboard.jsx'))
+const EditorAccessGuard = lazy(() => import('./components/EditorAccessGuard.jsx'))
 const VerifyMember = lazy(() => import('./pages/VerifyMember.jsx'))
 const VerifyCertificate = lazy(() => import('./pages/VerifyCertificate.jsx'))
 
@@ -65,9 +67,11 @@ export default function App() {
             umma), na ina mfumo wake wa login (SecurityAdminUser). */}
         <Route path="/security/login" element={<SecurityLogin />} />
         <Route path="/security" element={<SecurityDashboard />} />
-        <Route element={<ProtectedRoute />}>
-          <Route path="/editor" element={<EditorDashboard />} />
-        </Route>
+
+        {/* Editor access ni njia tofauti; public routes, member dashboard na Security Dashboard hazibadilishwi. */}
+        <Route path="/editor-access/login" element={<EditorAccessLogin />} />
+        <Route path="/editor-access" element={<Navigate to="/editor-access/dashboard" replace />} />
+        <Route path="/editor-access/dashboard" element={<EditorAccessGuard><EditorDashboard /></EditorAccessGuard>} />
 
         <Route element={<Layout />}>
           {/* Home = ukurasa mmoja mrefu wenye sehemu zote (About, Board, Publications, Teaching,

@@ -3,6 +3,30 @@ import apiClient from '../api/client.js'
 import { useAuth } from '../context/AuthContext.jsx'
 
 const MODULES = [
+  { key: 'about-content', roles: ['board_admin', 'super_admin'], singleton: true, label: 'Maudhui ya About', description: 'Hariri historia, maono na dhamira za TSMA kwa Kiswahili na Kiingereza.', endpoint: '/content/admin/about/', fields: [
+    { name: 'history_title_sw', label: 'Kichwa cha historia (SW)', required: true }, { name: 'history_title_en', label: 'History heading (EN)', required: true },
+    { name: 'history_body_sw', label: 'Historia (SW)', type: 'textarea', required: true }, { name: 'history_body_en', label: 'History (EN)', type: 'textarea', required: true },
+    { name: 'vision_sw', label: 'Maono (SW)', type: 'textarea' }, { name: 'vision_en', label: 'Vision (EN)', type: 'textarea' },
+    { name: 'mission_sw', label: 'Dhamira (SW)', type: 'textarea' }, { name: 'mission_en', label: 'Mission (EN)', type: 'textarea' },
+  ], title: () => 'Maudhui ya ukurasa wa About', subtitle: (x) => x.updated_at ? `Imesasishwa: ${new Date(x.updated_at).toLocaleDateString()}` : 'Maudhui ya msingi' },
+  { key: 'values', roles: ['board_admin', 'super_admin'], label: 'Core values', description: 'Simamia thamani kuu za chama katika lugha zote mbili.', endpoint: '/content/admin/values/', fields: [
+    { name: 'title_sw', label: 'Jina (SW)', required: true }, { name: 'title_en', label: 'Name (EN)', required: true },
+    { name: 'description_sw', label: 'Maelezo (SW)', type: 'textarea' }, { name: 'description_en', label: 'Description (EN)', type: 'textarea' },
+    { name: 'icon', label: 'Icon name' }, { name: 'display_order', label: 'Mpangilio', type: 'number' },
+  ], title: (x) => x.title_sw, subtitle: (x) => x.title_en },
+  { key: 'milestones', roles: ['board_admin', 'super_admin'], label: 'Historia / milestones', description: 'Simamia matukio muhimu ya historia ya TSMA.', endpoint: '/content/admin/milestones/', fields: [
+    { name: 'year', label: 'Mwaka', type: 'number', required: true }, { name: 'title_sw', label: 'Kichwa (SW)', required: true }, { name: 'title_en', label: 'Title (EN)', required: true },
+    { name: 'description_sw', label: 'Maelezo (SW)', type: 'textarea' }, { name: 'description_en', label: 'Description (EN)', type: 'textarea' },
+    { name: 'display_order', label: 'Mpangilio', type: 'number' },
+  ], title: (x) => `${x.year || ''} · ${x.title_sw || ''}`, subtitle: (x) => x.title_en },
+  { key: 'banners', roles: ['board_admin', 'super_admin'], readOnlyCreateDelete: true, keyField: 'page_key', label: 'Banners za kurasa', description: 'Hariri vichwa, maelezo na vitufe vya banner za kurasa zilizopo.', endpoint: '/content/admin/banners/', detailEndpoint: (item) => `/content/admin/banners/${item.page_key}/`, fields: [
+    { name: 'badge_sw', label: 'Badge (SW)' }, { name: 'badge_en', label: 'Badge (EN)' }, { name: 'title_sw', label: 'Kichwa (SW)', required: true }, { name: 'title_en', label: 'Title (EN)', required: true },
+    { name: 'subtitle_sw', label: 'Maelezo (SW)', type: 'textarea' }, { name: 'subtitle_en', label: 'Subtitle (EN)', type: 'textarea' },
+    { name: 'cta_text_sw', label: 'Maandishi ya kitufe (SW)' }, { name: 'cta_text_en', label: 'Button text (EN)' }, { name: 'cta_url', label: 'Kiungo cha kitufe' },
+  ], title: (x) => x.title_sw || x.page_key, subtitle: (x) => `${x.page_key} · ${x.title_en || ''}` },
+  { key: 'site-settings', roles: ['board_admin', 'super_admin'], singleton: true, label: 'Logo na favicon', description: 'Badilisha alama ya tovuti na favicon.', endpoint: '/content/admin/settings/', fields: [
+    { name: 'logo_image', label: 'Logo ya kawaida', type: 'file' }, { name: 'logo_on_dark', label: 'Logo kwa background nyeusi', type: 'file' }, { name: 'favicon', label: 'Favicon', type: 'file' },
+  ], title: () => 'Mipangilio ya alama ya tovuti', subtitle: () => 'Logo na favicon' },
   { key: 'news', label: 'Habari', description: 'Andika, hariri na chapisha habari.', endpoint: '/news/admin/', fields: [
     { name: 'title', label: 'Kichwa cha habari', required: true },
     { name: 'category', label: 'Category ID (hiari)', type: 'number' },
@@ -17,12 +41,23 @@ const MODULES = [
     { name: 'cover_image', label: 'Picha ya cover', type: 'file' }, { name: 'is_published', label: 'Imechapishwa', type: 'checkbox' },
     { name: 'display_order', label: 'Mpangilio', type: 'number' },
   ], title: (x) => x.title, subtitle: (x) => x.is_published ? 'Imechapishwa' : 'Haijachapishwa' },
-  { key: 'partners', label: 'Washirika', description: 'Ongeza logo na taarifa za washirika.', endpoint: '/partners/admin/', fields: [
+  { key: 'gallery', label: 'Picha na albamu', description: 'Tengeneza albamu, weka jalada na dhibiti uchapishaji.', endpoint: '/gallery/admin/albums/', fields: [
+    { name: 'title', label: 'Jina la albamu', required: true }, { name: 'description', label: 'Maelezo', type: 'textarea' },
+    { name: 'cover_image', label: 'Picha ya jalada', type: 'file' }, { name: 'event_year', label: 'Mwaka wa tukio', type: 'number', required: true },
+    { name: 'event_date', label: 'Tarehe ya tukio', type: 'date' }, { name: 'is_published', label: 'Imechapishwa', type: 'checkbox' },
+    { name: 'display_order', label: 'Mpangilio', type: 'number' },
+  ], title: (x) => x.title, subtitle: (x) => `${x.event_year || ''} · ${x.is_published ? 'Imechapishwa' : 'Rasimu'}` },
+  { key: 'home-stats', roles: ['board_admin', 'super_admin'], label: 'Takwimu za Home', description: 'Hariri namba na maandishi yanayoonekana kwenye sehemu ya takwimu ya Home.', endpoint: '/content/admin/home-stats/', fields: [
+    { name: 'kind', label: 'Aina (andika big au tile)', required: true }, { name: 'value', label: 'Thamani inayoonekana', required: true },
+    { name: 'label_sw', label: 'Maelezo kwa Kiswahili', required: true }, { name: 'label_en', label: 'Maelezo kwa Kiingereza', required: true },
+    { name: 'display_order', label: 'Mpangilio', type: 'number' },
+  ], title: (x) => x.label_sw || x.value, subtitle: (x) => `${x.kind}: ${x.value}` },
+  { key: 'partners', roles: ['board_admin', 'super_admin'], label: 'Washirika', description: 'Ongeza logo na taarifa za washirika.', endpoint: '/partners/admin/', fields: [
     { name: 'name', label: 'Jina la mshirika', required: true }, { name: 'logo', label: 'Logo', type: 'file' },
     { name: 'website_url', label: 'Tovuti', type: 'url' }, { name: 'description', label: 'Maelezo', type: 'textarea' },
     { name: 'is_active', label: 'Aonekane kwenye tovuti', type: 'checkbox' }, { name: 'display_order', label: 'Mpangilio', type: 'number' },
   ], title: (x) => x.name, subtitle: (x) => x.is_active ? 'Anaonekana kwenye tovuti' : 'Amefichwa' },
-  { key: 'board', label: 'Board members', description: 'Hariri wasifu na picha za viongozi.', endpoint: '/board/admin/', fields: [
+  { key: 'board', roles: ['board_admin', 'super_admin'], label: 'Board members', description: 'Hariri wasifu na picha za viongozi.', endpoint: '/board/admin/', fields: [
     { name: 'full_name', label: 'Jina kamili', required: true }, { name: 'position', label: 'Nafasi', required: true },
     { name: 'photo', label: 'Picha', type: 'file' }, { name: 'bio', label: 'Wasifu', type: 'textarea' },
     { name: 'education', label: 'Elimu', type: 'textarea' }, { name: 'experience', label: 'Uzoefu', type: 'textarea' },
@@ -31,7 +66,7 @@ const MODULES = [
     { name: 'is_active', label: 'Aonekane kwenye tovuti', type: 'checkbox' }, { name: 'display_order', label: 'Mpangilio', type: 'number' },
     { name: 'joined_board_date', label: 'Tarehe ya kujiunga', type: 'date' },
   ], title: (x) => x.full_name, subtitle: (x) => x.position },
-  { key: 'conferences', label: 'Conferences', description: 'Simamia taarifa za mikutano. Tiketi na malipo hazihaririwi hapa.', endpoint: '/conferences/admin/', fields: [
+  { key: 'conferences', roles: ['board_admin', 'super_admin'], label: 'Conferences', description: 'Simamia taarifa za mikutano. Tiketi na malipo hazihaririwi hapa.', endpoint: '/conferences/admin/', fields: [
     { name: 'title', label: 'Jina la conference', required: true }, { name: 'description', label: 'Maelezo', type: 'textarea' },
     { name: 'theme', label: 'Theme', type: 'textarea' }, { name: 'banner_image', label: 'Picha ya conference', type: 'file' },
     { name: 'venue_name', label: 'Ukumbi', }, { name: 'city', label: 'Jiji' }, { name: 'country', label: 'Nchi' },
@@ -50,6 +85,7 @@ const errorMessage = (error) => {
 
 export default function EditorDashboard() {
   const { user, logout } = useAuth()
+  const availableModules = useMemo(() => MODULES.filter((module) => !module.roles || module.roles.includes(user?.role) || user?.is_superuser), [user])
   const [activeKey, setActiveKey] = useState('news')
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
@@ -60,26 +96,33 @@ export default function EditorDashboard() {
   const [form, setForm] = useState({})
   const [saving, setSaving] = useState(false)
   const [query, setQuery] = useState('')
-  const active = MODULES.find((m) => m.key === activeKey) || MODULES[0]
+  const [galleryAlbumForImages, setGalleryAlbumForImages] = useState(null)
+  const [galleryFiles, setGalleryFiles] = useState([])
+  const [galleryCaption, setGalleryCaption] = useState('')
+  const [galleryImageBusy, setGalleryImageBusy] = useState(false)
+  const [galleryImageError, setGalleryImageError] = useState('')
+  const [galleryImageNotice, setGalleryImageNotice] = useState('')
+  const active = availableModules.find((m) => m.key === activeKey) || availableModules[0] || MODULES[0]
 
   const loadItems = useCallback(async () => {
     setLoading(true); setLoadError(''); setNotice('')
     try {
       const response = await apiClient.get(active.endpoint, { params: { _nocache: Date.now() } })
       const data = response.data
-      setItems(Array.isArray(data) ? data : data?.results || [])
+      setItems(active.singleton ? [data] : Array.isArray(data) ? data : data?.results || [])
     } catch (error) {
       setItems([]); setLoadError(errorMessage(error))
     } finally { setLoading(false) }
   }, [active])
 
+  useEffect(() => { if (!availableModules.some((m) => m.key === activeKey)) setActiveKey(availableModules[0]?.key || 'news') }, [availableModules, activeKey])
   useEffect(() => { setEditing(null); setForm(blankForm(active)); setFormError(''); loadItems() }, [active, loadItems])
 
   const filteredItems = useMemo(() => items.filter((item) => JSON.stringify(item).toLowerCase().includes(query.toLowerCase())), [items, query])
 
-  function startCreate() { setEditing('new'); setForm(blankForm(active)); setFormError(''); setNotice('') }
+  function startCreate() { if (active.singleton || active.readOnlyCreateDelete) return; setEditing('new'); setForm(blankForm(active)); setFormError(''); setNotice('') }
   function startEdit(item) {
-    setEditing(item.id)
+    setEditing(active.singleton ? 'singleton' : (active.keyField ? item[active.keyField] : item.id))
     const next = blankForm(active)
     active.fields.forEach((field) => {
       const value = item[field.name]
@@ -94,10 +137,10 @@ export default function EditorDashboard() {
   async function saveItem(event) {
     event.preventDefault(); setSaving(true); setFormError(''); setNotice('')
     try {
-      const hasFiles = active.fields.some((f) => ['file', 'files'].includes(f.type) && form[f.name])
+      const usesMultipart = active.fields.some((f) => ['file', 'files'].includes(f.type))
       let payload = form
       let config = {}
-      if (hasFiles) {
+      if (usesMultipart) {
         payload = new FormData()
         active.fields.forEach((field) => {
           const value = form[field.name]
@@ -113,14 +156,47 @@ export default function EditorDashboard() {
         active.fields.forEach((field) => { if (field.type === 'file' || field.type === 'files') delete payload[field.name] })
       }
       if (editing === 'new') await apiClient.post(active.endpoint, payload, config)
-      else await apiClient.patch(`${active.endpoint}${editing}/`, payload, config)
+      else if (active.singleton) await apiClient.patch(active.endpoint, payload, config)
+      else await apiClient.patch(active.detailEndpoint ? active.detailEndpoint({ ...form, [active.keyField]: editing }) : `${active.endpoint}${editing}/`, payload, config)
       setNotice(editing === 'new' ? 'Taarifa imeongezwa kikamilifu.' : 'Mabadiliko yamehifadhiwa.')
       setEditing(null); await loadItems()
     } catch (error) { setFormError(errorMessage(error)) }
     finally { setSaving(false) }
   }
 
+  async function uploadGalleryImages(event) {
+    event.preventDefault()
+    if (!galleryAlbumForImages || galleryFiles.length === 0) return
+    setGalleryImageBusy(true); setGalleryImageError(''); setGalleryImageNotice('')
+    try {
+      for (let index = 0; index < galleryFiles.length; index += 1) {
+        const payload = new FormData()
+        payload.append('album', String(galleryAlbumForImages.id))
+        payload.append('image', galleryFiles[index])
+        payload.append('caption', galleryCaption)
+        payload.append('display_order', String((galleryAlbumForImages.images?.length || 0) + index))
+        await apiClient.post('/gallery/admin/images/', payload, { headers: { 'Content-Type': 'multipart/form-data' } })
+      }
+      setGalleryFiles([]); setGalleryCaption('')
+      await loadItems()
+      setGalleryImageNotice('Picha zimepakiwa kikamilifu kwenye albamu.')
+    } catch (error) {
+      setGalleryImageError(errorMessage(error))
+    } finally { setGalleryImageBusy(false) }
+  }
+
+  async function deleteGalleryImage(image) {
+    if (!window.confirm('Una uhakika unataka kufuta picha hii kwenye albamu?')) return
+    setGalleryImageError(''); setGalleryImageNotice('')
+    try {
+      await apiClient.delete(`/gallery/admin/images/${image.id}/`)
+      await loadItems()
+      setGalleryImageNotice('Picha imefutwa kwenye albamu.')
+    } catch (error) { setGalleryImageError(errorMessage(error)) }
+  }
+
   async function deleteItem(item) {
+    if (active.singleton || active.readOnlyCreateDelete) return
     if (!window.confirm(`Una uhakika unataka kufuta “${active.title(item)}”?`)) return
     setFormError(''); setNotice('')
     try { await apiClient.delete(`${active.endpoint}${item.id}/`); setNotice('Taarifa imefutwa.'); await loadItems() }
@@ -135,13 +211,23 @@ export default function EditorDashboard() {
       </div>
     </header>
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      <div className="mb-7"><p className="text-sm font-semibold text-amber-700">CONTENT MANAGEMENT</p><h2 className="text-2xl sm:text-3xl font-bold mt-1">Karibu kwenye ukurasa wa editing</h2><p className="text-slate-600 mt-2 max-w-3xl">Simamia habari, kozi, washirika, board members na taarifa za conference hapa. Ruhusa za kila sehemu zinathibitishwa na Django API.</p></div>
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-7">{MODULES.map((m) => <button key={m.key} onClick={() => { setActiveKey(m.key); setQuery('') }} className={`text-left rounded-xl border p-4 transition hover:-translate-y-0.5 hover:shadow-md ${activeKey === m.key ? 'bg-[#101d36] text-white border-[#101d36] shadow-md' : 'bg-white border-slate-200'}`}><span className="text-xs uppercase tracking-wider opacity-70">{m.key === 'board' ? 'Watu' : 'Maudhui'}</span><span className="block font-bold mt-2">{m.label}</span><span className="block text-sm mt-1 opacity-75">{m.key === activeKey ? `${items.length} rekodi` : 'Fungua sehemu'}</span></button>)}</div>
+      <div className="mb-7"><p className="text-sm font-semibold text-amber-700">CONTENT MANAGEMENT</p><h2 className="text-2xl sm:text-3xl font-bold mt-1">Karibu kwenye ukurasa wa editing</h2><p className="text-slate-600 mt-2 max-w-3xl">Simamia maudhui uliyoidhinishwa. Uthibitisho wa hatua mbili unahitajika wakati wa kuingia, na ruhusa za kila kitendo zinathibitishwa na Django API.</p></div>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-7">{availableModules.map((m) => <button key={m.key} onClick={() => { setActiveKey(m.key); setQuery('') }} className={`text-left rounded-xl border p-4 transition hover:-translate-y-0.5 hover:shadow-md ${activeKey === m.key ? 'bg-[#101d36] text-white border-[#101d36] shadow-md' : 'bg-white border-slate-200'}`}><span className="text-xs uppercase tracking-wider opacity-70">{m.key === 'board' ? 'Watu' : 'Maudhui'}</span><span className="block font-bold mt-2">{m.label}</span><span className="block text-sm mt-1 opacity-75">{m.key === activeKey ? `${items.length} rekodi` : 'Fungua sehemu'}</span></button>)}</div>
       <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,.9fr)] gap-6 items-start">
         <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-5 sm:p-6 border-b border-slate-100"><div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div><h3 className="text-xl font-bold">{active.label}</h3><p className="text-sm text-slate-500 mt-1">{active.description}</p></div><button onClick={startCreate} className="rounded-lg bg-amber-400 hover:bg-amber-300 px-4 py-2.5 font-bold text-slate-950">+ Ongeza mpya</button></div><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tafuta taarifa..." className="mt-4 w-full rounded-lg border border-slate-200 px-3 py-2.5 outline-none focus:border-amber-400" /></div>
+          <div className="p-5 sm:p-6 border-b border-slate-100"><div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div><h3 className="text-xl font-bold">{active.label}</h3><p className="text-sm text-slate-500 mt-1">{active.description}</p></div>{!active.singleton && !active.readOnlyCreateDelete && <button onClick={startCreate} className="rounded-lg bg-amber-400 hover:bg-amber-300 px-4 py-2.5 font-bold text-slate-950">+ Ongeza mpya</button>}</div><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Tafuta taarifa..." className="mt-4 w-full rounded-lg border border-slate-200 px-3 py-2.5 outline-none focus:border-amber-400" /></div>
+          {active.key === 'gallery' && galleryAlbumForImages && <div className="m-5 rounded-xl border border-amber-200 bg-amber-50/60 p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-3"><div><h4 className="font-bold text-slate-900">Picha za albamu: {items.find((x) => x.id === galleryAlbumForImages.id)?.title || galleryAlbumForImages.title}</h4><p className="mt-1 text-sm text-slate-600">Pakia picha moja au nyingi. Kila picha itahifadhiwa kwenye albamu uliyochagua.</p></div><button type="button" onClick={() => { setGalleryAlbumForImages(null); setGalleryFiles([]); setGalleryImageError(''); setGalleryImageNotice('') }} className="text-sm underline">Funga</button></div>
+            {galleryImageError && <p role="alert" className="mt-3 rounded-lg bg-red-100 p-3 text-sm text-red-800">{galleryImageError}</p>}{galleryImageNotice && <p role="status" className="mt-3 rounded-lg bg-emerald-100 p-3 text-sm text-emerald-800">{galleryImageNotice}</p>}
+            <form onSubmit={uploadGalleryImages} className="mt-4 grid gap-3 sm:grid-cols-2">
+              <label className="text-sm font-semibold">Chagua picha<input type="file" accept="image/*" multiple required onChange={(e) => setGalleryFiles(Array.from(e.target.files || []))} className="mt-1 block w-full text-sm" /></label>
+              <label className="text-sm font-semibold">Maelezo ya picha (hiari)<input value={galleryCaption} onChange={(e) => setGalleryCaption(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2" /></label>
+              <button type="submit" disabled={galleryImageBusy || galleryFiles.length === 0} className="rounded-lg bg-[#101d36] px-4 py-2.5 font-bold text-white disabled:opacity-50 sm:col-span-2">{galleryImageBusy ? 'Inapakia picha...' : `Pakia picha ${galleryFiles.length ? `(${galleryFiles.length})` : ''}`}</button>
+            </form>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{(items.find((x) => x.id === galleryAlbumForImages.id)?.images || galleryAlbumForImages.images || []).map((image) => <div key={image.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white">{image.image && <img src={image.image} alt={image.caption || 'Picha ya albamu'} className="h-28 w-full object-cover" />}<div className="p-2"><p className="truncate text-xs text-slate-600">{image.caption || 'Bila maelezo'}</p><button type="button" onClick={() => deleteGalleryImage(image)} className="mt-2 text-xs font-semibold text-red-700 hover:underline">Futa picha</button></div></div>)}</div>
+          </div>}
           {loadError && <div className="m-5 rounded-lg bg-red-50 text-red-800 p-3 text-sm">{loadError}</div>}{notice && <div className="m-5 rounded-lg bg-emerald-50 text-emerald-800 p-3 text-sm">{notice}</div>}{formError && <div className="m-5 rounded-lg bg-red-50 text-red-800 p-3 text-sm">{formError}</div>}
-          {loading ? <div className="p-8 text-center text-slate-500">Inapakia taarifa...</div> : filteredItems.length === 0 ? <div className="p-10 text-center"><div className="text-3xl mb-2">✦</div><p className="font-semibold">Hakuna taarifa za kuonyesha</p><p className="text-sm text-slate-500 mt-1">Ikiwa umeona kosa la ruhusa, sehemu hii inahitaji role maalumu.</p></div> : <div className="divide-y divide-slate-100">{filteredItems.map((item) => <article key={item.id} className="p-4 sm:p-5 flex gap-3 items-start"><div className="min-w-0 flex-1"><h4 className="font-semibold break-words">{active.title(item) || `Rekodi #${item.id}`}</h4><p className="text-sm text-slate-500 mt-1">{active.subtitle(item) || `ID: ${item.id}`}</p>{item.images?.length > 0 && <p className="text-xs text-slate-400 mt-1">{item.images.length} picha</p>}</div><div className="flex gap-2 shrink-0"><button onClick={() => startEdit(item)} className="rounded-lg border px-3 py-2 text-sm hover:bg-slate-50">Hariri</button><button onClick={() => deleteItem(item)} className="rounded-lg border border-red-200 text-red-700 px-3 py-2 text-sm hover:bg-red-50">Futa</button></div></article>)}</div>}
+          {loading ? <div className="p-8 text-center text-slate-500">Inapakia taarifa...</div> : filteredItems.length === 0 ? <div className="p-10 text-center"><div className="text-3xl mb-2">✦</div><p className="font-semibold">Hakuna taarifa za kuonyesha</p><p className="text-sm text-slate-500 mt-1">Ikiwa umeona kosa la ruhusa, sehemu hii inahitaji role maalumu.</p></div> : <div className="divide-y divide-slate-100">{filteredItems.map((item) => <article key={active.keyField ? item[active.keyField] : (item.id ?? active.key)} className="p-4 sm:p-5 flex gap-3 items-start"><div className="min-w-0 flex-1"><h4 className="font-semibold break-words">{active.title(item) || `Rekodi #${item.id}`}</h4><p className="text-sm text-slate-500 mt-1">{active.subtitle(item) || `ID: ${item.id}`}</p>{item.images?.length > 0 && <p className="text-xs text-slate-400 mt-1">{item.images.length} picha</p>}</div><div className="flex gap-2 shrink-0">{active.key === 'gallery' && <button onClick={() => { setGalleryAlbumForImages(item); setGalleryImageError(''); setGalleryImageNotice('') }} className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 hover:bg-amber-100">Picha ({item.images?.length || 0})</button>}<button onClick={() => startEdit(item)} className="rounded-lg border px-3 py-2 text-sm hover:bg-slate-50">Hariri</button>{!active.singleton && !active.readOnlyCreateDelete && <button onClick={() => deleteItem(item)} className="rounded-lg border border-red-200 text-red-700 px-3 py-2 text-sm hover:bg-red-50">Futa</button>}</div></article>)}</div>}
           <div className="px-5 py-3 border-t bg-slate-50 text-xs text-slate-500">{items.length} rekodi · Taarifa zinatoka moja kwa moja kwenye Django API.</div>
         </section>
         <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

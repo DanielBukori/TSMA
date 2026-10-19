@@ -167,6 +167,7 @@ class EmailOTP(models.Model):
     class Purpose(models.TextChoices):
         VERIFY_EMAIL = "verify_email", _("Verify email")
         RESET_PASSWORD = "reset_password", _("Reset password")
+        EDITOR_LOGIN = "editor_login", _("Editor two-factor login")
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="email_otps")
     purpose = models.CharField(max_length=20, choices=Purpose.choices)

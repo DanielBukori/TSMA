@@ -126,7 +126,7 @@ export default function About() {
                   {isSw ? v.description_sw : v.description_en}
                 </p>
               </div>
-            )))}
+            ))}
           </div>
         </div>
       </section>

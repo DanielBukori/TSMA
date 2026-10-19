@@ -21,10 +21,14 @@ def send_otp_email(user, purpose, code):
         subject = "TSMA - Namba ya uthibitisho wa barua pepe / Email verification code"
         reason_sw = "kuthibitisha barua pepe yako"
         reason_en = "verify your email"
-    else:
+    elif purpose == EmailOTP.Purpose.RESET_PASSWORD:
         subject = "TSMA - Namba ya kubadili password / Password reset code"
         reason_sw = "kubadili password yako"
         reason_en = "reset your password"
+    else:
+        subject = "TSMA - Namba ya usalama ya Editor / Editor security code"
+        reason_sw = "kuingia kwenye Editor Dashboard"
+        reason_en = "sign in to the Editor Dashboard"
 
     message = (
         f"Habari {user.first_name},\n\n"

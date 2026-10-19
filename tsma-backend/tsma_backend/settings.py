@@ -220,6 +220,7 @@ REST_FRAMEWORK = {
         # OTP ya barua pepe (kwa IP). Kila mtumiaji ana kikomo chake pia (accounts/otp.py).
         "otp_request": "10/hour",
         "otp_verify": "30/hour",
+        "editor_login": "10/hour",
     },
 }
 

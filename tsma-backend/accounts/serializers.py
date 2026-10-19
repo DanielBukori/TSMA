@@ -70,10 +70,11 @@ class UserSerializer(serializers.ModelSerializer):
             "full_name",
             "phone_number",
             "role",
+            "is_superuser",
             "is_email_verified",
             "date_joined",
         )
-        read_only_fields = ("id", "email", "role", "is_email_verified", "date_joined")
+        read_only_fields = ("id", "email", "role", "is_superuser", "is_email_verified", "date_joined")
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
