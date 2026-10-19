@@ -41,10 +41,13 @@ export default function TopBar() {
       .then((res) => {
         const results = res.data?.results || res.data
         if (cancelled || !Array.isArray(results) || results.length === 0) return
-        const sorted = [...results].sort(
-          (a, b) => new Date(a.start_date) - new Date(b.start_date),
-        )
-        setConference(sorted[0])
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const sorted = [...results]
+          .filter((item) => item.start_date && !Number.isNaN(new Date(item.start_date).getTime()))
+          .filter((item) => new Date(item.start_date) >= today)
+          .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
+        setConference(sorted[0] || null)
       })
       .catch(() => {
         // Kimya - bendi haionekani

@@ -8,14 +8,27 @@ export default function InfoBox() {
   const isSw = i18n.language?.startsWith('sw')
 
   const [stats, setStats] = useState([])
+  const [nextConference, setNextConference] = useState(null)
 
   useEffect(() => {
     let cancelled = false
-    apiClient
-      .get('/content/home-stats/')
-      .then((res) => {
-        const results = res.data?.results || res.data
-        if (!cancelled && Array.isArray(results)) setStats(results)
+    Promise.all([
+      apiClient.get('/content/home-stats/'),
+      apiClient.get('/conferences/', { params: { status: 'upcoming' } }),
+    ])
+      .then(([statsRes, conferencesRes]) => {
+        const statResults = statsRes.data?.results || statsRes.data
+        const conferenceResults = conferencesRes.data?.results || conferencesRes.data
+        if (cancelled) return
+        if (Array.isArray(statResults)) setStats(statResults)
+        if (Array.isArray(conferenceResults)) {
+          const now = new Date()
+          const upcoming = conferenceResults
+            .filter((c) => c.start_date && !Number.isNaN(new Date(c.start_date).getTime()))
+            .filter((c) => new Date(c.start_date) >= new Date(now.toDateString()))
+            .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
+          setNextConference(upcoming[0] || null)
+        }
       })
       .catch(() => {
         // No sample figures are shown when the API is unavailable.
@@ -26,14 +39,12 @@ export default function InfoBox() {
   }, [])
 
   const big = stats.find((s) => s.kind === 'big')
+  const bigLabel = isSw ? big?.label_sw : big?.label_en
+  const isNextConferenceStat = /next conference|upcoming conference|mkutano unaofuata|mkutano ujao/i.test(String(bigLabel || ''))
+  const bigValue = isNextConferenceStat
+    ? (nextConference?.start_date ? String(new Date(nextConference.start_date).getFullYear()) : (isSw ? 'Inatangazwa hivi karibuni' : 'Coming soon'))
+    : String(big?.value ?? '').replace(/(?<=\d),(?=\d{3}(?:\D|$))/g, '')
   const tiles = stats.filter((s) => s.kind === 'tile').slice(0, 4)
-
-  // A conference year is an identifier, not a quantity: never render it with thousands separators.
-  const displayValue = (value, label) => {
-    const isConferenceYear = /next conference|upcoming conference/i.test(String(label || '')) || /mkutano unaofuata|mkutano ujao/i.test(String(label || ''))
-    if (isConferenceYear) return String(value ?? '').replace(/[,\s]/g, '')
-    return value
-  }
 
   if (!big && tiles.length === 0) return null
 
@@ -43,10 +54,10 @@ export default function InfoBox() {
         {big && (
           <>
             <div className="font-serif font-black text-5xl md:text-6xl text-gold">
-              {displayValue(big.value, isSw ? big.label_sw : big.label_en)}
+              {bigValue}
             </div>
             <div className="text-sm text-white/80 mt-2">
-              {isSw ? big.label_sw : big.label_en}
+              {bigLabel}
             </div>
           </>
         )}
@@ -55,7 +66,7 @@ export default function InfoBox() {
           {tiles.map((tile, i) => (
             <Tile
               key={tile.id ?? i}
-              num={displayValue(tile.value, isSw ? tile.label_sw : tile.label_en)}
+              num={String(tile.value ?? '').replace(/(?<=\d),(?=\d{3}(?:\D|$))/g, '')}
               label={isSw ? tile.label_sw : tile.label_en}
             />
           ))}
