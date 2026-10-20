@@ -337,3 +337,9 @@ class ConferenceMemorySerializer(serializers.ModelSerializer):
         from .models import ConferenceMemory
         model = ConferenceMemory
         fields = ("id", "conference", "event_title", "description", "media_type", "image", "video_url", "display_order")
+
+
+class AdminConferenceMemorySerializer(ConferenceMemorySerializer):
+    class Meta(ConferenceMemorySerializer.Meta):
+        fields = ("id", "conference", "event_title", "description", "media_type", "image", "video_url", "display_order", "is_published", "created_at")
+        read_only_fields = ("id", "created_at")

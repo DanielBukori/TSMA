@@ -47,6 +47,9 @@ const MODULES = [
     { name: 'event_date', label: 'Tarehe ya tukio', type: 'date' }, { name: 'is_published', label: 'Imechapishwa', type: 'checkbox' },
     { name: 'display_order', label: 'Mpangilio', type: 'number' },
   ], title: (x) => x.title, subtitle: (x) => `${x.event_year || ''} · ${x.is_published ? 'Imechapishwa' : 'Rasimu'}` },
+  { key: 'conference-memories', label: 'Conference memories (picha/video)', description: 'Ongeza na hariri picha au viungo vya video za matukio ya conference; weka published ili zionekane hadharani.', endpoint: '/conferences/admin/memories/', fields: [
+    { name: 'conference', label: 'Conference ID', type: 'number', required: true }, { name: 'event_title', label: 'Jina la tukio', required: true }, { name: 'description', label: 'Maelezo', type: 'textarea' }, { name: 'media_type', label: 'Aina ya media (image/youtube/tiktok/instagram)', required: true }, { name: 'image', label: 'Picha ya kumbukumbu', type: 'file' }, { name: 'video_url', label: 'Kiungo cha video', type: 'url' }, { name: 'display_order', label: 'Mpangilio', type: 'number' }, { name: 'is_published', label: 'Imechapishwa', type: 'checkbox' },
+  ], title: (x) => x.event_title, subtitle: (x) => `${x.media_type || ''} · ${x.is_published ? 'Imechapishwa' : 'Rasimu'} · Conference #${x.conference || ''}` },
   { key: 'conference-days', label: 'Siku za conference', description: 'Panga siku, tarehe na vichwa vya ratiba ya conference.', endpoint: '/conferences/admin/days/', fields: [
     { name: 'conference', label: 'Conference ID', type: 'number', required: true }, { name: 'day_number', label: 'Namba ya siku', type: 'number', required: true }, { name: 'date', label: 'Tarehe', type: 'date', required: true }, { name: 'title', label: 'Kichwa cha siku', required: true },
   ], title: (x) => `Siku ${x.day_number || ''} · ${x.title || ''}`, subtitle: (x) => `${x.date || ''} · Conference #${x.conference || ''}` },
@@ -79,8 +82,8 @@ const MODULES = [
     { name: 'title', label: 'Jina la conference', required: true }, { name: 'description', label: 'Maelezo', type: 'textarea' },
     { name: 'theme', label: 'Theme', type: 'textarea' }, { name: 'banner_image', label: 'Picha ya conference', type: 'file' },
     { name: 'venue_name', label: 'Ukumbi', }, { name: 'city', label: 'Jiji' }, { name: 'country', label: 'Nchi' },
-    { name: 'physical_address', label: 'Anwani', type: 'textarea' }, { name: 'start_date', label: 'Tarehe ya kuanza', type: 'datetime' },
-    { name: 'end_date', label: 'Tarehe ya kumaliza', type: 'datetime' }, { name: 'registration_deadline', label: 'Mwisho wa usajili', type: 'datetime' },
+    { name: 'physical_address', label: 'Anwani', type: 'textarea' }, { name: 'start_date', label: 'Tarehe ya kuanza', type: 'date' },
+    { name: 'end_date', label: 'Tarehe ya kumaliza', type: 'date' }, { name: 'registration_deadline', label: 'Mwisho wa usajili', type: 'datetime' },
     { name: 'is_published', label: 'Imechapishwa', type: 'checkbox' }, { name: 'registration_open', label: 'Usajili uko wazi', type: 'checkbox' },
   ], title: (x) => x.title, subtitle: (x) => x.registration_open ? 'Usajili uko wazi' : 'Usajili umefungwa' },
 ]

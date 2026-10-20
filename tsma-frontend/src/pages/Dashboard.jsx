@@ -48,20 +48,20 @@ export default function Dashboard() {
   }, [])
 
   return (
-    <section className="max-w-4xl mx-auto px-5 md:px-8 py-14 md:py-20">
-      <h1 className="font-serif font-bold text-3xl text-navy mb-2">
+    <section className="tsma-user-dashboard max-w-5xl mx-auto px-4 sm:px-5 md:px-8 py-8 md:py-12">
+      <h1 className="font-serif font-bold text-3xl md:text-4xl text-navy mb-2 tracking-tight">
         {isSw ? 'Dashibodi Yangu' : 'My Dashboard'}
       </h1>
-      <p className="text-ink-muted text-sm mb-10">
+      <p className="text-ink-muted text-sm mb-8">
         {isSw ? `Karibu, ${user?.full_name || ''}` : `Welcome, ${user?.full_name || ''}`}
       </p>
 
       {loading ? (
         <p className="text-ink-muted text-sm">{isSw ? 'Inapakia...' : 'Loading...'}</p>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 md:gap-6">
           {/* Digital membership card */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 rounded-2xl border border-black/5 bg-white/80 p-5 sm:p-6 shadow-sm">
             <h2 className="font-serif font-bold text-lg text-navy mb-4">
               {isSw ? 'Kadi Yangu ya Uanachama' : 'My Membership Card'}
             </h2>
@@ -69,7 +69,7 @@ export default function Dashboard() {
             {membership ? (
               <DigitalCard membership={membership} isSw={isSw} />
             ) : (
-              <div className="border border-dashed border-black/20 rounded-xl p-8 text-center">
+              <div className="border border-dashed border-black/15 bg-white/70 rounded-2xl p-7 text-center">
                 <p className="text-sm text-ink-muted">
                   {isSw
                     ? 'Bado hujajiunga na daraja lolote la uanachama.'
@@ -86,7 +86,7 @@ export default function Dashboard() {
           </div>
 
           {/* Payment history */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 rounded-2xl border border-black/5 bg-white/80 p-5 sm:p-6 shadow-sm">
             <h2 className="font-serif font-bold text-lg text-navy mb-4">
               {isSw ? 'Historia ya Malipo' : 'Payment History'}
             </h2>
@@ -96,7 +96,7 @@ export default function Dashboard() {
                 {isSw ? 'Hakuna malipo bado.' : 'No payments yet.'}
               </p>
             ) : (
-              <div className="border border-black/10 rounded-xl overflow-hidden divide-y divide-black/5">
+              <div className="border border-black/10 bg-white rounded-xl overflow-hidden divide-y divide-black/5">
                 {transactions.map((txn) => (
                   <div key={txn.id} className="flex items-center justify-between px-5 py-4">
                     <div>
@@ -136,7 +136,7 @@ export default function Dashboard() {
 
       {/* ============ TEACHING PROGRESS & CERTIFICATES ============ */}
       {!loading && teachingProgress && (
-        <div className="mt-14">
+        <div className="mt-10 rounded-2xl border border-black/5 bg-white/70 p-5 sm:p-6 shadow-sm">
           <h2 className="font-serif font-bold text-lg text-navy mb-4">
             {isSw ? 'Vyeti na Maendeleo ya Mafunzo' : 'Certificates & Learning Progress'}
           </h2>
@@ -144,8 +144,8 @@ export default function Dashboard() {
           {teachingProgress.certificates?.length > 0 && (
             <div className="grid sm:grid-cols-2 gap-4 mb-6">
               {teachingProgress.certificates.map((cert) => (
-                <div key={cert.id} className="border border-gold/30 bg-gold/5 rounded-xl p-4 flex items-center gap-4">
-                  <span className="text-2xl">🏆</span>
+                <div key={cert.id} className="group border border-gold/30 bg-white rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gold/10 text-2xl">🏆</span>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-bold text-navy truncate">{cert.title_earned}</div>
                     <div className="text-xs text-ink-muted">{cert.certificate_number}</div>
@@ -168,7 +168,7 @@ export default function Dashboard() {
           {teachingProgress.enrollments?.length > 0 && (
             <div className="space-y-3">
               {teachingProgress.enrollments.map((enr) => (
-                <div key={enr.id} className="border border-black/10 rounded-xl p-4">
+                <div key={enr.id} className="border border-black/10 bg-white rounded-xl p-4 sm:p-5">
                   <div className="flex justify-between text-sm font-bold text-navy mb-2">
                     <span>{enr.course_title}</span>
                     <span>{enr.progress_percent}%</span>
@@ -213,7 +213,7 @@ function ConferenceRegistrationsSection({ registrations, isSw }) {
   const past = registrations.filter((r) => r.conference_end_date && r.conference_end_date < today)
 
   return (
-    <div className="mt-14" id="my-conferences">
+    <div className="mt-10 rounded-2xl border border-black/5 bg-white/70 p-5 sm:p-6 shadow-sm" id="my-conferences">
       <h2 className="font-serif font-bold text-lg text-navy mb-4">
         {isSw ? 'Mikutano Yangu' : 'My Conferences'}
       </h2>

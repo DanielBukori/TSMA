@@ -126,40 +126,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "tsma_backend.wsgi.application"
 
-# ---------------------------------------------------------------------------
-# Database (Neon Postgres)
+## ---------------------------------------------------------------------------
+# Database
 # ---------------------------------------------------------------------------
 
 DATABASES = {
     "default": env.db(
         "DATABASE_URL",
-        default="postgres://tsma_user:tsma_password@localhost:5432/tsma_db",
+        default="sqlite:///db.sqlite3",
     )
 }
 
-# Weka muunganiko wazi kwa sekunde 600 badala ya kufunga/kufungua kila
-# ombi (chanzo kikuu cha sekunde 1-2 kwa kila request).
-DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=600)
-# Hakikisha muunganiko bado hai kabla ya kuutumia tena (Neon husimamisha
-# compute ikiwa idle).
-DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
+# CONN_MAX_AGE na HEALTH_CHECKS zinatumika na Postgres tu, sio SQLite
+if "sqlite" not in DATABASES["default"]["ENGINE"]:
+    DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=600)
+    DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 
-# Weka DB_POOLER=True kwenye .env KAMA TU DATABASE_URL yako inatumia host
-# ya Neon yenye "-pooler" (PgBouncer, transaction mode).
-if env.bool("DB_POOLER", default=False):
-    DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
-
-# ---------------------------------------------------------------------------
-# Cache (inatumika na BlockedIPMiddleware, throttling)
-# ---------------------------------------------------------------------------
-
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "tsma-default",
-    }
-}
-
+    if env.bool("DB_POOLER", default=False):
+        DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
+        
 # ---------------------------------------------------------------------------
 # Authentication — Argon2 + django-axes
 # ---------------------------------------------------------------------------

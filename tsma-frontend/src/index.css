@@ -79,3 +79,19 @@ h1, h2, h3, h4 {
     transition: none;
   }
 }
+
+/* Dashboard-only visual refinement. Home page and global theme remain unchanged. */
+.tsma-user-dashboard {
+  color: #1B211D;
+}
+.tsma-user-dashboard > h1 {
+  line-height: 1.15;
+}
+.tsma-user-dashboard a:focus-visible {
+  outline: 3px solid rgba(201, 162, 39, .7);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+@media (max-width: 640px) {
+  .tsma-user-dashboard { padding-top: 1.75rem; padding-bottom: 2.5rem; }
+}

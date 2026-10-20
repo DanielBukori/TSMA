@@ -2,6 +2,8 @@ from django.urls import path
 
 from .views import (
     AdminConferenceDayDetailView,
+    AdminConferenceMemoryDetailView,
+    AdminConferenceMemoryListCreateView,
     AdminConferenceDayListCreateView,
     AdminConferenceDetailView,
     AdminConferenceListCreateView,
@@ -29,6 +31,8 @@ urlpatterns = [
     path("check-in/", CheckInView.as_view(), name="check_in"),
     # Admin — mkutano/siku/vikao/tiketi
     path("admin/", AdminConferenceListCreateView.as_view(), name="admin_list_create"),
+    path("admin/memories/", AdminConferenceMemoryListCreateView.as_view(), name="admin_memories_list_create"),
+    path("admin/memories/<int:pk>/", AdminConferenceMemoryDetailView.as_view(), name="admin_memories_detail"),
     path("admin/<int:pk>/", AdminConferenceDetailView.as_view(), name="admin_detail"),
     path("admin/days/", AdminConferenceDayListCreateView.as_view(), name="admin_days_list_create"),
     path(

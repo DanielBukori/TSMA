@@ -10,7 +10,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.permissions import IsBoardAdmin
+from accounts.permissions import IsBoardAdmin, IsContentEditor
 from payments.gateways.base import GatewayError
 from payments.models import PaymentPurpose
 from payments.services import build_payment_response, initiate_payment
@@ -27,13 +27,13 @@ from .models import (
 )
 from .serializers import (
     AdminConferenceDaySerializer,
+    AdminConferenceMemorySerializer,
     AdminConferenceSerializer,
     AdminConferenceSessionSerializer,
     AdminConferenceTicketTypeSerializer,
     BulkRegistrationSerializer,
     CheckInSerializer,
     ConferenceAnalyticsSerializer,
-    ConferenceMemorySerializer,
     ConferenceDetailSerializer,
     ConferenceMemorySerializer,
     ConferenceListSerializer,
@@ -438,3 +438,15 @@ class ConferenceAnalyticsView(APIView):
             "by_ticket_type": by_ticket_type,
         }
         return Response(ConferenceAnalyticsSerializer(data).data)
+
+
+class AdminConferenceMemoryListCreateView(generics.ListCreateAPIView):
+    serializer_class = AdminConferenceMemorySerializer
+    permission_classes = [IsContentEditor]
+    queryset = ConferenceMemory.objects.select_related("conference").all()
+
+
+class AdminConferenceMemoryDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = AdminConferenceMemorySerializer
+    permission_classes = [IsContentEditor]
+    queryset = ConferenceMemory.objects.select_related("conference").all()
