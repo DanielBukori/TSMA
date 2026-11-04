@@ -54,6 +54,9 @@ const SecurityDashboard = lazy(() => import('./pages/SecurityDashboard.jsx'))
 const EditorAccessLogin = lazy(() => import('./pages/EditorAccessLogin.jsx'))
 const EditorDashboard = lazy(() => import('./pages/EditorDashboard.jsx'))
 const EditorAccessGuard = lazy(() => import('./components/EditorAccessGuard.jsx'))
+const FinanceLogin = lazy(() => import('./pages/FinanceLogin.jsx'))
+const FinanceDashboard = lazy(() => import('./pages/FinanceDashboard.jsx'))
+const FinanceAccessGuard = lazy(() => import('./components/FinanceAccessGuard.jsx'))
 const VerifyMember = lazy(() => import('./pages/VerifyMember.jsx'))
 const VerifyCertificate = lazy(() => import('./pages/VerifyCertificate.jsx'))
 
@@ -80,6 +83,11 @@ export default function App() {
         <Route path="/editor-access/login" element={<EditorAccessLogin />} />
         <Route path="/editor-access" element={<Navigate to="/editor-access/dashboard" replace />} />
         <Route path="/editor-access/dashboard" element={<EditorAccessGuard><EditorDashboard /></EditorAccessGuard>} />
+
+        {/* Eneo la Fedha (Treasurer/Accountant) lina njia yake ya login ya hatua-mbili,
+            nje ya Layout ya umma, kama /editor-access na /security. */}
+        <Route path="/finance/login" element={<FinanceLogin />} />
+        <Route path="/finance" element={<FinanceAccessGuard><FinanceDashboard /></FinanceAccessGuard>} />
 
         <Route element={<Layout />}>
           {/* Home = ukurasa mmoja mrefu wenye sehemu zote (About, Board, Publications, Teaching,

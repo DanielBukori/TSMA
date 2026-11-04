@@ -18,9 +18,8 @@
     "careers": "Ajira"
   },
   "topbar": {
-    "notice": " Usajili wa Mkutano wa 2026 unaendelea — nafasi ni chache",
-    "event": "MKUTANO WA TSMA 2026 — Dar es Salaam, 12–13 Novemba",
-    "eventCta": "Jisajili Sasa"
+    "eventCta": "Jisajili Sasa",
+    "eventDetails": "Tazama Maelezo"
   },
   "hero": {
     "badge": "MKUTANO MKUU WA KITAIFA",
@@ -29,12 +28,6 @@
     "lede": "Tunajenga uchumi wa michezo wenye tija, ajira na uendelevu — tukiunganisha wataalamu, wanachama, wadhamini na wawekezaji kote nchini.",
     "ctaPrimary": "Jisajili kwa Mkutano",
     "ctaSecondary": "Wasilisha Utafiti"
-  },
-  "stats": {
-    "members": "Wanachama",
-    "regions": "Mikoa",
-    "award": "Tuzo ya Utafiti",
-    "nextConference": "Mkutano Ujao"
   },
   "quickLinks": {
     "eyebrow": "ANZA HAPA",
@@ -63,13 +56,6 @@
     "p2": "TSMA inaunganisha watunga sera, wawekezaji, vyama vya michezo, wasomi na wajasiriamali kujenga uchumi wa michezo unaojiendesha wenyewe, wenye kutengeneza ajira na kuchochea maendeleo.",
     "cta": "Soma Zaidi Kuhusu Sisi"
   },
-  "infoBox": {
-    "bigLabel": "Mikoa ya Tanzania Iliyounganishwa na TSMA",
-    "tile1": "Wanachama",
-    "tile2": "Tuzo ya Utafiti Bora",
-    "tile3": "Kategoria za Machapisho",
-    "tile4": "Makao Makuu"
-  },
   "news": {
     "eyebrow": "TAARIFA ZA HIVI KARIBUNI",
     "title": "Habari na Matukio",
@@ -77,16 +63,15 @@
     "readMore": "Soma Zaidi"
   },
   "conference": {
-    "eyebrow": "TUKIO LINALOFUATA",
-    "title": "Mkutano Mkuu wa TSMA 2026",
-    "desc": "Jiunge na wataalamu wa usimamizi wa michezo kutoka kote nchini kwa mkutano wa mwaka huu — usajili, malipo na uthibitisho wa QR kwenye mlango wa tukio.",
-    "cta": "Jisajili Sasa",
+    "upcoming": "MKUTANO UNAOFUATA",
+    "registrationOpen": "USAJILI UMEFUNGULIWA",
     "date": "Tarehe",
-    "location": "Eneo"
+    "location": "Eneo",
+    "register": "Jisajili Sasa",
+    "viewDetails": "Tazama Maelezo"
   },
-  "testimonials": {
-    "eyebrow": "WANACHAMA WANASEMA",
-    "title": "Maoni ya Washirika Wetu"
+  "voices": {
+    "title": "Washirika Wetu Wanasema"
   },
   "footer": {
     "about": "TSMA inaunganisha wataalamu wa usimamizi wa michezo kujenga uchumi wa michezo Tanzania.",
@@ -100,10 +85,16 @@
   },
   "common": {
     "loading": "Inapakia...",
-    "error": "Hitilafu imetokea. Jaribu tena.",
+    "error": "Kosa limetokea. Tafadhali jaribu tena.",
     "login": "Ingia",
     "logout": "Toka",
-    "dashboard": "Dashibodi Yangu"
+    "dashboard": "Dashibodi Yangu",
+    "close": "Funga"
+  },
+  "promo": {
+    "registerBlurb": "Usajili wa mkutano huu uko wazi. Tazama ratiba, eneo na njia za malipo.",
+    "detailsBlurb": "Ratiba na maelezo ya eneo ya mkutano huu yameshapazwa.",
+    "later": "Pindi"
   },
   "notFound": {
     "title": "Ukurasa Haukupatikana",

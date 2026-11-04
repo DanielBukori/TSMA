@@ -1,9 +1,8 @@
 """
-Token za SecurityAdminUser — MAKUSUDI TOFAUTI na simplejwt inayotumika na
-accounts.User. Hutumia key YAKE MWENYEWE (settings.SECURITY_ADMIN_SECRET_KEY
-— SIYO SECRET_KEY ya kawaida) ili kompromisi ya token za mfumo mmoja
-isiathiri mwingine (isolation kamili kati ya 'akaunti za kawaida' na
-'dashibodi ya usalama').
+Tokens for SecurityAdminUser. Signed with their own key
+(settings.SECURITY_ADMIN_SECRET_KEY), not the site SECRET_KEY, and not via
+simplejwt used for accounts.User. A token stolen from the member-facing system
+therefore cannot open the security dashboard, and vice versa.
 """
 
 import hashlib
@@ -17,19 +16,18 @@ from django.utils import timezone
 
 from .models import SecurityAdminSession
 
-TOKEN_LIFETIME_MINUTES = 20  # session fupi kimakusudi kwa dashibodi ya usalama
-PRE_2FA_TOKEN_LIFETIME_MINUTES = 5  # muda wa kujaza TOTP code baada ya password
+TOKEN_LIFETIME_MINUTES = 20  # short on purpose for the security dashboard
+PRE_2FA_TOKEN_LIFETIME_MINUTES = 5  # time allowed to enter the TOTP code after the password
 
 
 def _get_secret():
     """
-    Funguo ya kutoshea tokens za dashibodi ya usalama.
+    Signing key for security dashboard tokens.
 
-    USALAMA: funguo hii lazima IWE TOFAUTI na `SECRET_KEY` kuu — ndivyo mpaka
-    wa kompromisi (isolation) kati ya akaunti za kawaida na dashibodi ya
-    usalama unavyoshikilia. Kutorosha kwenda `SECRET_KEY` kungeruhusu token
-    iliyovamiwa kwa mfumo mmoja kufungua mfumo mwingine, kwa hiyo nje ya
-    maendeleo ya ndani (DEBUG) tunakataza kuendelea bila funguo yake.
+    This has to differ from the main SECRET_KEY - that difference is the
+    compromise boundary between normal accounts and the dashboard. Falling
+    back to SECRET_KEY would let a token stolen from one system work on the
+    other, so outside local development (DEBUG) we refuse to run without it.
     """
     key = getattr(settings, "SECURITY_ADMIN_SECRET_KEY", "")
     if key:
@@ -37,17 +35,17 @@ def _get_secret():
     if settings.DEBUG:
         return settings.SECRET_KEY
     raise ImproperlyConfigured(
-        "SECURITY_ADMIN_SECRET_KEY haijawekwa kwenye .env — dashibodi ya "
-        "usalama imezuiwa. Weka funguo TOFAUTI KABISA na DJANGO_SECRET_KEY "
+        "SECURITY_ADMIN_SECRET_KEY haijawekwa kwenye .env - dashibodi ya "
+        "usalama imezuiwa. Weka funguo tofauti na DJANGO_SECRET_KEY "
         "(random, ndefu); angalia .env.example."
     )
 
 
 def issue_pre_2fa_token(operator):
     """
-    Baada ya password kuthibitishwa lakini KABLA ya TOTP — token hii YA
-    MUDA MFUPI SANA (dakika 5) HAIRUHUSU ufikiaji wa dashibodi, inaruhusu
-    TU kuwasilisha TOTP code kwenye hatua ya pili.
+    Issued after the password checks out and before the TOTP code. It grants
+    nothing except submitting that code to the second step; it expires in five
+    minutes.
     """
     payload = {
         "operator_id": str(operator.id),

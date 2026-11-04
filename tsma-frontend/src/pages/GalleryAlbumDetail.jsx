@@ -98,9 +98,11 @@ function Lightbox({ images, index, onClose, onNext, onPrev }) {
       <button
         onClick={onClose}
         aria-label="Funga"
-        className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center text-lg"
+        className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center"
       >
-        ✕
+        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
       </button>
 
       <span className="absolute top-6 left-6 text-white/60 text-xs font-bold">

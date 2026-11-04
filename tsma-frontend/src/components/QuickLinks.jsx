@@ -1,12 +1,11 @@
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { SINGLE_PAGE } from '../config/layout.js'
+import SectionLink from './SectionLink.jsx'
 
 const LINK_CONFIG = [
-  { key: 'about', to: '/about', accent: 'bg-navy' },
-  { key: 'membership', to: '/members', accent: 'bg-green' },
-  { key: 'conferences', to: '/conferences', accent: 'bg-terracotta' },
-  { key: 'publications', to: '/publications', accent: 'bg-gold' },
+  { key: 'about', section: 'about', accent: 'bg-navy' },
+  { key: 'membership', section: 'members', accent: 'bg-green' },
+  { key: 'conferences', section: 'conferences', accent: 'bg-terracotta' },
+  { key: 'publications', section: 'publications', accent: 'bg-gold' },
 ]
 
 export default function QuickLinks() {
@@ -25,11 +24,11 @@ export default function QuickLinks() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {LINK_CONFIG.map(({ key, to, accent }) => (
-          <Link
+        {LINK_CONFIG.map(({ key, section, accent }) => (
+          <SectionLink
             key={key}
-            to={SINGLE_PAGE ? `/#${key === 'membership' ? 'members' : key}` : to}
-            className="group border border-black/10 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+            section={section}
+            className="group block border border-black/10 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
           >
             <div className={`h-1.5 ${accent}`} />
             <div className="p-6">
@@ -38,7 +37,7 @@ export default function QuickLinks() {
               </h3>
               <p className="text-sm text-ink-muted">{t(`quickLinks.${key}.desc`)}</p>
             </div>
-          </Link>
+          </SectionLink>
         ))}
       </div>
     </section>

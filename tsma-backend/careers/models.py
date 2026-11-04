@@ -78,9 +78,8 @@ class ApplicationStatus(models.TextChoices):
 
 class JobApplication(models.Model):
     """
-    Ombi la kazi — mwombaji LAZIMA awe na akaunti (imethibitishwa na
-    Sunga: "lazima awe na akaunti, hata asiwe mwanachama") lakini SI
-    lazima awe Member aliyelipa - accounts.User ya kawaida inatosha.
+    A job application. The applicant needs a verified accounts.User, not a
+    paid membership.
     """
 
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="applications")

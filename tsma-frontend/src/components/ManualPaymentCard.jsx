@@ -36,7 +36,7 @@ function CopyButton({ value, isSw }) {
       onClick={handleCopy}
       className="ml-2 text-[11px] font-bold text-white/80 border border-white/30 rounded px-2 py-0.5"
     >
-      {copied ? (isSw ? 'Imenakiliwa ✓' : 'Copied ✓') : isSw ? 'Nakili' : 'Copy'}
+      {copied ? (isSw ? 'Imenakiliwa' : 'Copied') : isSw ? 'Nakili' : 'Copy'}
     </button>
   )
 }

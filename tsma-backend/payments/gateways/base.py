@@ -25,14 +25,34 @@ class GatewayError(Exception):
 
 class WebhookNotApplicable(GatewayError):
     """
-    Webhook ilithibitishwa kuwa ya kweli lakini haihusishi PaymentTransaction
-    (mfano tukio la 'payout.*' kutoka Snippe). Hii SIYO ishara ya hatari —
-    view ya webhook hairudishi kosa wala kuandika tukio la usalama.
+    Webhook was verified as genuine but does not concern a PaymentTransaction
+    (for example a 'payout.*' event from Snippe). This is not a threat signal -
+    the webhook view returns no error and writes no security event.
     """
 
 
+# ".env" mifano hubaki na thamani za kufeza kama CHANGE_ME; hayo si funguo za kweli.
+PLACEHOLDER_VALUES = {
+    "",
+    "change_me",
+    "changeme",
+    "replace_me",
+    "your_api_key_here",
+    "api_key_here",
+    "xxx",
+    "todo",
+    "none",
+    "null",
+}
+
+
+def credential_is_set(value):
+    text = str(value or "").strip().lower().replace("-", "_")
+    return text not in PLACEHOLDER_VALUES
+
+
 class PaymentGatewayBase(ABC):
-    """Kila gateway adapter LAZIMA i-implement methods hizi tatu."""
+    """Every gateway adapter implements these three methods."""
 
     gateway_code = None  # mfano "selcom" — lazima ilingane na Gateway.choices
 
@@ -43,18 +63,21 @@ class PaymentGatewayBase(ABC):
     requires_phone = True     # True = fomu ionyeshe "Namba ya Simu" (mobile money)
     supports_redirect = False  # True = gateway inaweza kutoa checkout_url ya kuelekeza mtumiaji (kadi/PayPal)
 
-    # Majina ya Django settings (.env) ambayo LAZIMA yawe na thamani kabla
-    # gateway hii kuonekana kwa mtumiaji kama "available". Hii ndiyo
-    # inayoruhusu Sunga kusajili gateway mpya kwenye registry.py SASA
-    # (bila funguo bado), na ikaonekana kiotomatiki kwa watumiaji MARA
-    # anapojaza .env baadaye - hakuna code inayohitaji kubadilika.
+    # Django settings (.env) names that must hold a real value before this
+    # gateway is offered to users. A gateway can therefore be registered in
+    # registry.py before its keys exist and appear on the checkout dropdown
+    # by itself once the keys are added - no code change needed.
     required_settings = []
 
     @classmethod
     def is_configured(cls):
+        """True only when every credential the gateway needs holds a real value."""
         from django.conf import settings as dj_settings
 
-        return all(getattr(dj_settings, name, "") for name in cls.required_settings)
+        return all(
+            credential_is_set(getattr(dj_settings, name, ""))
+            for name in cls.required_settings
+        )
 
     @abstractmethod
     def create_checkout(self, transaction, **kwargs):
@@ -95,18 +118,17 @@ class PaymentGatewayBase(ABC):
             "gateway_transaction_id": "...",
             "raw_response": {...},
         }
-        Ikiwa signature si sahihi, LAZIMA i-raise GatewayError.
+        Ikiwa signature si sahihi, raise GatewayError.
         """
         raise NotImplementedError
 
     def disburse_payout(self, phone_number, amount, currency, reference, narration=""):
         """
-        HIARI — inatumika TU na gateway zenye uwezo wa "payout/disbursement"
-        (kutuma fedha KUTOKA TSMA KWENDA kwa mtu, mfano kulipa mwandishi
-        sehemu yake ya mauzo ya chapisho). Gateway isiyo na uwezo huu
-        haihitaji ku-override method hii — default inatupa GatewayError.
+        Optional - only gateways that can move money out of TSMA implement this
+        (paying an author their share of a publication sale). Others can leave
+        it alone; the default raises GatewayError.
 
-        Lazima irudishe dict: {"payout_reference": "...", "raw_response": {...}}
+        Must return dict: {"payout_reference": "...", "raw_response": {...}}
         """
         raise GatewayError(
             f"Gateway '{self.gateway_code}' haiungi mkono payout/disbursement moja kwa moja."

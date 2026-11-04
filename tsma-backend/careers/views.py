@@ -41,11 +41,11 @@ class JobDetailView(generics.RetrieveAPIView):
 
 class ApplyToJobView(generics.CreateAPIView):
     """
-    POST /api/careers/<slug>/apply/ - LAZIMA awe amelogin (accounts.User
-    ya kawaida, si lazima awe Member mwenye malipo - Sunga alithibitisha
-    hili). Mtu haombi nafasi moja mara mbili (UniqueConstraint kwenye
-    model inazuia hili kwa uhakika, hata kama maombi mawili yakitumwa
-    kwa wakati mmoja).
+    POST /api/careers/<slug>/apply/
+
+    Applies need a signed-in accounts.User; paid membership is not required.
+    One application per job per person is enforced by a UniqueConstraint on
+    the model, so two simultaneous requests cannot both be saved.
     """
 
     serializer_class = JobApplicationCreateSerializer

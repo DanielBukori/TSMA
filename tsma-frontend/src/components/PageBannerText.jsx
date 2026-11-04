@@ -2,20 +2,12 @@ import { Link } from 'react-router-dom'
 import { useBannerContent } from '../context/BannerContentContext.jsx'
 
 /**
- * Maandishi ya ndani ya <PageBanner> (badge/title/subtitle/CTA hiari) —
- * yanatoka Django Admin (sitecontent -> Maudhui ya Banner) kwa ukurasa
- * husika (pageKey), badala ya kuwa hardcoded ndani ya kila page file.
+ * Maandishi ya ndani ya <PageBanner> (badge/title/subtitle/CTA hiari),
+ * yanatoka /api/content/banners/ kupitia useBannerContent(pageKey).
  *
- * `fallback` (hiari) ni maandishi ya awali yaliyokuwepo kabla ya mfumo
- * huu — yanatumika tu endapo API bado haijajibu (mzunguko wa kwanza wa
- * page load) ili banner isionekane tupu kwa muda mfupi. Mara data ya
- * kweli ikishafika kutoka API, hiyo ndiyo inayoonekana siku zote baada
- * ya hapo (Admin akiihariri, inabadilika papo hapo tovuti ikirefresh).
- *
- * Matumizi:
- *   <PageBanner>
- *     <PageBannerText pageKey="board" isSw={isSw} fallback={{...}} />
- *   </PageBanner>
+ * `fallback` inatumika WAKATI TU ombi bado linaendelea, ili banner isibaki
+ * tupu kwa sekunde chache. API ikishindwa au ukurasa usiwe na rekodi ya
+ * banner, hakuna maandishi ya kupangwa unaonyeshwa — sehemu hiyo huchapishwa.
  */
 export default function PageBannerText({
   pageKey,
@@ -23,8 +15,8 @@ export default function PageBannerText({
   fallback,
   titleClassName = 'font-serif font-bold text-2xl md:text-4xl text-navy-deep',
 }) {
-  const { banner } = useBannerContent(pageKey)
-  const b = banner || fallback
+  const { banner, loading } = useBannerContent(pageKey)
+  const b = banner || (loading ? fallback : null)
 
   if (!b) return null
 

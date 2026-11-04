@@ -15,6 +15,7 @@ from .views import (
     PublicationDownloadView,
     PublicationListView,
     PublicationPurchaseInitiateView,
+    PublicationYearsListView,
 )
 
 app_name = "publications"
@@ -23,6 +24,7 @@ urlpatterns = [
     # Public
     path("", PublicationListView.as_view(), name="list"),
     path("categories/", PublicationCategoryListView.as_view(), name="categories"),
+    path("years/", PublicationYearsListView.as_view(), name="years"),
     # Buyer/Member (authenticated)
     path("my-purchases/", MyPurchasesView.as_view(), name="my_purchases"),
     path("abstracts/submit/", AbstractSubmissionCreateView.as_view(), name="abstract_submit"),

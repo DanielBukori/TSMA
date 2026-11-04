@@ -9,6 +9,7 @@ urlpatterns = [
     path("api/auth/", include("accounts.urls")),
     path("api/members/", include("members.urls")),
     path("api/payments/", include("payments.urls")),
+    path("api/finance/", include("payments.finance_urls")),
     path("api/board/", include("board.urls")),
     path("api/management/", include("management_team.urls")),
     path("api/news/", include("news.urls")),

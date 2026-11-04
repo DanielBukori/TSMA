@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import apiClient from '../api/client.js'
+import { useNextConference } from '../context/NextConferenceContext.jsx'
 
 function formatDateRange(start, end, language) {
   if (!start) return ''
@@ -12,55 +11,18 @@ function formatDateRange(start, end, language) {
   return end && end !== start ? `${format(start)} – ${format(end)}` : format(start)
 }
 
+/**
+ * Banner ya mkutano unaofuata kwenye Home. Data yote inatoka
+ * /api/conferences/ (status=upcoming); ikiwa hakuna mkutano uliochapishwa,
+ * sehemu hii haionekani kabisa — hakuna tarehe au kichwa kilichoandikwa hapa.
+ */
 export default function ConferenceCallout() {
   const { t, i18n } = useTranslation()
-  const isSw = i18n.language?.startsWith('sw')
-  const [conference, setConference] = useState(null)
+  const { conference } = useNextConference()
 
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadOpenConference() {
-      try {
-        const response = await apiClient.get('/conferences/', {
-          params: { status: 'upcoming', _nocache: Date.now() },
-        })
-        const data = response.data?.results ?? response.data
-        if (!Array.isArray(data) || !data.length) {
-          if (!cancelled) setConference(null)
-          return
-        }
-
-        // List endpoint does not expose the live registration flag, so verify each
-        // candidate against its detail endpoint before showing it on the homepage.
-        const details = await Promise.all(data.map(async (item) => {
-          try {
-            const detailResponse = await apiClient.get(`/conferences/${item.slug}/`, {
-              params: { _nocache: Date.now() },
-            })
-            return detailResponse.data
-          } catch {
-            return null
-          }
-        }))
-        // Show the nearest upcoming conference from real API data, whether or not registration has opened yet.
-        const nextConference = details
-          .filter((item) => item?.slug && item?.start_date && item?.is_past !== true)
-          .sort((a, b) => String(a.start_date).localeCompare(String(b.start_date)))[0] || null
-
-        if (!cancelled) setConference(nextConference)
-      } catch {
-        if (!cancelled) setConference(null)
-      }
-    }
-
-    loadOpenConference()
-    return () => { cancelled = true }
-  }, [])
-
-  // Do not display stale, hard-coded dates or a closed/past conference.
   if (!conference) return null
 
+  const registrationOpen = conference.is_registration_still_open === true
   const location = [conference.venue_name, conference.city, conference.country]
     .filter(Boolean)
     .join(', ')
@@ -69,7 +31,7 @@ export default function ConferenceCallout() {
     <section id="conference" className="bg-navy-deep bg-track-lines text-white py-16 md:py-20">
       <div className="max-w-4xl mx-auto px-5 md:px-8 text-center">
         <div className="text-gold font-extrabold text-xs tracking-widest mb-2">
-          {conference.is_registration_still_open ? (isSw ? 'USAJILI UMEFUNGULIWA' : 'REGISTRATION OPEN') : (isSw ? 'CONFERENCE IJAYO' : 'UPCOMING CONFERENCE')}
+          {t(registrationOpen ? 'conference.registrationOpen' : 'conference.upcoming')}
         </div>
         <h2 className="font-serif font-bold text-2xl md:text-4xl">{conference.title}</h2>
         {conference.theme && (
@@ -84,7 +46,7 @@ export default function ConferenceCallout() {
         <div className="flex flex-wrap justify-center gap-8 mt-8 text-sm">
           <div>
             <div className="text-white/50 text-xs uppercase tracking-wide">
-              {isSw ? 'Tarehe' : 'Date'}
+              {t('conference.date')}
             </div>
             <div className="font-serif font-bold text-gold text-lg mt-1">
               {formatDateRange(conference.start_date, conference.end_date, i18n.language)}
@@ -93,7 +55,7 @@ export default function ConferenceCallout() {
           {location && (
             <div>
               <div className="text-white/50 text-xs uppercase tracking-wide">
-                {isSw ? 'Mahali' : 'Location'}
+                {t('conference.location')}
               </div>
               <div className="font-serif font-bold text-gold text-lg mt-1">{location}</div>
             </div>
@@ -104,7 +66,7 @@ export default function ConferenceCallout() {
           to={`/conferences/${conference.slug}`}
           className="inline-block mt-9 bg-gold hover:bg-gold-dark text-navy-deep font-extrabold text-sm px-9 py-4 rounded-md transition-colors"
         >
-          {conference.is_registration_still_open ? (isSw ? 'Jisajili Sasa' : (t('conference.cta') || 'Register Now')) : (isSw ? 'Tazama Maelezo' : 'View Details')} →
+          {t(registrationOpen ? 'conference.register' : 'conference.viewDetails')} →
         </Link>
       </div>
     </section>

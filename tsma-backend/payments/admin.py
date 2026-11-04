@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils import timezone
 
 from .models import ManualPaymentSettings, PaymentStatus, PaymentTransaction
-from .services import dispatch_payment_succeeded
+from .payment_services import dispatch_payment_succeeded
 
 
 @admin.register(PaymentTransaction)
@@ -46,7 +46,7 @@ class PaymentTransactionAdmin(admin.ModelAdmin):
     def has_post_error(self, obj):
         return bool(obj.post_processing_error)
 
-    @admin.action(description="🔁 Rudia usindikaji baada ya malipo (uanachama/risiti/kitabu)")
+    @admin.action(description="Rudia usindikaji baada ya malipo (uanachama/risiti/kitabu)")
     def reprocess_after_payment(self, request, queryset):
         """
         Kwa malipo yaliyo SUCCESS lakini uanachama haukuwezeshwa, risiti/kadi
@@ -70,7 +70,7 @@ class PaymentTransactionAdmin(admin.ModelAdmin):
         if not fixed and not still_failing:
             self.message_user(request, "Hakuna malipo yenye hali ya SUCCESS kwenye uchaguzi.", level="warning")
 
-    @admin.action(description="✅ Thibitisha malipo yamepokelewa (manual pekee)")
+    @admin.action(description="Thibitisha malipo yamepokelewa (manual pekee)")
     def confirm_manual_payment(self, request, queryset):
         """
         Kwa transaction za gateway='manual' pekee — Admin/Finance amethibitisha

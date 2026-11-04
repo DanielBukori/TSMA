@@ -1,3 +1,4 @@
+import logging
 import mimetypes
 
 from django.db import transaction as db_transaction
@@ -10,10 +11,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.permissions import IsBoardAdmin, IsSuperAdmin
+from accounts.permissions import IsFinanceOrBoard
 from payments.gateways.base import GatewayError
 from payments.models import PaymentPurpose
-from payments.services import initiate_payment
+from payments.payment_services import initiate_payment
 
 from .models import Member, MemberProfile, MembershipStatus, MembershipTier
 from .serializers import (
@@ -25,6 +26,8 @@ from .serializers import (
     ProfessionalDirectoryDetailSerializer,
     ProfessionalDirectoryListSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class MembershipTierListView(generics.ListAPIView):
@@ -43,7 +46,7 @@ class AdminMembershipTierListCreateView(generics.ListCreateAPIView):
     """
 
     serializer_class = AdminMembershipTierSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsFinanceOrBoard]
     queryset = MembershipTier.objects.all().order_by("display_order")
 
 
@@ -54,7 +57,7 @@ class AdminMembershipTierDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
 
     serializer_class = AdminMembershipTierSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsFinanceOrBoard]
     queryset = MembershipTier.objects.all()
 
 
@@ -132,8 +135,9 @@ class JoinMembershipView(APIView):
             )
         except GatewayError as exc:
             member.delete()
+            logger.warning("membership payment start failed for %s: %s", request.user.email, exc)
             return Response(
-                {"detail": f"Imeshindikana kuanzisha malipo: {exc}"},
+                {"detail": "Malipo hayakuanza kwa sasa. Tafadhali jaribu tena au wasiliana na TSMA."},
                 status=status.HTTP_502_BAD_GATEWAY,
             )
 
@@ -175,7 +179,7 @@ class MemberListView(generics.ListAPIView):
     """GET /api/members/ - Orodha ya wanachama wote (Board/Super Admin pekee)."""
 
     serializer_class = MemberSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsFinanceOrBoard]
     queryset = Member.objects.select_related("user", "tier").all()
     filterset_fields = ["status", "tier"]
 

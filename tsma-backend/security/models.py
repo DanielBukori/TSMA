@@ -146,14 +146,12 @@ class BlockedIP(models.Model):
 
 class PendingApprovalAction(models.Model):
     """
-    Hatua ambayo mfumo umependekeza/umeanza KIOTOMATIKA, lakini
-    inasubiri IDHINI YA BINADAMU kabla ya kuwa ya KUDUMU au kabla ya
-    hatua kali zaidi kuchukuliwa — kama ulivyoomba ("izuie na ilete
-    taarifa kwajili ya approval ya human kurekebisha").
+    An action the system has proposed or already started automatically, kept
+    here until a human approves it before it becomes permanent.
 
-    Mfano: IP imezuiwa kwa MUDA (saa 1) kiotomatiki mara moja (self-
-    healing), LAKINI kama block hiyo iwe ya KUDUMU inasubiri Admin
-    abonyeze "Idhinisha" hapa.
+    Example: a suspicious IP is blocked for one hour straight away (the system
+    heals itself), but making that block permanent waits for an admin to press
+    "Idhinisha" on this row.
     """
 
     class ActionType(models.TextChoices):
@@ -196,22 +194,20 @@ class PendingApprovalAction(models.Model):
         return f"{self.get_action_type_display()} — {self.target_description} ({self.status})"
 
 
-# ============================================================================
-# SECURITY DASHBOARD — Akaunti/Login TOFAUTI KABISA na accounts.User
-# ============================================================================
-# Kama ulivyoomba: dashibodi ya usalama ina mfumo wake wa login SIYO
-# unaotumia akaunti za kawaida za wanachama/admin wa TSMA. Hii inapunguza
-# "blast radius" — hata kama akaunti za kawaida za TSMA zitavamiwa,
-# mvamizi HAWEZI kufikia dashibodi ya usalama bila kuvunja mfumo huu wa
-# pili (defence in depth), na 2FA ni YA LAZIMA (siyo hiari) kwa akaunti
-# hizi.
+# ---------------------------------------------------------------------------
+# Security dashboard - separate login from accounts.User
+# ---------------------------------------------------------------------------
+# The security dashboard authenticates against its own account table, not the
+# TSMA member/admin accounts. Someone who compromises a normal account still
+# cannot reach this dashboard, and these accounts always require a second
+# factor (TOTP) - there is no way to turn it off.
 
 class SecurityAdminUser(models.Model):
     """
-    Akaunti ya 'Security Operator' — HAIRITHI django.contrib.auth.User
-    wala accounts.User kwa MAKUSUDI (isolation kamili). Ina password
-    yake, na 2FA (TOTP) YA LAZIMA. Hii ndiyo itakayotumika kuingia
-    kwenye dashibodi ya usalama (`/api/security/auth/...`).
+    A 'Security Operator' account. Deliberately not a django.contrib.auth.User
+    or accounts.User, so the dashboard stays isolated from the rest of the
+    site. Stores its own password hash and requires TOTP.
+    Used by /api/security/auth/... .
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -220,7 +216,7 @@ class SecurityAdminUser(models.Model):
     full_name = models.CharField(max_length=200)
     password_hash = models.CharField(max_length=255)
 
-    # --- 2FA (TOTP) — LAZIMA, siyo hiari ---
+    # 2FA (TOTP) - required, cannot be disabled for these accounts
     totp_secret = models.CharField(max_length=64, blank=True)
     totp_confirmed = models.BooleanField(
         default=False,

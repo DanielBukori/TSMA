@@ -73,9 +73,9 @@ unaohitajika upande wa React:
 ### Mfano wa Matumizi kwenye React
 
 ```jsx
-<a href={contactInfo.phone_call_link}>📞 Piga Simu</a>
-<a href={contactInfo.whatsapp_link} target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
-<a href={contactInfo.email_mailto_link}>✉️ Tuma Email</a>
+<a href={contactInfo.phone_call_link}>Piga Simu</a>
+<a href={contactInfo.whatsapp_link} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+<a href={contactInfo.email_mailto_link}>Tuma Email</a>
 ```
 
 Vitatu hivi vitafanya kazi moja kwa moja kwenye simu (kufungua dialer,

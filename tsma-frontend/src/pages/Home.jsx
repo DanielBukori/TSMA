@@ -4,10 +4,12 @@ import InfoBox from '../components/InfoBox.jsx'
 import QuickLinks from '../components/QuickLinks.jsx'
 import ConferenceCallout from '../components/ConferenceCallout.jsx'
 import PartnersStrip from '../components/PartnersStrip.jsx'
+import PartnerVoices from '../components/PartnerVoices.jsx'
 import LazySection from '../components/LazySection.jsx'
 import AboutSummary from '../components/AboutSummary.jsx'
 import NewsPreview from '../components/NewsPreview.jsx'
 import { SINGLE_PAGE } from '../config/layout.js'
+import { useHashSectionScroll } from '../utils/sectionScroll.js'
 import { useTranslation } from 'react-i18next'
 
 // Kila sehemu ni "chunk" yake: inapakuliwa pale tu mtu anapokaribia kuiona (au kuichagua kwenye menyu)
@@ -42,6 +44,8 @@ export default function Home() {
   const { i18n } = useTranslation()
   const isSw = i18n.language?.startsWith('sw')
 
+  useHashSectionScroll()
+
   // Kurasa tofauti (VITE_SINGLE_PAGE=false): Home ya kawaida yenye muhtasari tu
   if (!SINGLE_PAGE) {
     return (
@@ -53,6 +57,7 @@ export default function Home() {
         <NewsPreview />
         <ConferenceCallout />
         <PartnersStrip isSw={isSw} />
+        <PartnerVoices />
       </>
     )
   }
@@ -74,6 +79,7 @@ export default function Home() {
       ))}
 
       <PartnersStrip isSw={isSw} />
+      <PartnerVoices />
 
       <LazySection id="contact">
         <Contact />

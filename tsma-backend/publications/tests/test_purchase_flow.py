@@ -7,7 +7,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from payments.models import PaymentPurpose, PaymentStatus, PaymentTransaction
-from payments.services import dispatch_payment_succeeded
+from payments.payment_services import dispatch_payment_succeeded
 from publications.models import (
     Publication,
     PublicationAccessType,

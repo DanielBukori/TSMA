@@ -9,28 +9,19 @@ export default {
           deep: '#081B31',
           light: '#1C3E63',
         },
-        // ACCENT KUU imerudi kuwa DHAHABU (kama mteja alivyoomba) — LAKINI
-        // si ile hex ya awali (#D9922E, amber ya kawaida) iliyofanana na
-        // ASMA. Hii ni "antique gold" — mwelekeo zaidi wa njano-bronze,
-        // si machungwa-amber — bado inasomeka kama "gold" lakini si
-        // nakala ya moja kwa moja. Kila kitu kinachotumia bg-gold/
-        // text-gold (vitufe, badges, Navbar, InfoBox) kinapata hii
-        // kiotomatiki, faili hili moja tu.
+        // Rangi za chapa za TSMA. gold imebadilishwa kutoka #D9922E (ile ya
+        // zamani ilikuwa karibu sana na aswa) kwenda antique gold; bg-gold na
+        // text-gote zinaipata hapa, hakuna faili lingine la kubadilisha.
         gold: {
           DEFAULT: '#C9A227',
           light: '#DFC15C',
           dark: '#9C7D1C',
         },
-        // Kijani kimerudi kuwa rangi yake halisi (halitegemei gold tena) -
-        // kwa matumizi machache, ya makusudi: stripe ya rangi za bendera
-        // kwenye Footer, na sehemu nyinginezo za "michezo ya taifa".
         green: {
           DEFAULT: '#1EA34D',
           light: '#3DBF6E',
           dark: '#157A3A',
         },
-        // Terracotta pia imerudi kuwa rangi yake halisi (haielekezi navy
-        // tena) - inatumika kidogo (tagline ya Navbar, n.k.)
         terracotta: {
           DEFAULT: '#C1541F',
           light: '#DA6E38',

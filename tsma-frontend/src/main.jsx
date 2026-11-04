@@ -4,6 +4,7 @@ import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { SiteSettingsProvider } from './context/SiteSettingsContext.jsx'
 import { BackgroundImagesProvider } from './context/BackgroundImagesContext.jsx'
+import { NextConferenceProvider } from './context/NextConferenceContext.jsx'
 import './i18n.js'
 import './index.css'
 
@@ -54,9 +55,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ScrollRevealObserver />
     <SiteSettingsProvider>
       <BackgroundImagesProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <NextConferenceProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </NextConferenceProvider>
       </BackgroundImagesProvider>
     </SiteSettingsProvider>
   </React.StrictMode>,

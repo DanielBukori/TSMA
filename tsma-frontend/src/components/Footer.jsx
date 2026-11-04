@@ -1,16 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { fetchContactInfo } from '../api/contact.js'
+import SectionLink from './SectionLink.jsx'
 import SocialIcon from './SocialIcon.jsx'
 import { useSiteSettings } from '../context/SiteSettingsContext.jsx'
 
-// Mitandao ya kijamii — icons HUONEKANA DAIMA kwenye Footer, hata kabla
-// ya Admin kujaza URL kwenye Django Admin. Kabla ya kujazwa, icons hizi
-// ni za kuangalia tu (si "clickable" — angalia FooterLink chini) ili
-// zisionekane kama viungo vilivyovunjika. Ukishajaza ContactInfo
-// backend, zinakuwa clickable moja kwa moja — hakuna mabadiliko
-// mengine ya code yanayohitajika.
+// Social icons always render in the footer. Before Admin fills a URL in Django
+// Admin the icon is plain (not a link, see FooterLink below) so it never looks
+// broken; once ContactInfo has the value it becomes clickable by itself.
 const SOCIAL_LINKS = [
   { key: 'facebook_url', icon: 'facebook', label: 'Facebook' },
   { key: 'instagram_url', icon: 'instagram', label: 'Instagram' },
@@ -79,10 +76,10 @@ export default function Footer() {
         <div>
           <h4 className="text-white font-bold text-sm mb-4">{t('footer.quickLinks')}</h4>
           <ul className="space-y-2.5 text-sm">
-            <li><Link to="/about" className="hover:text-gold transition-colors">{t('nav.about')}</Link></li>
-            <li><Link to="/members" className="hover:text-gold transition-colors">{t('nav.members')}</Link></li>
-            <li><Link to="/conferences" className="hover:text-gold transition-colors">{t('nav.conferences')}</Link></li>
-            <li><Link to="/publications" className="hover:text-gold transition-colors">{t('nav.publications')}</Link></li>
+            <li><SectionLink section="about" className="hover:text-gold transition-colors">{t('nav.about')}</SectionLink></li>
+            <li><SectionLink section="members" className="hover:text-gold transition-colors">{t('nav.members')}</SectionLink></li>
+            <li><SectionLink section="conferences" className="hover:text-gold transition-colors">{t('nav.conferences')}</SectionLink></li>
+            <li><SectionLink section="publications" className="hover:text-gold transition-colors">{t('nav.publications')}</SectionLink></li>
           </ul>
         </div>
 

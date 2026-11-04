@@ -55,6 +55,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         SUPER_ADMIN = "super_admin", _("Super Administrator")
         BOARD_ADMIN = "board_admin", _("Board/Leadership Admin")
+        ACCOUNTANT = "accountant", _("Treasurer / Accountant")
         CONTENT_EDITOR = "content_editor", _("Content Editor")
         MEMBER = "member", _("Member")
         GUEST = "guest", _("Guest/Public")
@@ -109,6 +110,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_board_admin(self):
         return self.role == self.Role.BOARD_ADMIN
+
+    @property
+    def is_accountant(self):
+        return self.role == self.Role.ACCOUNTANT
 
     @property
     def is_content_editor(self):

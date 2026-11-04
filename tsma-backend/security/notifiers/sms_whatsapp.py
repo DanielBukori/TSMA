@@ -1,16 +1,15 @@
 """
-SMS/WhatsApp Notifier — HIARI, imezimwa kwa default (default channel ni
-'email' pekee, angalia security/services.py NOTIFICATION_CHANNELS).
+SMS/WhatsApp notifier — hiari, imezimwa kwa default (channel ya default ni
+'email', angalia security/services.py NOTIFICATION_CHANNELS).
 
-Africa's Talking ndiyo maarufu zaidi Tanzania kwa SMS API. Kuwasha:
-1. Sajili akaunti https://africastalking.com/ , pata API key.
+Kuwasha (Africa's Talking):
+1. API key kutoka https://africastalking.com/
 2. `pip install africastalking`
-3. Weka AFRICASTALKING_USERNAME/AFRICASTALKING_API_KEY kwenye .env
+3. AFRICASTALKING_USERNAME / AFRICASTALKING_API_KEY kwenye .env
 4. Ongeza "sms" kwenye settings.SECURITY_NOTIFICATION_CHANNELS
 
-MUHIMU: sina uwezo wa kuthibitisha endpoint/response format real-time —
-thibitisha dhidi ya nyaraka za sasa za Africa's Talking kabla ya kutumia
-live.
+Endpoint na response format zinahitaji kulinganishwa na nyaraka za sasa za
+Africa's Talking kabla ya kuzima live.
 """
 
 from django.conf import settings

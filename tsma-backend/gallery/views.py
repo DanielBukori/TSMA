@@ -53,7 +53,7 @@ class AdminGalleryAlbumListCreateView(generics.ListCreateAPIView):
 
     serializer_class = AdminGalleryAlbumSerializer
     permission_classes = [IsContentEditor]
-    queryset = GalleryAlbum.objects.all().order_by("-event_year")
+    queryset = GalleryAlbum.objects.prefetch_related("images").all().order_by("-event_year")
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
@@ -64,7 +64,7 @@ class AdminGalleryAlbumDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = AdminGalleryAlbumSerializer
     permission_classes = [IsContentEditor]
-    queryset = GalleryAlbum.objects.all()
+    queryset = GalleryAlbum.objects.prefetch_related("images").all()
 
 
 class AdminGalleryImageUploadView(generics.CreateAPIView):
@@ -79,4 +79,4 @@ class AdminGalleryImageDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = AdminGalleryImageUploadSerializer
     permission_classes = [IsContentEditor]
-    queryset = GalleryImage.objects.all()
+    queryset = GalleryImage.objects.select_related("album").all()

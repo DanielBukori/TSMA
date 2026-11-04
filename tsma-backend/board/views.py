@@ -1,7 +1,7 @@
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 
-from accounts.permissions import IsBoardAdmin
+from accounts.permissions import IsContentEditor
 
 from .models import BoardMember
 from .serializers import (
@@ -39,7 +39,7 @@ class AdminBoardMemberListCreateView(generics.ListCreateAPIView):
     """GET/POST /api/board/admin/ - Board/Super Admin: ona wote (hata wasio-active), ongeza mpya."""
 
     serializer_class = AdminBoardMemberSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = BoardMember.objects.all()
 
     def perform_create(self, serializer):
@@ -50,5 +50,5 @@ class AdminBoardMemberDetailView(generics.RetrieveUpdateDestroyAPIView):
     """GET/PATCH/DELETE /api/board/admin/<id>/ - Hariri/futa mjumbe."""
 
     serializer_class = AdminBoardMemberSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = BoardMember.objects.all()

@@ -126,7 +126,7 @@ class CertificateAdmin(admin.ModelAdmin):
     readonly_fields = ("certificate_number", "verification_code", "certificate_image", "issued_at")
     actions = ["regenerate_images"]
 
-    @admin.action(description="🔁 Tengeneza upya picha ya cheti")
+    @admin.action(description="Tengeneza upya picha ya cheti")
     def regenerate_images(self, request, queryset):
         from .services.certificate_generator import generate_certificate_image
 

@@ -42,14 +42,15 @@ def _send_otp(user, purpose):
 EDITOR_ALLOWED_ROLES = {
     User.Role.CONTENT_EDITOR,
     User.Role.BOARD_ADMIN,
+    User.Role.ACCOUNTANT,
     User.Role.SUPER_ADMIN,
 }
 EDITOR_MFA_SALT = "tsma.editor-access.mfa.v1"
+EDITOR_MFA_MAX_AGE_SECONDS = 10 * 60
 
 
 def _is_editor_allowed(user):
     return bool(user and (user.role in EDITOR_ALLOWED_ROLES or user.is_superuser))
-EDITOR_MFA_MAX_AGE_SECONDS = 10 * 60
 
 
 class EditorLoginStartSerializer(serializers.Serializer):

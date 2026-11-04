@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
-from accounts.permissions import IsBoardAdmin
+from accounts.permissions import IsBoardAdmin, IsContentEditor
 
 from .models import ContactInfo, ContactMessage
 from .serializers import (
@@ -85,22 +85,16 @@ class ContactMessageCreateView(generics.CreateAPIView):
 class AdminContactInfoView(generics.RetrieveUpdateAPIView):
     """
     GET/PATCH /api/contact/admin/info/
-    Board/Super Admin: hariri taarifa za mawasiliano zinazoonekana kwa umma.
+    Taarifa za mawasiliano zinazoonekana kwa umma — Content Editor/Board.
     """
 
     serializer_class = AdminContactInfoSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
 
     def get_object(self):
-        info, _created = ContactInfo.objects.get_or_create(
-            is_active=True,
-            defaults={
-                "phone_number": "+255700000000",
-                "whatsapp_number": "255700000000",
-                "email": "info@tsma.or.tz",
-            },
-        )
-        return info
+        # Hakuna defaults za kupanga hapa — rekodi mpya inarudi bila taarifa
+        # ili Admin aweke zile halisi za TSMA.
+        return ContactInfo.objects.filter(is_active=True).order_by("-updated_at").first() or ContactInfo()
 
 
 class AdminContactMessageListView(generics.ListAPIView):

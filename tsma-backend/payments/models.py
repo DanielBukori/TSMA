@@ -232,15 +232,15 @@ class ManualPaymentSettings(models.Model):
     def __str__(self):
         return f"{self.bank_name} — {self.account_number}"
 
+    @property
+    def is_ready(self):
+        """Bank details a member could actually pay into; empty rows are not ready."""
+        return all(
+            (getattr(self, field, "") or "").strip()
+            for field in ("bank_name", "account_name", "account_number", "confirm_phone")
+        )
+
     @classmethod
     def load(cls):
-        obj, _created = cls.objects.get_or_create(
-            pk=1,
-            defaults={
-                "bank_name": "[Weka jina la benki - Django Admin]",
-                "account_name": "[Weka jina la akaunti - Django Admin]",
-                "account_number": "[Weka namba ya akaunti - Django Admin]",
-                "confirm_phone": "[Weka namba ya simu - Django Admin]",
-            },
-        )
+        obj, _created = cls.objects.get_or_create(pk=1)
         return obj

@@ -1,25 +1,14 @@
 """
-PayPal Gateway Adapter (Orders API v2).
+PayPal Gateway Adapter (Orders API v2, OAuth2 client_credentials).
 
-Muundo huu unafuata PayPal REST API v2 (OAuth2 client_credentials + Orders
-API) ambayo imekuwa thabiti (stable) kwa miaka mingi — tofauti na Selcom/
-AzamPay, PayPal ina nyaraka rasmi za umma zinazoweza kufikiwa bila akaunti
-(https://developer.paypal.com/api/rest/), kwa hiyo muundo huu una uhakika
-mkubwa zaidi. Bado, THIBITISHA dhidi ya sandbox yako kabla ya live.
+SARAFU: PayPal haichukui TZS. Malipo hufanywa kwa PAYPAL_CURRENCY (default
+USD), kwa hiyo create_checkout() inaruhusu TZS amount ikiwa tu sarafu
+zinalingana; vinginevyo inakataa (fail-closed) badala ya kutoza kiasi
+kisicho sahihi. Kuwasha live kunahitaji kubadilisha kiasi kupata sarafu ya
+PayPal kabla — bado hakuna kiwango cha kubadilisha fedha kwenye mfumo.
 
-MUHIMU SANA — SARAFU (CURRENCY): PayPal HAIUNGI MKONO TZS (Tanzanian
-Shilling) kama sarafu ya malipo. Ukiwasha gateway hii, malipo yatatozwa
-kwa PAYPAL_CURRENCY (default: USD kwenye settings.py), SI transaction.amount
-ya TZS moja kwa moja — LAZIMA uongeze kiwango cha kubadilisha fedha
-(exchange rate) mahali fulani (mfano field ya ziada kwenye Membership
-Tier, au huduma ya exchange rate ya nje) kabla ya kuwasha hii live.
-Kwa sasa create_checkout() inatumia transaction.amount moja kwa moja tu
-IKIWA PAYPAL_CURRENCY inalingana na transaction.currency — vinginevyo
-inakataa (fail-closed) badala ya kutoza kiasi kibaya.
-
-Matumizi yaliyokusudiwa: wanachama/washirika WA NJE ya Tanzania
-wanaotaka kulipa kwa dola (kadi ya kimataifa) - si mbadala wa mobile
-money ya ndani (hiyo ni kazi ya Selcom/AzamPay).
+Inakusudiwa kwa wanachama/washirika wa nje ya Tanzania walio na kadi ya
+kimataifa; mobile money ya ndani ni kazi ya Selcom/AzamPay.
 """
 
 import base64

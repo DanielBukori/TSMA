@@ -369,7 +369,7 @@ class AdminCourseDetailView(generics.RetrieveUpdateDestroyAPIView):
 class AdminSessionListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminSessionSerializer
     permission_classes = [IsContentEditor]
-    queryset = Session.objects.all()
+    queryset = Session.objects.select_related("course").all()
 
     def perform_create(self, serializer):
         session = serializer.save(created_by=self.request.user)
@@ -383,7 +383,7 @@ class AdminSessionListCreateView(generics.ListCreateAPIView):
 class AdminSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminSessionSerializer
     permission_classes = [IsContentEditor]
-    queryset = Session.objects.all()
+    queryset = Session.objects.select_related("course").all()
 
 
 class AdminQuizListCreateView(generics.ListCreateAPIView):
@@ -401,22 +401,22 @@ class AdminQuizDetailView(generics.RetrieveUpdateDestroyAPIView):
 class AdminQuizQuestionListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminQuizQuestionSerializer
     permission_classes = [IsContentEditor]
-    queryset = QuizQuestion.objects.all()
+    queryset = QuizQuestion.objects.select_related("quiz").all()
 
 
 class AdminQuizQuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminQuizQuestionSerializer
     permission_classes = [IsContentEditor]
-    queryset = QuizQuestion.objects.all()
+    queryset = QuizQuestion.objects.select_related("quiz").all()
 
 
 class AdminQuizChoiceListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminQuizChoiceSerializer
     permission_classes = [IsContentEditor]
-    queryset = QuizChoice.objects.all()
+    queryset = QuizChoice.objects.select_related("question").all()
 
 
 class AdminQuizChoiceDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminQuizChoiceSerializer
     permission_classes = [IsContentEditor]
-    queryset = QuizChoice.objects.all()
+    queryset = QuizChoice.objects.select_related("question").all()

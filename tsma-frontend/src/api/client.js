@@ -11,15 +11,16 @@ const apiClient = axios.create({
 })
 
 // ---------------------------------------------------------------------------
-// KASI: maudhui ya UMMA (habari, picha, machapisho, bodi...) yanahifadhiwa dakika 5 kwenye
-// kumbukumbu na sessionStorage. Ukibonyeza Back au ukirefresh, ukurasa unajaa papo hapo
-// badala ya kusubiri seva tena. Wageni PEKEE (hakuna token): data ya mtumiaji aliyeingia
-// (uanachama, malipo, vyeti...) HAIHIFADHIWI kamwe.
+// Speed: public content (news, gallery, publications, board, ...) is kept for a
+// few minutes in memory and sessionStorage, so Back and refresh paint instantly
+// instead of waiting on the server again. Guests only - as soon as a token
+// exists nothing is cached, so a member's own data (membership, payments,
+// certificates) never sits in browser storage.
 // ---------------------------------------------------------------------------
-const CACHE_TTL_MS = 2 * 60 * 1000 // dakika 2: data isikae muda mrefu bila kusasishwa
+const CACHE_TTL_MS = 2 * 60 * 1000 // keep it short so numbers don't go stale
 const CACHE_PREFIX = 'tsma:api:'
 const CACHEABLE_PREFIXES = [
-  // '/conferences' HAIMO kwa makusudi: tiketi, bei na hali ya usajili lazima ziwe mpya kila wakati
+  // no '/conferences': ticket prices and registration state must always be fresh
   '/news', '/gallery', '/publications', '/board', '/management', '/founders',
   '/members/tiers', '/members/directory', '/sitecontent', '/contact', '/partners', '/careers',
   '/teaching/courses', '/teaching/sessions',

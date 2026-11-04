@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from payments.gateways.registry import available_gateways, default_gateway
+from payments.fields import SelectableGatewayField
+from payments.gateways.registry import default_gateway
 
 from .models import Member, MemberProfile, MembershipTier
 
@@ -55,7 +56,7 @@ class JoinMembershipSerializer(serializers.Serializer):
     # Namba ya simu inahitajika TU kwa gateways za mobile money/kadi.
     # Manual/Bank Deposit (na PayPal) hazihitaji — ona validate() hapa chini.
     phone_number = serializers.CharField(required=False, allow_blank=True, default="")
-    gateway = serializers.ChoiceField(choices=available_gateways(), default=default_gateway)
+    gateway = SelectableGatewayField(max_length=20, default=default_gateway)
     payment_method = serializers.ChoiceField(
         choices=["mobile_money", "card", "bank_transfer"], default="mobile_money"
     )

@@ -681,7 +681,7 @@ function ProfessionalProfileSection({ isSw }) {
             {saving ? (isSw ? 'Inahifadhi...' : 'Saving...') : isSw ? 'Hifadhi Profaili' : 'Save Profile'}
           </button>
           {saved && (
-            <span className="text-xs font-bold text-green">{isSw ? 'Imehifadhiwa ✓' : 'Saved ✓'}</span>
+            <span className="text-xs font-bold text-green">{isSw ? 'Imehifadhiwa' : 'Saved'}</span>
           )}
         </div>
       </form>

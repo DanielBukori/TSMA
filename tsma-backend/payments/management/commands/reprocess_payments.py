@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import Q
 
 from payments.models import PaymentPurpose, PaymentStatus, PaymentTransaction
-from payments.services import dispatch_payment_succeeded
+from payments.payment_services import dispatch_payment_succeeded
 
 
 class Command(BaseCommand):

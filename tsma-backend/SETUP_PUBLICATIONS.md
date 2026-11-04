@@ -44,8 +44,8 @@ python manage.py migrate
 | GET | `/<slug>/download/` | Public/Member | Inathibitisha ruhusa, inarudisha download URL |
 | POST | `/abstracts/submit/` | Auth | Wasilisha kazi ya kitaaluma (kwa conference) |
 | GET | `/abstracts/mine/` | Auth | Uwasilishaji wangu na hali zake |
-| GET/POST | `/admin/` | Content Editor+ | Pakia chapisho jipya |
-| GET/PATCH/DELETE | `/admin/<id>/` | Content Editor+ | Hariri/futa chapisho |
+| GET/POST | `/admin/` | Treasurer/Accountant au Board | Pakia chapisho jipya |
+| GET/PATCH/DELETE | `/admin/<id>/` | Treasurer/Accountant au Board | Hariri/futa chapisho |
 | GET | `/admin/abstracts/` | Board/Super Admin | Orodha ya abstracts zote (`?status=pending`) |
 | GET/PATCH | `/admin/abstracts/<id>/` | Board/Super Admin | Hakiki: badilisha status + review_notes |
 

@@ -38,7 +38,7 @@ class Command(BaseCommand):
             result = attempt_author_payout(purchase.pk)
             if result.payout_status == PublicationPayoutStatus.PAID:
                 succeeded += 1
-                self.stdout.write(self.style.SUCCESS(f"  ✓ Purchase #{purchase.pk} — imelipwa"))
+                self.stdout.write(self.style.SUCCESS(f"  Purchase #{purchase.pk} — imelipwa"))
             else:
                 still_pending += 1
                 self.stdout.write(

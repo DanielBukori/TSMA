@@ -108,53 +108,20 @@ class AboutContent(models.Model):
     field sahihi kulingana na lugha ya sasa).
     """
 
-    # ---- Historia ----
-    history_title_sw = models.CharField(max_length=200, default="Historia Yetu")
-    history_title_en = models.CharField(max_length=200, default="Our History")
-    history_body_sw = models.TextField(
-        default=(
-            "Tanzania Sports Management Association (TSMA) ilianzishwa kwa lengo la "
-            "kuunganisha wataalamu, wasomi, na wadau wa sekta ya michezo nchini Tanzania, "
-            "kwa ajili ya kujenga uchumi wa michezo wenye tija na endelevu. [Hariri maandishi "
-            "haya kwenye Django Admin kuweka historia halisi ya TSMA.]"
-        )
-    )
-    history_body_en = models.TextField(
-        default=(
-            "The Tanzania Sports Management Association (TSMA) was founded to connect "
-            "professionals, academics, and stakeholders in Tanzania's sports sector to build "
-            "a productive and sustainable sports economy. [Edit this text in Django Admin "
-            "to add TSMA's real history.]"
-        )
-    )
+    # Fields stay blank until the Treasurer/Editor writes the real text;
+    # the frontend shows an empty state rather than invented history.
+    history_title_sw = models.CharField(max_length=200, blank=True)
+    history_title_en = models.CharField(max_length=200, blank=True)
+    history_body_sw = models.TextField(blank=True)
+    history_body_en = models.TextField(blank=True)
 
     # ---- Dira (Vision) ----
-    vision_sw = models.TextField(
-        default=(
-            "Kuwa taasisi inayoongoza kwa uwezeshaji wa uchumi wa michezo Tanzania, "
-            "inayotambulika kikanda na kimataifa kwa taaluma na uwazi."
-        )
-    )
-    vision_en = models.TextField(
-        default=(
-            "To be the leading institution empowering Tanzania's sports economy, recognized "
-            "regionally and internationally for professionalism and transparency."
-        )
-    )
+    vision_sw = models.TextField(blank=True)
+    vision_en = models.TextField(blank=True)
 
     # ---- Dhamira (Mission) ----
-    mission_sw = models.TextField(
-        default=(
-            "Kuunganisha wataalamu, wanachama, wadhamini na wawekezaji kujenga mfumo wa "
-            "michezo unaojiendesha wenyewe, wenye kutengeneza ajira na fursa za kiuchumi kwa Watanzania."
-        )
-    )
-    mission_en = models.TextField(
-        default=(
-            "To connect professionals, members, sponsors and investors in building a "
-            "self-sustaining sports ecosystem that creates jobs and economic opportunities for Tanzanians."
-        )
-    )
+    mission_sw = models.TextField(blank=True)
+    mission_en = models.TextField(blank=True)
 
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -188,7 +155,7 @@ class CoreValue(models.Model):
     description_en = models.CharField(max_length=300, blank=True)
     icon = models.CharField(
         max_length=10, blank=True,
-        help_text=_("Emoji au herufi fupi ya kuwakilisha thamani hii, mfano: 🤝"),
+        help_text=_("Herufi au namba fupi inayowakilisha thamani hii (si emoji)."),
     )
     display_order = models.PositiveIntegerField(default=0)
 

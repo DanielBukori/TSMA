@@ -1,32 +1,23 @@
 """
-Manual Gateway Adapter — "Malipo ya Mkono" (bank deposit / cash / office payment).
+Manual Gateway Adapter — "Malipo ya Mkono" (benki / taslimu / ofisi).
 
-Hii SI muunganiko wa API ya nje — badala yake:
-1. `create_checkout` haiwasiliani na huduma yoyote ya nje; inarudisha
-   taarifa KAMILI za akaunti ya benki (kutoka ManualPaymentSettings —
-   Admin anahariri kupitia Django Admin) pamoja na deadline ya
-   kuthibitisha (default masaa 24), na transaction inabaki PROCESSING
-   ikisubiri uthibitisho wa mkono.
-2. Mwanachama analipa (benki/ofisi), kisha anatuma ujumbe (WhatsApp/SMS)
-   kwenye namba iliyowekwa na Admin, akiwa na REFERENCE yake, ndani ya
-   muda wa deadline.
-3. Admin/Finance anapopokea ujumbe huo, anaingia Django Admin ->
-   Malipo (Transactions) -> anachagua transaction husika -> anatumia
-   action "✅ Thibitisha malipo yamepokelewa (manual pekee)" (angalia
-   payments/admin.py) — hii ndiyo inayoita mark_success() na kutuma
-   payment_succeeded signal (uanachama unawezeshwa, risiti/kadi
-   zinatengenezwa, n.k. — sawa kabisa na Selcom ingekuwa imethibitisha
-   moja kwa moja).
-4. Ikiwa deadline ikipita bila uthibitisho, amri
-   `python manage.py expire_stale_manual_payments` (inayoweza kuwekwa
-   kwenye cron/scheduled task) inaibadilisha kuwa EXPIRED moja kwa moja.
+Hii SI muunganiko wa API ya nje:
+1. create_checkout() inarudisha taarifa za akaunti ya benki kutoka
+   ManualPaymentSettings (Admin/Editor anahariri Django Admin au
+   /api/finance/manual-settings/) na deadline ya kuthibitisha (default
+   masaa 24); transaction inabaki PROCESSING.
+2. Mwanachama analipa kisha atuma ujumbe (WhatsApp/SMS) kwenye namba
+   iliyowekwa na Admin, akiambia reference yake.
+3. Treasurer (accountant) athibitishe kwenye dashibodi ya fedha (/finance)
+   — njia ya Django Admin (Transactions -> "Thibitisha malipo yamepokelewa")
+   bado ipo. Zote mbili zinaita mark_success() na kutuma
+   payment_succeeded, kwa hiyo uanachama, risiti na kadi huwezeshwa kama
+   vile gateway ya kiotomatiki ingavyofanya.
+4. Deadline ikipita bila uthibitisho, `python manage.py
+   expire_stale_manual_payments` (cron) inaibadilisha kuwa EXPIRED.
 
-MUHIMU (matumizi ya sasa - testing kabla ya Selcom/AzamPay kusajiliwa):
-Gateway hii inaruhusu kujaribu mzunguko MZIMA wa mfumo (register -> "lipa"
--> uanachama kuwezeshwa -> kadi ya kidijitali -> QR ya conference n.k.)
-bila kuhitaji akaunti ya kweli ya payment gateway. Frontend inadhibitiwa
-na VITE_PAYMENT_GATEWAY (angalia src/config.js) — ukishapata Selcom/AzamPay
-account halisi, badilisha env variable hiyo kuwa "selcom", si code.
+Gateway hii inachaguliwa kila wakati; nyingine zinaonekana tu zinapokuwa na
+funguo halisi kwenye env (angalia payments/gateways/registry.py).
 """
 
 from datetime import timedelta
@@ -45,16 +36,9 @@ class ManualGateway(PaymentGatewayBase):
     def create_checkout(self, transaction, **kwargs):
         settings_obj = ManualPaymentSettings.load()
 
-        # ULINZI: usimwonyeshe mtumiaji maandishi ya placeholder kama
-        # "[Weka namba ya akaunti - Django Admin]". Admin lazima kwanza
-        # ajaze Django Admin -> Taarifa za Malipo ya Mkono (Manual).
-        required_values = (
-            settings_obj.bank_name,
-            settings_obj.account_name,
-            settings_obj.account_number,
-            settings_obj.confirm_phone,
-        )
-        if any((v or "").strip().startswith("[Weka") or not (v or "").strip() for v in required_values):
+        # Never show a member an account number nobody has entered yet
+        # (Treasurer fills these under /finance).
+        if not settings_obj.is_ready:
             raise GatewayError(
                 "Taarifa za akaunti ya benki za TSMA bado hazijawekwa. "
                 "Tafadhali wasiliana na TSMA."

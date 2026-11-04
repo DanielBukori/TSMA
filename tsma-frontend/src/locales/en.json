@@ -18,9 +18,8 @@
     "careers": "Careers"
   },
   "topbar": {
-    "notice": " Registration for the 2026 Conference is open — limited spots",
-    "event": "TSMA CONFERENCE 2026 — Dar es Salaam, 12–13 November",
-    "eventCta": "Register Now"
+    "eventCta": "Register Now",
+    "eventDetails": "View Details"
   },
   "hero": {
     "badge": "NATIONAL FLAGSHIP CONFERENCE",
@@ -29,12 +28,6 @@
     "lede": "We're building a productive, job-creating, sustainable sports economy — connecting professionals, members, sponsors and investors nationwide.",
     "ctaPrimary": "Register for Conference",
     "ctaSecondary": "Submit Abstract"
-  },
-  "stats": {
-    "members": "Members",
-    "regions": "Regions",
-    "award": "Research Award",
-    "nextConference": "Next Conference"
   },
   "quickLinks": {
     "eyebrow": "START HERE",
@@ -63,13 +56,6 @@
     "p2": "TSMA connects policymakers, investors, sports federations, academics and entrepreneurs to build a self-financing sports economy that creates jobs and drives development.",
     "cta": "Read More About Us"
   },
-  "infoBox": {
-    "bigLabel": "Tanzanian Regions Connected by TSMA",
-    "tile1": "Members",
-    "tile2": "Best Research Award",
-    "tile3": "Publication Categories",
-    "tile4": "Headquarters"
-  },
   "news": {
     "eyebrow": "LATEST UPDATES",
     "title": "News & Events",
@@ -77,15 +63,14 @@
     "readMore": "Read More"
   },
   "conference": {
-    "eyebrow": "UPCOMING EVENT",
-    "title": "TSMA Flagship Conference 2026",
-    "desc": "Join sports management professionals from across the country for this year's conference — registration, payment and QR verification at the venue entrance.",
-    "cta": "Register Now",
+    "upcoming": "UPCOMING CONFERENCE",
+    "registrationOpen": "REGISTRATION OPEN",
     "date": "Date",
-    "location": "Location"
+    "location": "Location",
+    "register": "Register Now",
+    "viewDetails": "View Details"
   },
-  "testimonials": {
-    "eyebrow": "MEMBERS SPEAK",
+  "voices": {
     "title": "What Our Partners Say"
   },
   "footer": {
@@ -103,7 +88,13 @@
     "error": "Something went wrong. Please try again.",
     "login": "Login",
     "logout": "Logout",
-    "dashboard": "My Dashboard"
+    "dashboard": "My Dashboard",
+    "close": "Close"
+  },
+  "promo": {
+    "registerBlurb": "Registration for this conference is open. See the programme, venue and how to pay.",
+    "detailsBlurb": "Programme and venue details are published for this conference.",
+    "later": "Maybe later"
   },
   "notFound": {
     "title": "Page Not Found",

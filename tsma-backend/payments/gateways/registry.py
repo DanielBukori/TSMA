@@ -1,14 +1,11 @@
 """
 Registry ya Payment Gateways.
 
-Hii ndiyo sehemu PEKEE unayohitaji kugusa unapoongeza gateway mpya
-(baada ya kuandika class yake kwenye faili jipya hapa ndani ya
-payments/gateways/).
+Hii ndiyo sehemu PEKEE unayohitaji kugusa unapoongeza gateway mpya (baada ya
+kuandika class yake kwenye faili jipya hapa ndani ya payments/gateways/):
 
-Mfano wa kuongeza AzamPay baadaye:
-
-    from .azampay import AzamPayGateway
-    _REGISTRY[Gateway.AZAMPAY] = AzamPayGateway
+    from .clickpesa import ClickPesaGateway
+    _REGISTRY[Gateway.CLICKPESA] = ClickPesaGateway
 
 Kila kitu kingine (views, models, members app) kinatumia tu
 `get_gateway(code)` na hakihitaji kujua gateway zipi zipo.
@@ -38,26 +35,48 @@ class GatewayNotConfigured(Exception):
     pass
 
 
-def enabled_gateway_codes():
-    """
-    Gateway codes zilizoruhusiwa na settings.ENABLED_PAYMENT_GATEWAYS
-    (default: ["manual"]). Gateway iliyosajiliwa lakini isiyo kwenye
-    orodha hii HAIONEKANI kwa mtumiaji na HAIKUBALIWI na API.
-    """
+def _code_str(code):
+    return (code.value if hasattr(code, "value") else str(code)).lower()
+
+
+def disabled_gateway_codes():
+    """Codes an operator switched off with DISABLED_PAYMENT_GATEWAYS, whatever the keys say."""
     from django.conf import settings as dj_settings
 
-    return [str(c).lower() for c in getattr(dj_settings, "ENABLED_PAYMENT_GATEWAYS", ["manual"])]
+    return [_code_str(c) for c in getattr(dj_settings, "DISABLED_PAYMENT_GATEWAYS", [])]
+
+
+def gateway_is_available(gateway_code):
+    """
+    Availability rule for the whole system (dropdown, API validation and
+    payment initiation all use this single check):
+
+    - manual (bank deposit / office cash) is always available;
+    - every other gateway is available only once its credentials are real,
+      so adding keys in the backend is the only switch an operator needs;
+    - DISABLED_PAYMENT_GATEWAYS can still switch a gateway off in an emergency.
+    """
+    gateway_class = _REGISTRY.get(gateway_code)
+    if gateway_class is None:
+        return False
+    code = _code_str(gateway_code)
+    if code == Gateway.MANUAL.value:
+        return True
+    if code in disabled_gateway_codes():
+        return False
+    return gateway_class.is_configured()
+
+
+def available_gateway_codes():
+    return [_code_str(code) for code in _REGISTRY if gateway_is_available(code)]
 
 
 def is_gateway_enabled(gateway_code):
-    code = gateway_code.value if hasattr(gateway_code, "value") else str(gateway_code)
-    return code.lower() in enabled_gateway_codes()
+    return gateway_is_available(gateway_code)
 
 
 def default_gateway():
-    """Gateway ya default kwa serializers (ya kwanza kwenye orodha iliyoruhusiwa)."""
-    enabled = enabled_gateway_codes()
-    return enabled[0] if enabled else "manual"
+    return Gateway.MANUAL.value
 
 
 def gateway_requires_phone(gateway_code):
@@ -76,41 +95,25 @@ def get_gateway(gateway_code):
     return gateway_class()
 
 
-def available_gateways():
-    """Orodha ya gateway codes zilizosajiliwa (kwa dropdown ya frontend)."""
-    return list(_REGISTRY.keys())
-
-
-def available_gateways_info(include_unconfigured=False):
+def available_gateways_info():
     """
-    Kama available_gateways() lakini na maelezo kamili (label + meta-data)
-    kwa ajili ya AvailableGatewaysView — frontend inajenga UI ya kuchagua
-    gateway BILA kuwa na orodha ya majina iliyofungwa (hardcoded) ndani
-    yake. Gateway mpya ikisajiliwa hapa juu, inatokea kwenye dropdown ya
-    mtumiaji MOJA KWA MOJA (auto) — hakuna mabadiliko mengine ya frontend
-    yanayohitajika.
+    Gateway options for the checkout dropdown, in the order they should be
+    offered: manual first, then the gateways whose credentials are configured.
 
-    KWA DEFAULT: gateway ambayo bado haina funguo (.env) HAIONYESHWI kwa
-    mtumiaji wa kawaida (fail-closed dhidi ya kumpa mtumiaji chaguo
-    litakaloshindwa akibofya). Mara Sunga akijaza AZAMPAY_*/PAYPAL_* n.k.
-    kwenye .env na ku-restart server, gateway husika INAONEKANA yenyewe —
-    hakuna code inayohitaji kubadilika.
+    The frontend never hardcodes gateway names. A gateway registered in
+    _REGISTRY appears here by itself as soon as its keys exist in the backend.
     """
     info = []
-    enabled = enabled_gateway_codes()
     for code, gateway_class in _REGISTRY.items():
-        code_str = code.value if hasattr(code, "value") else str(code)
-        # Gateway lazima iwe kwenye ENABLED_PAYMENT_GATEWAYS (settings.py)
-        if code_str.lower() not in enabled:
-            continue
-        if not include_unconfigured and not gateway_class.is_configured():
+        if not gateway_is_available(code):
             continue
         info.append(
             {
-                "code": code.value if hasattr(code, "value") else code,
+                "code": _code_str(code),
                 "label": code.label if hasattr(code, "label") else str(code),
                 "requires_phone": gateway_class.requires_phone,
                 "supports_redirect": gateway_class.supports_redirect,
             }
         )
+    info.sort(key=lambda item: item["code"] != Gateway.MANUAL.value)
     return info

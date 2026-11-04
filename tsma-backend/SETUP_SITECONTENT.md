@@ -23,12 +23,14 @@ urlpatterns = [
 ```bash
 python manage.py makemigrations sitecontent
 python manage.py migrate
-python manage.py seed_about_content
+python manage.py seed_page_banners
 ```
 
-`seed_about_content` inaweka Core Values 4 na Milestones 3 za mfano
-(placeholder) — Admin anaweza kuhariri kila kimoja, kuongeza vipya, au
-kufuta, kupitia Django Admin.
+`seed_page_banners` inaweka vichwa vya kurasa (badge/title/subtitle) ambavyo
+vilikuwa vimeandikwa ndani ya kila ukurasa — si maudhui mapya. Maudhui ya
+About (Historia, Dira, Core Values, Milestones) hayaundwi yakiwa ya mfano:
+tupu hadi Admin/Editor aizaeze kupitia Django Admin, na ukurasa unaonyesha
+hali ya "hakuna kitu bado" badala ya data ya uongo.
 
 ---
 
@@ -49,7 +51,7 @@ Django Admin → **Site Content**:
 - **Maudhui ya About** — hariri Historia (SW+EN), Dira, Dhamira. Hii ni
   singleton (rekodi moja tu) — haiwezekani kuongeza ya pili.
 - **Imani/Thamani (Core Values)** — ongeza/hariri/futa/panga upya thamani
-  za taasisi (icon ni emoji, mfano 🎯).
+  za taasisi (icon ni herufi/namba fupi, si emoji).
 - **Hatua za Kihistoria (Milestones)** — ongeza mwaka mpya na maelezo
   wakati wowote kitu kikitokea (mfano mkutano mpya, mafanikio mapya).
 

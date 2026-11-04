@@ -1,15 +1,10 @@
 """
-Selcom Gateway Adapter.
+Selcom Gateway Adapter (Minimal Header / Push USSD + Order Status + Webhook).
 
-MUHIMU: Endpoints na muundo wa payload hapa chini vinafuata muundo wa jumla
-wa Selcom Checkout API (Minimal Header / Push USSD + Order Status + Webhook)
-kama ulivyoainishwa kwenye nyaraka za awali za Selcom Developer Docs.
-Selcom mara nyingine hubadilisha maelezo madogo (jina la field, path).
-KABLA ya kwenda live, thibitisha endpoints, field names na muundo wa
-signature dhidi ya Selcom API documentation ya sasa (utapata baada ya
-kusajili Merchant/Vendor account — https://developers.selcommobile.com)
-au uliza Selcom support wapate kukupa sandbox credentials + Postman collection
-ya hivi karibuni. Sina uwezo wa kutembelea mtandao kuthibitisha real-time.
+Endpoints, field names na muundo wa signature vimekiliwa kutoka nyaraka za
+awali za developers.selcommobile.com. Selcom hubadilisha maelezo madogo
+mara nyingi — kabla ya live, thibitisha dhidi ya nyaraka za sasa au ulize
+Selcom support wa kupewa sandbox credentials na Postman collection.
 """
 
 import base64

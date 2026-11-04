@@ -8,9 +8,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 
-from accounts.permissions import IsBoardAdmin, IsContentEditor
+from accounts.permissions import IsContentEditor, IsFinanceOrBoard
 from payments.gateways.base import GatewayError
-from payments.services import build_payment_response
+from payments.payment_services import build_payment_response
 
 from .models import (
     AbstractSubmission,
@@ -47,6 +47,25 @@ class PublicationCategoryListView(generics.ListAPIView):
     serializer_class = PublicationCategorySerializer
     permission_classes = [AllowAny]
     queryset = PublicationCategory.objects.all()
+
+
+class PublicationYearsListView(APIView):
+    """
+    GET /api/publications/years/ - miaka iliyopo kwenye machapisho
+    (public). Kichujio cha mwaka kwenye frontend kinatumia orodha hii
+    badala ya miaka iliyandikwa kwenye code.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        years = list(
+            Publication.objects.filter(is_published=True)
+            .values_list("publication_year", flat=True)
+            .distinct()
+            .order_by("-publication_year")
+        )
+        return Response(years)
 
 
 class PublicationListView(generics.ListAPIView):
@@ -234,8 +253,9 @@ class PublicationPurchaseInitiateView(APIView):
                 payment_method=data["payment_method"],
             )
         except GatewayError as exc:
+            logger.warning("publication payment start failed for %s: %s", request.user.email, exc)
             return Response(
-                {"detail": f"Imeshindikana kuanzisha malipo: {exc}"},
+                {"detail": "Malipo hayakuanza kwa sasa. Tafadhali jaribu tena au wasiliana na TSMA."},
                 status=status.HTTP_502_BAD_GATEWAY,
             )
 
@@ -261,7 +281,7 @@ class MyPurchasesView(generics.ListAPIView):
 class AdminPublicationListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminPublicationSerializer
     permission_classes = [IsContentEditor]
-    queryset = Publication.objects.all().order_by("-created_at")
+    queryset = Publication.objects.select_related("category").all().order_by("-created_at")
 
     def perform_create(self, serializer):
         serializer.save(uploaded_by=self.request.user)
@@ -270,7 +290,7 @@ class AdminPublicationListCreateView(generics.ListCreateAPIView):
 class AdminPublicationDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminPublicationSerializer
     permission_classes = [IsContentEditor]
-    queryset = Publication.objects.all()
+    queryset = Publication.objects.select_related("category").all()
 
 
 class AdminCommissionSettingsView(generics.RetrieveUpdateAPIView):
@@ -281,7 +301,7 @@ class AdminCommissionSettingsView(generics.RetrieveUpdateAPIView):
     """
 
     serializer_class = AdminPublicationCommissionSettingsSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsFinanceOrBoard]
 
     def get_object(self):
         return PublicationCommissionSettings.load()
@@ -295,7 +315,7 @@ class AdminPublicationPurchaseListView(generics.ListAPIView):
     """
 
     serializer_class = AdminPublicationPurchaseSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsFinanceOrBoard]
 
     def get_queryset(self):
         queryset = PublicationPurchase.objects.all().select_related("publication", "buyer")
@@ -323,10 +343,10 @@ class MyAbstractSubmissionsView(generics.ListAPIView):
 
 class AdminAbstractSubmissionListView(generics.ListAPIView):
     serializer_class = AdminAbstractSubmissionSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsFinanceOrBoard]
 
     def get_queryset(self):
-        queryset = AbstractSubmission.objects.all()
+        queryset = AbstractSubmission.objects.select_related("category", "submitted_by").all()
         status_filter = self.request.query_params.get("status")
         if status_filter:
             queryset = queryset.filter(status=status_filter)
@@ -335,7 +355,7 @@ class AdminAbstractSubmissionListView(generics.ListAPIView):
 
 class AdminAbstractSubmissionDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = AdminAbstractSubmissionSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsFinanceOrBoard]
     queryset = AbstractSubmission.objects.all()
 
     def perform_update(self, serializer):

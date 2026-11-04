@@ -76,7 +76,7 @@ BANNERS = [
     ),
     dict(
         page_key="founders",
-        badge_sw="★ WAANZILISHI", badge_en="★ FOUNDERS",
+        badge_sw="WAANZILISHI", badge_en="FOUNDERS",
         title_sw="Waanzilishi wa TSMA", title_en="Founders of TSMA",
         subtitle_sw="Watu waliobeba dira ya kuanzisha TSMA na kuiongoza hadi hapa ilipofika.",
         subtitle_en="The people who carried the vision to found TSMA and led it to where it stands today.",

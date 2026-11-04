@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction as db_transaction
 
@@ -5,6 +7,8 @@ from .gateways.base import GatewayError
 from .gateways.registry import get_gateway, is_gateway_enabled
 from .models import PaymentStatus, PaymentTransaction
 from .signals import payment_failed, payment_succeeded
+
+logger = logging.getLogger(__name__)
 
 
 def initiate_payment(
@@ -29,9 +33,8 @@ def initiate_payment(
 
     Inarudisha tuple: (transaction, checkout_info_dict)
     """
-    # USALAMA: gateway isiyoruhusiwa (settings.ENABLED_PAYMENT_GATEWAYS)
-    # inakataliwa HAPA, kabla ya kutengeneza transaction yoyote — hata
-    # mtu akipiga API moja kwa moja (bila kupitia frontend).
+    # Checked again here (not only in the serializer) so a direct API call
+    # cannot start a payment on a gateway that has no credentials.
     if not is_gateway_enabled(gateway_code):
         raise GatewayError(
             "Njia hii ya malipo haipatikani kwa sasa. Tafadhali tumia Malipo ya Mkono (Manual)."
@@ -101,6 +104,37 @@ def build_payment_response(txn, checkout_info):
     }
 
 
+def dispatch_payment_succeeded(txn):
+    """
+    Fire `payment_succeeded` with send_robust so one broken receiver cannot
+    lose the whole post-payment chain (membership activation, receipt, card).
+
+    Failures are logged and stored on the transaction, which is what makes
+    `manage.py reprocess_payments` able to finish the work later: SUCCESS is
+    terminal, so a plain `send()` failure would never be retried.
+
+    Returns the list of errors (empty when everything completed).
+    """
+    errors = []
+    for receiver, response in payment_succeeded.send_robust(
+        sender=PaymentTransaction, transaction=txn
+    ):
+        if isinstance(response, Exception):
+            name = f"{getattr(receiver, '__module__', '?')}.{getattr(receiver, '__name__', '?')}"
+            logger.error(
+                "payment_succeeded receiver %s failed for %s",
+                name,
+                txn.internal_reference,
+                exc_info=response,
+            )
+            errors.append(f"{name}:{response!r}")
+
+    failure_text = "\n".join(errors)[:4000]
+    PaymentTransaction.objects.filter(pk=txn.pk).update(post_processing_error=failure_text)
+    txn.post_processing_error = failure_text
+    return errors
+
+
 def verify_and_sync(transaction):
     """
     Uliza gateway hali halisi ya malipo (query/poll), na sasisha transaction.
@@ -126,7 +160,7 @@ def verify_and_sync(transaction):
     if result_status == "success":
         with db_transaction.atomic():
             transaction.mark_success(raw_response=raw_response)
-        payment_succeeded.send(sender=PaymentTransaction, transaction=transaction)
+        dispatch_payment_succeeded(transaction)
     elif result_status == "failed":
         transaction.mark_failed(reason="Gateway imeripoti malipo kushindwa.", raw_response=raw_response)
         payment_failed.send(sender=PaymentTransaction, transaction=transaction)
@@ -239,7 +273,7 @@ def process_webhook(gateway_code, request):
     # (membership activation, payouts, n.k.) zisizuiliwe na row lock, lakini
     # BAADA ya commit ili zisiendeshe endapo save itashindwa.
     if txn.status == PaymentStatus.SUCCESS:
-        payment_succeeded.send(sender=PaymentTransaction, transaction=txn)
+        dispatch_payment_succeeded(txn)
     elif txn.status == PaymentStatus.FAILED:
         payment_failed.send(sender=PaymentTransaction, transaction=txn)
 

@@ -13,6 +13,7 @@ export default function Publications() {
 
   const [publications, setPublications] = useState([])
   const [categories, setCategories] = useState([])
+  const [years, setYears] = useState([])
   const [state, setState] = useState('loading')
   const [categoryState, setCategoryState] = useState('loading')
   const [query, setQuery] = useState('')
@@ -34,6 +35,13 @@ export default function Publications() {
       .catch(() => {
         if (!cancelled) setCategoryState('error')
       })
+
+    apiClient
+      .get('/publications/years/')
+      .then((res) => {
+        if (!cancelled && Array.isArray(res.data)) setYears(res.data)
+      })
+      .catch(() => {})
 
     return () => {
       cancelled = true
@@ -106,12 +114,14 @@ export default function Publications() {
               <option key={c.id} value={c.slug}>{c.name}</option>
             ))}
           </select>
-          <select value={year} onChange={(e) => setYear(e.target.value)} className="border border-black/15 rounded-md px-4 py-2.5 text-sm">
-            <option value="">{isSw ? 'Miaka Yote' : 'All Years'}</option>
-            {[2026, 2025, 2024, 2023].map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
+          {years.length > 0 && (
+            <select value={year} onChange={(e) => setYear(e.target.value)} className="border border-black/15 rounded-md px-4 py-2.5 text-sm">
+              <option value="">{isSw ? 'Miaka Yote' : 'All Years'}</option>
+              {years.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          )}
           <select value={accessType} onChange={(e) => setAccessType(e.target.value)} className="border border-black/15 rounded-md px-4 py-2.5 text-sm">
             <option value="">{isSw ? 'Aina Zote' : 'All Types'}</option>
             <option value="free">{isSw ? 'Bure' : 'Free'}</option>

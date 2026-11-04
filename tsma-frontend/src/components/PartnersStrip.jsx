@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react'
 import { fetchPartners } from '../api/partners.js'
 
 /**
- * Safu ya logo za washirika (ASMA/WASM n.k.) - component MOJA
- * inayotumiwa na Home.jsx NA About.jsx zote mbili (uamuzi wa Sunga: data
- * moja, sehemu mbili). Ikiwa hakuna washirika bado (Admin hajaongeza),
- * component hii haionyeshi chochote (haina "kutupu" kwa udanganyifu).
+ * Partner logo strip (ASMA, WASM, ...). One component is shared by Home and
+ * About so both read the same data. Renders nothing while no partner has
+ * been added in the backend - no filler content.
  */
 export default function PartnersStrip({ isSw }) {
   const [partners, setPartners] = useState([])

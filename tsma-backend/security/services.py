@@ -88,11 +88,10 @@ def log_event(
 
 def _maybe_auto_block(event):
     """
-    SELF-HEALING: angalia kama tukio hili limefikisha kiwango cha
-    auto-block, na kama ndiyo, zuia IP KWA MUDA MARA MOJA (bila kusubiri
-    idhini ya binadamu — hii ndiyo sehemu ya 'kiotomatiki'), KISHA
-    tengeneza PendingApprovalAction ili Admin aamue kama block iwe ya
-    KUDUMU (sehemu ya 'approval ya human').
+    Once an event type crosses its threshold, block the IP for a short while
+    straight away instead of waiting for someone to notice, then record a
+    PendingApprovalAction so an admin decides whether the block becomes
+    permanent.
     """
     rule = _AUTO_BLOCK_RULES.get(event.event_type)
     if not rule or not event.ip_address:
@@ -108,7 +107,7 @@ def _maybe_auto_block(event):
     if recent_count < rule["threshold"]:
         return
 
-    # Tayari imezuiwa? Usirudie.
+    # A block for this IP may already exist; don't stack a second one.
     if BlockedIP.objects.filter(ip_address=event.ip_address).exists():
         return
 
@@ -128,15 +127,14 @@ def _maybe_auto_block(event):
     event.severity = SecuritySeverity.CRITICAL
     event.save(update_fields=["auto_action_taken", "severity"])
 
-    # Tengeneza ombi la idhini ya KUDUMU — Admin ndiye anayeamua hatua ya mwisho.
     PendingApprovalAction.objects.create(
         action_type=PendingApprovalAction.ActionType.PERMANENT_IP_BLOCK,
         related_event=event,
         target_description=f"IP {event.ip_address}",
         reason=(
-            f"Mfumo umezuia IP hii KWA MUDA (saa {_AUTO_BLOCK_DURATION_HOURS}) baada ya "
-            f"kugundua {event.get_event_type_display()} mara {recent_count}. "
-            f"Idhinisha ili block iwe ya KUDUMU, au kataa kuifungua sasa."
+            f"IP hii imezuiwa kwa muda wa saa {_AUTO_BLOCK_DURATION_HOURS} baada ya "
+            f"{event.get_event_type_display()} kurudiwa mara {recent_count}. "
+            f"Idhinisha kuifanya ya kudumu, au kataa ili ifunguliwe sasa."
         ),
     )
 
@@ -144,14 +142,14 @@ def _maybe_auto_block(event):
         event_type=SecurityEventType.SUSPICIOUS_IP_BLOCKED,
         severity=SecuritySeverity.CRITICAL,
         ip_address=event.ip_address,
-        description="IP imezuiwa kiotomatiki (self-healing) — inasubiri idhini ya kudumu.",
+        description="IP imezuiwa kiotomatiki kwa muda; inasubiri idhini ya kuifanya ya kudumu.",
     )
 
 
 def _notify(event):
-    """Tuma arifa kwenye channels zilizowashwa (settings.SECURITY_NOTIFICATION_CHANNELS)."""
+    """Send notifications on the channels enabled in settings.SECURITY_NOTIFICATION_CHANNELS."""
     if event.severity not in (SecuritySeverity.HIGH, SecuritySeverity.CRITICAL):
-        return  # usimwongope Admin kwa matukio madogo — dashboard bado yanaonekana
+        return  # small events stay on the dashboard; don't page the admin for them
 
     channels = getattr(settings, "SECURITY_NOTIFICATION_CHANNELS", ["email"])
     recipients_email = getattr(settings, "SECURITY_ALERT_RECIPIENTS", [])

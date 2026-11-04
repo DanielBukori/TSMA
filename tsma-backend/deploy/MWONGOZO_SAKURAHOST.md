@@ -47,7 +47,8 @@ cd /srv/tsma/tsma-backend
 /srv/tsma/venv/bin/python manage.py collectstatic --noinput
 /srv/tsma/venv/bin/python manage.py createsuperuser
 /srv/tsma/venv/bin/python manage.py seed_membership_tiers --retire-old
-# hiari (maudhui ya mwanzo): seed_about_content, seed_home_stats, seed_page_banners
+# vichwa vya kurasa (si maudhui mapya - ni yale yaliyokuwa ndani ya code): seed_page_banners
+# hakuna seed ya maudhui ya mfano; habari, mikutano na machapisho vinaandikwa na Admin/Mhariri
 ```
 
 ## 4. gunicorn + Nginx + SSL (kama root)

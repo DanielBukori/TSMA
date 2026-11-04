@@ -19,6 +19,15 @@ class SiteBackgroundImageSerializer(serializers.ModelSerializer):
         fields = ("id", "image", "caption")
 
 
+class AdminSiteBackgroundImageSerializer(serializers.ModelSerializer):
+    """Editor/Board - kupakia, kupanga na kuficha picha za background."""
+
+    class Meta:
+        model = SiteBackgroundImage
+        fields = ("id", "image", "caption", "is_active", "display_order", "created_at")
+        read_only_fields = ("created_at",)
+
+
 class SiteSettingsSerializer(serializers.ModelSerializer):
     """
     Public — inatumiwa na Navbar/Footer kupata URL za logo/favicon.

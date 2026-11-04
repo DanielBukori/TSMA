@@ -62,7 +62,7 @@ export default function BoardProfileModal({ member, onClose }) {
 
           {member.is_founder && (
             <span className="inline-block mt-3 bg-gold/15 text-gold-dark text-[11px] font-extrabold tracking-wide px-3 py-1.5 rounded-full">
-              {isSw ? '★ MWANZILISHI WA TSMA' : '★ TSMA FOUNDER'}
+              {isSw ? 'MWANZILISHI WA TSMA' : 'TSMA FOUNDER'}
             </span>
           )}
 

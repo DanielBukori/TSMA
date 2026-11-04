@@ -432,16 +432,22 @@ export default function SecurityDashboard() {
                         <button
                           disabled={busyId === p.id}
                           onClick={() => setDialog({ kind: 'approve', item: p })}
-                          className="flex-1 text-xs font-extrabold bg-green text-white py-2.5 rounded-md disabled:opacity-60"
+                          className="flex-1 flex items-center justify-center gap-2 text-xs font-extrabold bg-green text-white py-2.5 rounded-md disabled:opacity-60"
                         >
-                          ✓ Idhinisha
+                          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M4 12.5l5 5L20 6.5" />
+                          </svg>
+                          Idhinisha
                         </button>
                         <button
                           disabled={busyId === p.id}
                           onClick={() => setDialog({ kind: 'reject', item: p })}
-                          className="flex-1 text-xs font-extrabold bg-terracotta/10 text-terracotta py-2.5 rounded-md disabled:opacity-60"
+                          className="flex-1 flex items-center justify-center gap-2 text-xs font-extrabold bg-terracotta/10 text-terracotta py-2.5 rounded-md disabled:opacity-60"
                         >
-                          ✕ Kataa
+                          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                            <path d="M6 6l12 12M18 6L6 18" />
+                          </svg>
+                          Kataa
                         </button>
                       </div>
                     )}
@@ -646,7 +652,7 @@ function EventCard({ ev, busy, onReview, onCopied }) {
         )}
         <div className="flex items-center gap-3 mt-3">
           {ev.is_reviewed ? (
-            <span className="text-[11px] font-bold text-green">✓ Imeangaliwa</span>
+            <span className="text-[11px] font-bold text-green">Imeangaliwa</span>
           ) : (
             <button
               disabled={busy}

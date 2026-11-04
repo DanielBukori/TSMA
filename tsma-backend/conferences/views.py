@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 
 from django.db import IntegrityError, transaction as db_transaction
@@ -10,10 +11,15 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.permissions import IsBoardAdmin, IsContentEditor
+from accounts.permissions import (
+    IsContentEditor,
+    IsContentOrFinanceStaff,
+    IsFinanceOrBoard,
+    IsTicketManager,
+)
 from payments.gateways.base import GatewayError
 from payments.models import PaymentPurpose
-from payments.services import build_payment_response, initiate_payment
+from payments.payment_services import build_payment_response, initiate_payment
 
 from .models import (
     Conference,
@@ -42,6 +48,8 @@ from .serializers import (
     SelfRegistrationSerializer,
 )
 
+logger = logging.getLogger(__name__)
+
 
 # ----------------------------------------------------------------------
 # Public
@@ -61,9 +69,11 @@ class ConferenceListView(generics.ListAPIView):
         status_filter = self.request.query_params.get("status")
         today = timezone.now().date()
         if status_filter == "upcoming":
-            queryset = queryset.filter(end_date__gte=today)
+            queryset = queryset.filter(end_date__gte=today).order_by("start_date")
         elif status_filter == "past":
-            queryset = queryset.filter(end_date__lt=today)
+            queryset = queryset.filter(end_date__lt=today).order_by("-start_date")
+        else:
+            queryset = queryset.order_by("-start_date")
         return queryset
 
 
@@ -185,8 +195,9 @@ class SelfRegistrationView(APIView):
             )
         except GatewayError as exc:
             batch.delete()
+            logger.warning("conference payment start failed for %s: %s", request.user.email, exc)
             return Response(
-                {"detail": f"Failed to start payments: {exc}"},
+                {"detail": "Malipo hayakuanza kwa sasa. Tafadhali jaribu tena au wasiliana na TSMA."},
                 status=status.HTTP_502_BAD_GATEWAY,
             )
 
@@ -311,7 +322,7 @@ class CheckInView(APIView):
     Kwa staff walio na ruhusa (Board/Super Admin) tu.
     """
 
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsFinanceOrBoard]
 
     def post(self, request):
         serializer = CheckInSerializer(data=request.data)
@@ -357,7 +368,7 @@ class CheckInView(APIView):
 
 class AdminConferenceListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminConferenceSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsFinanceOrBoard]
     queryset = Conference.objects.all().order_by("-start_date")
 
     def perform_create(self, serializer):
@@ -366,44 +377,44 @@ class AdminConferenceListCreateView(generics.ListCreateAPIView):
 
 class AdminConferenceDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminConferenceSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsFinanceOrBoard]
     queryset = Conference.objects.all()
 
 
 class AdminConferenceDayListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminConferenceDaySerializer
-    permission_classes = [IsBoardAdmin]
-    queryset = ConferenceDay.objects.all()
+    permission_classes = [IsContentOrFinanceStaff]
+    queryset = ConferenceDay.objects.select_related("conference").all()
 
 
 class AdminConferenceDayDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminConferenceDaySerializer
-    permission_classes = [IsBoardAdmin]
-    queryset = ConferenceDay.objects.all()
+    permission_classes = [IsContentOrFinanceStaff]
+    queryset = ConferenceDay.objects.select_related("conference").all()
 
 
 class AdminConferenceSessionListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminConferenceSessionSerializer
-    permission_classes = [IsBoardAdmin]
-    queryset = ConferenceSession.objects.all()
+    permission_classes = [IsContentOrFinanceStaff]
+    queryset = ConferenceSession.objects.select_related("day__conference").all()
 
 
 class AdminConferenceSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminConferenceSessionSerializer
-    permission_classes = [IsBoardAdmin]
-    queryset = ConferenceSession.objects.all()
+    permission_classes = [IsContentOrFinanceStaff]
+    queryset = ConferenceSession.objects.select_related("day__conference").all()
 
 
 class AdminConferenceTicketTypeListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminConferenceTicketTypeSerializer
-    permission_classes = [IsBoardAdmin]
-    queryset = ConferenceTicketType.objects.all()
+    permission_classes = [IsTicketManager]
+    queryset = ConferenceTicketType.objects.select_related("conference").all()
 
 
 class AdminConferenceTicketTypeDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminConferenceTicketTypeSerializer
-    permission_classes = [IsBoardAdmin]
-    queryset = ConferenceTicketType.objects.all()
+    permission_classes = [IsTicketManager]
+    queryset = ConferenceTicketType.objects.select_related("conference").all()
 
 
 class ConferenceAnalyticsView(APIView):
@@ -412,7 +423,7 @@ class ConferenceAnalyticsView(APIView):
     Dashboard ya waandaaji — idadi ya waliojisajili, waliolipa, waliofika.
     """
 
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsFinanceOrBoard]
 
     def get(self, request, slug):
         conference = get_object_or_404(Conference, slug=slug)

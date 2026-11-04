@@ -1,7 +1,8 @@
 from django.db import transaction as db_transaction
 from rest_framework import serializers
 
-from payments.gateways.registry import available_gateways, default_gateway, gateway_requires_phone
+from payments.fields import SelectableGatewayField
+from payments.gateways.registry import default_gateway, gateway_requires_phone
 
 from .models import (
     Conference,
@@ -63,6 +64,7 @@ class ConferenceListSerializer(serializers.ModelSerializer):
     """Public: orodha ya mikutano (upcoming + historia ya iliyopita)."""
 
     is_past = serializers.BooleanField(read_only=True)
+    is_registration_still_open = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Conference
@@ -70,6 +72,7 @@ class ConferenceListSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "slug",
+            "description",
             "theme",
             "banner_image",
             "venue_name",
@@ -77,7 +80,9 @@ class ConferenceListSerializer(serializers.ModelSerializer):
             "country",
             "start_date",
             "end_date",
+            "registration_deadline",
             "is_past",
+            "is_registration_still_open",
         )
 
 
@@ -137,7 +142,7 @@ class SelfRegistrationSerializer(serializers.Serializer):
 
     ticket_type_id = serializers.IntegerField()
     phone_number = serializers.CharField(max_length=20, required=False, allow_blank=True)
-    gateway = serializers.ChoiceField(choices=available_gateways(), default=default_gateway)
+    gateway = SelectableGatewayField(max_length=20, default=default_gateway)
     payment_method = serializers.ChoiceField(
         choices=["mobile_money", "card", "bank_transfer"], default="mobile_money"
     )
@@ -163,7 +168,7 @@ class BulkRegistrationSerializer(serializers.Serializer):
         max_length=20, required=False, allow_blank=True, default="",
         help_text="Namba ya simu ya kulipia (mwakilishi wa taasisi). Haihitajiki kwa Malipo ya Mkono (Manual).",
     )
-    gateway = serializers.ChoiceField(choices=available_gateways(), default=default_gateway)
+    gateway = SelectableGatewayField(max_length=20, default=default_gateway)
     payment_method = serializers.ChoiceField(
         choices=["mobile_money", "card", "bank_transfer"], default="mobile_money"
     )

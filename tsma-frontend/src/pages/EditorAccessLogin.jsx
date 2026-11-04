@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useSiteSettings } from '../context/SiteSettingsContext.jsx'
 import { resendEditorLoginCode, startEditorLogin, verifyEditorLogin } from '../api/auth.js'
 
 const EDITOR_ROLES = new Set(['content_editor', 'board_admin', 'super_admin'])
@@ -8,6 +9,7 @@ const canUseEditor = (candidate) => EDITOR_ROLES.has(candidate?.role) || candida
 
 export default function EditorAccessLogin() {
   const { user, loading: authLoading, isAuthenticated, hasEditorMfa, completeLogin, logout } = useAuth()
+  const { logoOnDarkUrl, logoUrl } = useSiteSettings()
   const navigate = useNavigate()
   const [step, setStep] = useState('password')
   const [email, setEmail] = useState('')
@@ -58,9 +60,15 @@ export default function EditorAccessLogin() {
     <main className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-5 py-12">
       <section className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900 p-7 sm:p-9 shadow-2xl">
         <div className="mb-8">
-          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-400 font-black text-slate-950">TS</div>
-          <p className="text-xs uppercase tracking-[.22em] text-amber-300">TSMA · Restricted access</p>
-          <h1 className="mt-2 text-3xl font-bold">Editor sign in</h1>
+          {logoOnDarkUrl || logoUrl ? (
+            <img src={logoOnDarkUrl || logoUrl} alt="TSMA" className="mb-5 h-12 w-auto max-w-[150px] object-contain" />
+          ) : (
+            <p className="mb-5 font-serif text-lg font-black uppercase tracking-[0.18em] text-amber-300">TSMA</p>
+          )}
+          <p className="text-xs uppercase tracking-[.22em] text-amber-300">Ruhusa ya mfumo · Staff</p>
+          <h1 className="mt-2 text-3xl font-bold">
+            {step === 'password' ? 'Ingia — Mhariri wa Maudhui' : 'Ingia — thibitisha namba'}
+          </h1>
           <p className="mt-2 text-sm leading-6 text-slate-300">Njia salama ya kuingia kwenye dashibodi ya maudhui. Hatua mbili za uthibitisho zinahitajika kila unapoingia.</p>
         </div>
         {error && <div role="alert" className="mb-5 rounded-lg border border-red-400/30 bg-red-950/50 p-3 text-sm text-red-200">{error}</div>}
@@ -75,7 +83,7 @@ export default function EditorAccessLogin() {
           <button type="submit" disabled={busy || code.length !== 6} className="w-full rounded-lg bg-amber-400 px-4 py-3 font-bold text-slate-950 transition hover:bg-amber-300 disabled:opacity-60">{busy ? 'Inathibitisha...' : 'Thibitisha na uingie'}</button>
           <div className="flex items-center justify-between gap-3 text-sm"><button type="button" disabled={busy} onClick={handleResend} className="text-amber-300 hover:text-amber-200 disabled:opacity-50">Tuma namba nyingine</button><button type="button" disabled={busy} onClick={() => { setStep('password'); setChallenge(''); setCode(''); setError(''); setNotice('') }} className="text-slate-300 hover:text-white">Rudi nyuma</button></div>
         </form>}
-        <div className="mt-7 border-t border-white/10 pt-5 text-xs leading-5 text-slate-400"><p>Ulinzi: namba inaisha baada ya dakika 10, hutumika mara moja na ina kikomo cha majaribio. Ruhusa za kila kitendo zinathibitishwa na Django API.</p><a href="/" className="mt-3 inline-block text-amber-300 hover:text-amber-200">Rudi kwenye tovuti ya TSMA</a></div>
+        <div className="mt-7 border-t border-white/10 pt-5 text-xs leading-5 text-slate-400"><p>Ulinzi: namba inaisha baada ya dakika 10, hutumika mara moja na ina kikomo cha majaribio. Ruhusa za kila kitendo zinathibitishwa na Django API.</p><p className="mt-3"><span className="font-bold text-white">Fungua akaunti mpya:</span> fomu hii haitengenezi akaunti. Akaunti za Mhariri wa Maudhui na wafanyakazi wengine hutengenezwa na Super Administrator.</p><p className="mt-3">Wewe ni mwanachama wa kawaida? <a href="/register" className="font-semibold text-amber-300 hover:text-amber-200">Fungua akaunti ya uanachama hapa</a>.</p><a href="/" className="mt-3 inline-block text-amber-300 hover:text-amber-200">Rudi kwenye tovuti ya TSMA</a></div>
       </section>
     </main>
   )

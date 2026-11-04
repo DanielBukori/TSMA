@@ -1,24 +1,17 @@
 """
-AzamPay Gateway Adapter.
+AzamPay Gateway Adapter (Authenticator + MNO Checkout).
 
-MUHIMU (soma kabla ya kuwasha live): Endpoints na muundo wa payload hapa
-chini vinafuata muundo wa jumla wa AzamPay API (Authenticator + MNO
-Checkout) kama ulivyoelezwa kwenye nyaraka za awali za AzamPay Developer
-Docs (developers.azampay.co.tz). AzamPay wanaweza kubadilisha maelezo
-madogo (jina la field, path ya endpoint) — SINA uwezo wa kutembelea
-mtandao kuthibitisha real-time. KABLA ya kwenda live:
-1. Sajili Partner/Merchant account: https://developers.azampay.co.tz
-2. Pata App Name, Client ID, Client Secret (sandbox kwanza)
-3. Thibitisha endpoints/field names dhidi ya nyaraka za sasa au Postman
-   collection watakayokupa AzamPay support
-4. Badilisha AZAMPAY_ENV kutoka "sandbox" kwenda "production" kwenye .env
+Endpoints na field names zinakiliwa kutoka nyaraka za awali za
+developers.azampay.co.tz; AzamPay hubadilisha maelezo madogo, kwa hiyo
+kabla ya live thibitisha dhidi ya nyaraka/Postman collection watakayokupa:
+1. Partner/Merchant account: https://developers.azampay.co.tz
+2. App Name, Client ID, Client Secret (sandbox kwanza)
+3. AZAMPAY_ENV="sandbox" -> "production" kwenye .env
 
-USALAMA (fail-closed kwa webhook): Callback ya AzamPay HAINA HMAC
-signature iliyoandikwa wazi kwenye nyaraka za umma (tofauti na Selcom).
-Kwa hiyo TUNAKATAA kuamini payload ya webhook peke yake — parse_webhook()
-inatumia webhook TU kama "kengele" ya kuuliza tena AzamPay moja kwa moja
-(server-to-server, verify_payment) kupata hali HALISI kabla ya kubadilisha
-chochote. Hii ndiyo maana ya "fail-closed": hatuamini ombi lisilothibitishwa.
+Webhook: AzamPay haina HMAC signature iliyochapishwa (tofauti na Selcom),
+kwa hiyo parse_webhook() haitamini payload yake — inaitumia kama kengele na
+kuuliza tena AzamPay server-to-server (verify_payment) kabla ya kubadilisha
+hali ya malipo.
 """
 
 import json

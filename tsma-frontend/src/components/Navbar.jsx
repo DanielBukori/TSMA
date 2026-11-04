@@ -33,7 +33,6 @@ export default function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const onHome = location.pathname === '/'
-  const activeSection = useActiveSection(onHome && SINGLE_PAGE) // sehemu inayoonekana sasa (kuangaza kiungo)
   const photo = useProfilePhoto(user)
 
   // `section` = sehemu ya ukurasa wa Home (inaruka); `to` = ukurasa tofauti.
@@ -52,30 +51,45 @@ export default function Navbar() {
     { key: 'careers', to: '/careers', label: t('nav.careers') },
   ]
 
+  const activeSection = useActiveSection(links.filter((l) => l.section).map((l) => l.section), onHome && SINGLE_PAGE)
+
   // Viungo vikuu vinaonekana kwenye upau; vingine vinaingia kwenye "Zaidi"
   const primaryKeys = ['about', 'publications', 'teaching', 'conferences', 'members']
   const primaryLinks = links.filter((l) => primaryKeys.includes(l.key))
   const moreLinks = links.filter((l) => !primaryKeys.includes(l.key))
+
+  const ACTIVE_CLASS = '!text-navy underline decoration-gold decoration-2 underline-offset-8'
+
+  function isOnPath(path) {
+    return location.pathname === path || location.pathname.startsWith(`${path}/`)
+  }
 
   // Kiungo cha sehemu (kinaruka) au cha ukurasa tofauti; kinaangazwa kikiwa ndicho kinachoonekana
   function renderLink(link, className, onClick) {
     if (link.section) {
       const isActive = SINGLE_PAGE
         ? onHome && activeSection === link.section
-        : location.pathname === SECTION_ROUTES[link.section] || location.pathname.startsWith(`${SECTION_ROUTES[link.section]}/`)
+        : isOnPath(SECTION_ROUTES[link.section])
       return (
         <SectionLink
           key={link.key}
           section={link.section}
           onClick={onClick}
-          className={`${className} ${isActive ? '!text-navy underline decoration-gold decoration-2 underline-offset-8' : ''}`}
+          aria-current={isActive ? 'location' : undefined}
+          className={`${className} ${isActive ? ACTIVE_CLASS : ''}`}
         >
           {link.label}
         </SectionLink>
       )
     }
     return (
-      <Link key={link.key} to={link.to} onClick={onClick} className={className}>
+      <Link
+        key={link.key}
+        to={link.to}
+        onClick={onClick}
+        aria-current={isOnPath(link.to) ? 'page' : undefined}
+        className={`${className} ${isOnPath(link.to) ? ACTIVE_CLASS : ''}`}
+      >
         {link.label}
       </Link>
     )

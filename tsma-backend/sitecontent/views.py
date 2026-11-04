@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.permissions import IsBoardAdmin
+from accounts.permissions import IsContentEditor
 
 from .models import (
     AboutContent,
@@ -15,7 +15,20 @@ from .models import (
     SiteBackgroundImage,
     SiteSettings,
 )
-from .serializers import SiteBackgroundImageSerializer
+from .serializers import (
+    AboutContentSerializer,
+    AdminAboutContentSerializer,
+    AdminCoreValueSerializer,
+    AdminHomeStatSerializer,
+    AdminMilestoneSerializer,
+    AdminPageBannerContentSerializer,
+    AdminSiteBackgroundImageSerializer,
+    AdminSiteSettingsSerializer,
+    HomeStatSerializer,
+    PageBannerContentSerializer,
+    SiteSettingsSerializer,
+    SiteBackgroundImageSerializer,
+)
 
 
 class SiteBackgroundImagesView(generics.ListAPIView):
@@ -29,18 +42,27 @@ class SiteBackgroundImagesView(generics.ListAPIView):
     permission_classes = [AllowAny]
     queryset = SiteBackgroundImage.objects.filter(is_active=True)
 
-from .serializers import (
-    AboutContentSerializer,
-    AdminAboutContentSerializer,
-    AdminCoreValueSerializer,
-    AdminHomeStatSerializer,
-    AdminMilestoneSerializer,
-    AdminPageBannerContentSerializer,
-    AdminSiteSettingsSerializer,
-    HomeStatSerializer,
-    PageBannerContentSerializer,
-    SiteSettingsSerializer,
-)
+
+class AdminSiteBackgroundImageListCreateView(generics.ListCreateAPIView):
+    """
+    GET/POST /api/content/admin/backgrounds/ - Editor/Board: orodha kamili
+    (pia picha zilizofichwa) na kupakia picha mpya (multipart).
+    """
+
+    serializer_class = AdminSiteBackgroundImageSerializer
+    permission_classes = [IsContentEditor]
+    parser_classes = [MultiPartParser, FormParser]
+    queryset = SiteBackgroundImage.objects.all()
+    pagination_class = None
+
+
+class AdminSiteBackgroundImageDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """GET/PATCH/DELETE /api/content/admin/backgrounds/<id>/ - hariri au ondoa picha."""
+
+    serializer_class = AdminSiteBackgroundImageSerializer
+    permission_classes = [IsContentEditor]
+    parser_classes = [MultiPartParser, FormParser]
+    queryset = SiteBackgroundImage.objects.all()
 
 
 class SiteSettingsView(APIView):
@@ -65,7 +87,7 @@ class AdminSiteSettingsView(generics.RetrieveUpdateAPIView):
     """
 
     serializer_class = AdminSiteSettingsSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     parser_classes = [MultiPartParser, FormParser]
 
     def get_object(self):
@@ -86,7 +108,7 @@ class AdminAboutContentView(generics.RetrieveUpdateAPIView):
     """GET/PATCH /api/content/admin/about/ - Board/Super Admin: hariri About."""
 
     serializer_class = AdminAboutContentSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
 
     def get_object(self):
         return AboutContent.load()
@@ -94,25 +116,25 @@ class AdminAboutContentView(generics.RetrieveUpdateAPIView):
 
 class AdminCoreValueListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminCoreValueSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = CoreValue.objects.all()
 
 
 class AdminCoreValueDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminCoreValueSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = CoreValue.objects.all()
 
 
 class AdminMilestoneListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminMilestoneSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = Milestone.objects.all()
 
 
 class AdminMilestoneDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminMilestoneSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = Milestone.objects.all()
 
 
@@ -133,7 +155,7 @@ class AdminPageBannerContentListView(generics.ListAPIView):
     """GET /api/content/admin/banners/ - Board/Super Admin: orodha ya kurasa zote."""
 
     serializer_class = AdminPageBannerContentSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = PageBannerContent.objects.all()
     pagination_class = None
 
@@ -148,7 +170,7 @@ class AdminPageBannerContentDetailView(generics.RetrieveUpdateAPIView):
     """
 
     serializer_class = AdminPageBannerContentSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     lookup_field = "page_key"
 
     def get_object(self):
@@ -170,11 +192,11 @@ class HomeStatsListView(generics.ListAPIView):
 
 class AdminHomeStatListCreateView(generics.ListCreateAPIView):
     serializer_class = AdminHomeStatSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = HomeStat.objects.all()
 
 
 class AdminHomeStatDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdminHomeStatSerializer
-    permission_classes = [IsBoardAdmin]
+    permission_classes = [IsContentEditor]
     queryset = HomeStat.objects.all()

@@ -44,7 +44,6 @@ class ContactInfo(models.Model):
         _("Ujumbe wa Awali wa WhatsApp (Hiari)"),
         max_length=255,
         blank=True,
-        default="Habari TSMA, ningependa kupata maelezo zaidi kuhusu...",
     )
 
     email = models.EmailField(_("Barua Pepe Rasmi"))

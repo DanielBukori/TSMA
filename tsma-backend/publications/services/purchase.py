@@ -1,7 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 
 from payments.models import PaymentPurpose, PaymentStatus, PaymentTransaction
-from payments.services import initiate_payment
+from payments.payment_services import initiate_payment
 
 from ..models import (
     Publication,

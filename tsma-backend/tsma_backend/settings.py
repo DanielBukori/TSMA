@@ -126,7 +126,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "tsma_backend.wsgi.application"
 
-## ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Database
 # ---------------------------------------------------------------------------
 
@@ -197,8 +197,11 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.ScopedRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "30/minute",
-        "user": "120/minute",
+        # Public browsing hits many endpoints per page view; a rate low enough
+        # to annoy visitors also blocks the site for normal users. Sensitive
+        # endpoints carry their own scoped rates below.
+        "anon": "120/minute",
+        "user": "240/minute",
         # Scoped throttle kwa endpoints nyeti (throttle_scope kwenye views):
         "contact_form": "5/hour",
         "password_reset": "5/hour",
@@ -345,16 +348,16 @@ else:
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@tsma.or.tz")
 
 # ---------------------------------------------------------------------------
-# Gateways zinazoruhusiwa kuonekana na kutumika (kuwasha/kuzima BILA kubadili code)
+# Gateways
 # ---------------------------------------------------------------------------
-# DEFAULT = "manual" pekee (Malipo ya Mkono: akaunti ya benki + WhatsApp).
-# Gateway nyingine (selcom, azampay, paypal, snippe) zinaweza kuwa
-# zimesajiliwa kwenye registry.py na hata zina funguo kwenye .env, lakini
-# HAZITAONEKANA wala kukubaliwa na API mpaka uziweke hapa.
-# Kuwasha baadaye: Render -> Environment -> ENABLED_PAYMENT_GATEWAYS=manual,selcom
-ENABLED_PAYMENT_GATEWAYS = [
+# Malipo ya Mkono (benki/hisa ofisini) yanakaa wazi daima. Gateway nyingine
+# zinaonekana kwenye checkout mara tu funguo zake (SELCOM_*, AZAMPAY_*,
+# PAYPAL_*, SNIPPE_*) zinapojazwa kwenye .env - hakuna orodha ya kibandia.
+# Var hii ni swichi ya dahiri pekee: zimiza gateway bila kuvuta funguo zake.
+# Mfano: DISABLED_PAYMENT_GATEWAYS=paypal,snippe
+DISABLED_PAYMENT_GATEWAYS = [
     g.strip().lower()
-    for g in env.list("ENABLED_PAYMENT_GATEWAYS", default=["manual"])
+    for g in env.list("DISABLED_PAYMENT_GATEWAYS", default=[])
     if g.strip()
 ]
 
@@ -440,11 +443,11 @@ if SENTRY_DSN:
 # Security Monitoring app (self-healing + dashboard yenye 2FA)
 # ---------------------------------------------------------------------------
 
-# Key TOFAUTI kabisa na SECRET_KEY kuu — inasaini tokens za security
-# dashboard pekee. WEKA thamani YAKE MWENYEWE (random, ndefu) kwenye .env.
+# Signs security dashboard tokens only, and must not be the same value as
+# SECRET_KEY - put its own random long string in .env.
 SECURITY_ADMIN_SECRET_KEY = env("SECURITY_ADMIN_SECRET_KEY", default="")
 
-# Channels za arifa (email inafanya kazi bila usanidi wa ziada).
+# Alert channels (email works without any extra setup).
 SECURITY_NOTIFICATION_CHANNELS = env.list("SECURITY_NOTIFICATION_CHANNELS", default=["email"])
 SECURITY_ALERT_RECIPIENTS = env.list("SECURITY_ALERT_RECIPIENTS", default=[])
 

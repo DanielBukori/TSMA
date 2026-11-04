@@ -77,7 +77,7 @@ class AdminNewsListCreateView(generics.ListCreateAPIView):
 
     serializer_class = AdminNewsSerializer
     permission_classes = [IsContentEditor]
-    queryset = News.objects.all().order_by("-created_at")
+    queryset = News.objects.select_related("category").prefetch_related("images").all().order_by("-created_at")
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -88,7 +88,7 @@ class AdminNewsDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = AdminNewsSerializer
     permission_classes = [IsContentEditor]
-    queryset = News.objects.all()
+    queryset = News.objects.select_related("category").prefetch_related("images").all()
 
 
 class AdminNewsImageDetailView(generics.RetrieveUpdateDestroyAPIView):
