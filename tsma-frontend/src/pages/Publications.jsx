@@ -4,38 +4,40 @@ import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
-
-const FALLBACK_PUBLICATIONS = [
-  { id: 1, slug: 'sports-economy-tz-2026', title: "The State of Tanzania's Sports Economy 2026", authors: 'Dkt. Amina Massawe', publication_year: 2026, category: { name: 'Uchumi wa Michezo' }, access_type: 'free', price: null, currency: 'TZS', cover_image: null },
-  { id: 2, slug: 'youth-leadership-sports', title: 'Youth Leadership in Sports Management', authors: 'James Mwakalinga', publication_year: 2025, category: { name: 'Uongozi wa Michezo' }, access_type: 'member_only', price: null, currency: 'TZS', cover_image: null },
-  { id: 3, slug: 'sports-marketing-playbook', title: 'The Sports Marketing Playbook', authors: 'Grace Kileo', publication_year: 2025, category: { name: 'Uchumi wa Michezo' }, access_type: 'paid', price: '25000', currency: 'TZS', cover_image: null },
-]
-
-const FALLBACK_CATEGORIES = [
-  { id: 1, name: 'Uchumi wa Michezo', slug: 'uchumi-wa-michezo' },
-  { id: 2, name: 'Uongozi wa Michezo', slug: 'uongozi-wa-michezo' },
-  { id: 3, name: 'Sayansi ya Michezo', slug: 'sayansi-ya-michezo' },
-]
+import EmptyState from '../components/EmptyState.jsx'
+import LoadingState from '../components/LoadingState.jsx'
 
 export default function Publications() {
   const { i18n } = useTranslation()
   const isSw = i18n.language?.startsWith('sw')
 
-  const [publications, setPublications] = useState(FALLBACK_PUBLICATIONS)
-  const [categories, setCategories] = useState(FALLBACK_CATEGORIES)
+  const [publications, setPublications] = useState([])
+  const [categories, setCategories] = useState([])
+  const [state, setState] = useState('loading')
+  const [categoryState, setCategoryState] = useState('loading')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('')
   const [year, setYear] = useState('')
   const [accessType, setAccessType] = useState('')
 
   useEffect(() => {
+    let cancelled = false
+    setCategoryState('loading')
     apiClient
       .get('/publications/categories/')
       .then((res) => {
         const results = res.data?.results || res.data
-        if (Array.isArray(results) && results.length > 0) setCategories(results)
+        if (cancelled) return
+        setCategories(Array.isArray(results) ? results : [])
+        setCategoryState('ready')
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!cancelled) setCategoryState('error')
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
@@ -46,18 +48,25 @@ export default function Publications() {
     if (year) params.year = year
     if (accessType) params.access_type = accessType
 
+    setState('loading')
     apiClient
       .get('/publications/', { params })
       .then((res) => {
         const results = res.data?.results || res.data
-        if (!cancelled && Array.isArray(results)) setPublications(results)
+        if (cancelled) return
+        setPublications(Array.isArray(results) ? results : [])
+        setState('ready')
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!cancelled) setState('error')
+      })
 
     return () => {
       cancelled = true
     }
   }, [query, category, year, accessType])
+
+  const hasFilters = Boolean(query || category || year || accessType)
 
   return (
     <>
@@ -83,11 +92,16 @@ export default function Publications() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={isSw ? '🔍 Tafuta...' : '🔍 Search...'}
+            placeholder={isSw ? 'Tafuta...' : 'Search...'}
             className="md:col-span-2 border border-black/15 rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-terracotta/40"
           />
           <select value={category} onChange={(e) => setCategory(e.target.value)} className="border border-black/15 rounded-md px-4 py-2.5 text-sm">
             <option value="">{isSw ? 'Kategoria Zote' : 'All Categories'}</option>
+            {categoryState === 'error' && (
+              <option disabled value="_unavailable">
+                {isSw ? 'Kategoria hazipatikani sasa' : 'Categories unavailable right now'}
+              </option>
+            )}
             {categories.map((c) => (
               <option key={c.id} value={c.slug}>{c.name}</option>
             ))}
@@ -109,11 +123,28 @@ export default function Publications() {
 
       {/* ============ GRID ============ */}
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-12 md:py-16">
-        {publications.length === 0 ? (
-          <p className="text-center text-ink-muted text-sm py-12">
-            {isSw ? 'Hakuna machapisho yaliyopatikana.' : 'No publications found.'}
-          </p>
-        ) : (
+        {state === 'error' && (
+          <EmptyState
+            isSw={isSw}
+            tone="error"
+            sw="Hakuna machapisho ya kuonyesha kwa sasa."
+            en="No publications to show right now."
+            hintSw="Muunganisho na seva haukufanyika. Fundi wa TSMA ataangalia; jaribu tena baadaye."
+            hintEn="The connection to the server failed. The TSMA administrator will be notified; please try again later."
+          />
+        )}
+
+        {state === 'ready' && publications.length === 0 && (
+          <EmptyState
+            isSw={isSw}
+            sw={hasFilters ? 'Hakuna machapisho yanayolingana na utafutaji wako.' : 'TSMA bado haijawechapisha kitu.'}
+            en={hasFilters ? 'No publications match your search.' : 'TSMA has not published anything yet.'}
+            hintSw={hasFilters ? 'Jaribu kupunguza vichujio au kutafuta neno lingine.' : 'Machapisho mapya huongezwa na mhariri wa tovuti.'}
+            hintEn={hasFilters ? 'Try removing some filters or searching for a different term.' : 'New publications are added by the site editor.'}
+          />
+        )}
+
+        {state === 'ready' && publications.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
             {publications.map((pub) => (
               <PublicationCard key={pub.id} pub={pub} isSw={isSw} />

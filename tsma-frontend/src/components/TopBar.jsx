@@ -65,7 +65,6 @@ export default function TopBar() {
 
   return (
     <div className="bg-navy text-white text-center text-[13px] font-bold py-2.5 px-4">
-      <span className="mr-1.5" aria-hidden="true">🏆</span>
       {conference.title}
       {where && ` — ${where}`}
       {when && `, ${when}`}

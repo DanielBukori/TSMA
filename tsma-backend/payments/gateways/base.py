@@ -23,6 +23,14 @@ class GatewayError(Exception):
         self.raw_response = raw_response
 
 
+class WebhookNotApplicable(GatewayError):
+    """
+    Webhook ilithibitishwa kuwa ya kweli lakini haihusishi PaymentTransaction
+    (mfano tukio la 'payout.*' kutoka Snippe). Hii SIYO ishara ya hatari —
+    view ya webhook hairudishi kosa wala kuandika tukio la usalama.
+    """
+
+
 class PaymentGatewayBase(ABC):
     """Kila gateway adapter LAZIMA i-implement methods hizi tatu."""
 

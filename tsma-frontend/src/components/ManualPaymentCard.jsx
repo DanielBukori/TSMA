@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Icon from './Icon.jsx'
 
 /**
  * Kadi ya "Malipo ya Mkono (Manual)" — inaonyeshwa baada ya mtumiaji kuchagua
@@ -109,7 +110,7 @@ export default function ManualPaymentCard({ isSw, bankDetails, reference, expire
             rel="noopener noreferrer"
             className="inline-block mt-3 bg-green text-white font-extrabold text-sm px-5 py-2.5 rounded-md"
           >
-            💬 {isSw ? 'Fungua WhatsApp' : 'Open WhatsApp'}
+            <Icon name="chat" className="w-4 h-4" /> {isSw ? 'Fungua WhatsApp' : 'Open WhatsApp'}
           </a>
         )}
       </div>

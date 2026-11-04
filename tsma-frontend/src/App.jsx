@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx'
 import Home from './pages/Home.jsx'
 import PageLoader from './components/PageLoader.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+import SecurityAccessGuard from './components/SecurityAccessGuard.jsx'
 import { SINGLE_PAGE } from './config/layout.js'
 
 // Kurasa hizi zinapakuliwa tu mtu anapozifungua - Home inafunguka haraka zaidi
@@ -53,6 +54,7 @@ const SecurityDashboard = lazy(() => import('./pages/SecurityDashboard.jsx'))
 const EditorAccessLogin = lazy(() => import('./pages/EditorAccessLogin.jsx'))
 const EditorDashboard = lazy(() => import('./pages/EditorDashboard.jsx'))
 const EditorAccessGuard = lazy(() => import('./components/EditorAccessGuard.jsx'))
+import SecurityAccessGuard from './components/SecurityAccessGuard.jsx'
 const VerifyMember = lazy(() => import('./pages/VerifyMember.jsx'))
 const VerifyCertificate = lazy(() => import('./pages/VerifyCertificate.jsx'))
 
@@ -66,7 +68,14 @@ export default function App() {
             ya umma (ni chombo cha ndani cha uendeshaji, si ukurasa wa
             umma), na ina mfumo wake wa login (SecurityAdminUser). */}
         <Route path="/security/login" element={<SecurityLogin />} />
-        <Route path="/security" element={<SecurityDashboard />} />
+        <Route
+          path="/security"
+          element={
+            <SecurityAccessGuard>
+              <SecurityDashboard />
+            </SecurityAccessGuard>
+          }
+        />
 
         {/* Editor access ni njia tofauti; public routes, member dashboard na Security Dashboard hazibadilishwi. */}
         <Route path="/editor-access/login" element={<EditorAccessLogin />} />

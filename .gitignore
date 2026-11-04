@@ -1,0 +1,23 @@
+# Siri za mazingira (funguo za API, nyemo, JWT)
+.env
+.env.local
+.env.*.local
+
+# Hifadhi ya data ya ndani
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+env/
+.venv/
+
+# Node / build
+node_modules/
+dist/
+*.log
+
+# Mifumo ya uendeshaji
+.DS_Store
+Thumbs.db

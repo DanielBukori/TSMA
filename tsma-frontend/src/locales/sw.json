@@ -19,7 +19,7 @@
   },
   "topbar": {
     "notice": " Usajili wa Mkutano wa 2026 unaendelea — nafasi ni chache",
-    "event": "🏆 MKUTANO WA TSMA 2026 — Dar es Salaam, 12–13 Novemba",
+    "event": "MKUTANO WA TSMA 2026 — Dar es Salaam, 12–13 Novemba",
     "eventCta": "Jisajili Sasa"
   },
   "hero": {
@@ -95,6 +95,7 @@
     "followUs": "Tufuatilie",
     "rights": "Haki zote zimehifadhiwa.",
     "contactLoading": "Inapakua taarifa za mawasiliano...",
+    "contactNotListed": "Taarifa za mawasiliano bado hazijawekwa.",
     "socialComingSoon": "Mitandao ya kijamii inakuja hivi karibuni."
   },
   "common": {
@@ -107,6 +108,6 @@
   "notFound": {
     "title": "Ukurasa Haukupatikana",
     "message": "Samahani, mpira umetoka nje ya uwanja! Ukurasa unaoutafuta haupo au umehamishwa.",
-    "backHome": "⚽ Rudi Ukurasa wa Mwanzo"
+    "backHome": "Rudi Ukurasa wa Mwanzo"
   }
 }

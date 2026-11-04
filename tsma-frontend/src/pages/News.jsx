@@ -3,39 +3,16 @@ import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
-
-const FALLBACK_POSTS = [
-  {
-    id: 1,
-    title: '',
-    content: 'TSMA imeshiriki mkutano wa kimataifa wa usimamizi wa michezo wiki hii — asante kwa kila aliyehudhuria!',
-    images: [],
-    author_name: 'TSMA Team',
-    published_at: '2026-09-01T10:00:00Z',
-    category: { name: 'Matukio' },
-  },
-  {
-    id: 2,
-    title: 'Usajili wa Mkutano wa 2026',
-    content: 'Usajili wa mkutano mkuu wa mwaka huu sasa umefunguliwa rasmi kwa wanachama wote. Nafasi ni chache — jiunge leo!',
-    images: [],
-    author_name: 'TSMA Team',
-    published_at: '2026-08-28T09:00:00Z',
-    category: { name: 'Matangazo' },
-  },
-]
-
-const FALLBACK_CATEGORIES = [
-  { id: 1, name: 'Matukio', slug: 'matukio' },
-  { id: 2, name: 'Matangazo', slug: 'matangazo' },
-]
+import EmptyState from '../components/EmptyState.jsx'
+import LoadingState from '../components/LoadingState.jsx'
 
 export default function News() {
   const { i18n } = useTranslation()
   const isSw = i18n.language?.startsWith('sw')
 
-  const [posts, setPosts] = useState(FALLBACK_POSTS)
-  const [categories, setCategories] = useState(FALLBACK_CATEGORIES)
+  const [posts, setPosts] = useState([])
+  const [categories, setCategories] = useState([])
+  const [state, setState] = useState('loading')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('')
 
@@ -44,7 +21,7 @@ export default function News() {
       .get('/news/categories/')
       .then((res) => {
         const results = res.data?.results || res.data
-        if (Array.isArray(results) && results.length > 0) setCategories(results)
+        if (Array.isArray(results)) setCategories(results)
       })
       .catch(() => {})
   }, [])
@@ -55,13 +32,18 @@ export default function News() {
     if (query) params.q = query
     if (category) params.category = category
 
+    setState('loading')
     apiClient
       .get('/news/', { params })
       .then((res) => {
         const results = res.data?.results || res.data
-        if (!cancelled && Array.isArray(results)) setPosts(results)
+        if (cancelled) return
+        setPosts(Array.isArray(results) ? results : [])
+        setState('ready')
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!cancelled) setState('error')
+      })
 
     return () => {
       cancelled = true
@@ -87,7 +69,7 @@ export default function News() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={isSw ? '🔍 Tafuta habari...' : '🔍 Search news...'}
+            placeholder={isSw ? 'Tafuta habari...' : 'Search news...'}
             className="flex-1 border border-black/15 rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-terracotta/40"
           />
           <select
@@ -105,13 +87,38 @@ export default function News() {
 
       {/* ============ FEED ============ */}
       <section className="max-w-2xl mx-auto px-5 md:px-8 py-12 space-y-6">
-        {posts.length === 0 ? (
-          <p className="text-center text-ink-muted text-sm py-12">
-            {isSw ? 'Hakuna habari zilizopatikana.' : 'No news found.'}
-          </p>
-        ) : (
-          posts.map((post) => <PostCard key={post.id} post={post} isSw={isSw} />)
+        {state === 'error' && (
+          <EmptyState
+            isSw={isSw}
+            sw="Hakuna habari za kuonyesha kwa sasa."
+            en="No news to show right now."
+            hintSw="Muunganisho na seva haukufanyika. Fundi wa TSMA ataangalia; jaribu tena baadaye."
+            hintEn="The connection to the server failed. The TSMA administrator will be notified; please try again later."
+            tone="error"
+          />
         )}
+
+        {state === 'ready' && posts.length === 0 && (query || category) && (
+          <EmptyState
+            isSw={isSw}
+            sw="Hakuna habari za kuonyesha kwa utafutaji huo."
+            en="No results for this search."
+            hintSw="Jaribu neno jingine au ondoa kategoria iliyochaguliwa."
+            hintEn="Try a different word or clear the selected category."
+          />
+        )}
+
+        {state === 'ready' && posts.length === 0 && !query && !category && (
+          <EmptyState
+            isSw={isSw}
+            sw="TSMA bado haijachapisha habari."
+            en="TSMA has not published any news yet."
+            hintSw="Habari na matangazo huongezwa na mhariri wa tovuti."
+            hintEn="News and announcements are added by the site editor."
+          />
+        )}
+
+        {state === 'ready' && posts.length > 0 && posts.map((post) => <PostCard key={post.id} post={post} isSw={isSw} />)}
       </section>
     </>
   )

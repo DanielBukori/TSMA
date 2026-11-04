@@ -2,19 +2,15 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
-
-const FALLBACK_CATEGORIES = [
-  { id: 1, name: 'Uchumi wa Michezo' },
-  { id: 2, name: 'Uongozi wa Michezo' },
-  { id: 3, name: 'Sayansi ya Michezo' },
-]
+import Icon from '../components/Icon.jsx'
 
 export default function AbstractSubmit() {
   const { i18n } = useTranslation()
   const isSw = i18n.language?.startsWith('sw')
   const navigate = useNavigate()
 
-  const [categories, setCategories] = useState(FALLBACK_CATEGORIES)
+  const [categories, setCategories] = useState([])
+  const [categoryState, setCategoryState] = useState('loading')
   const [form, setForm] = useState({
     title: '',
     authors: '',
@@ -27,13 +23,23 @@ export default function AbstractSubmit() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    let cancelled = false
+    setCategoryState('loading')
     apiClient
       .get('/publications/categories/')
       .then((res) => {
         const results = res.data?.results || res.data
-        if (Array.isArray(results) && results.length > 0) setCategories(results)
+        if (cancelled) return
+        setCategories(Array.isArray(results) ? results : [])
+        setCategoryState('ready')
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!cancelled) setCategoryState('error')
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   function update(field, value) {
@@ -66,7 +72,7 @@ export default function AbstractSubmit() {
   if (status === 'success') {
     return (
       <section className="max-w-lg mx-auto px-5 py-24 text-center">
-        <div className="text-4xl mb-4">✅</div>
+        <div className="mb-4 flex justify-center"><Icon name="check" className="w-10 h-10 text-green" strokeWidth={2} /></div>
         <h1 className="font-serif font-bold text-2xl text-navy mb-3">
           {isSw ? 'Utafiti Wako Umewasilishwa!' : 'Your Research Has Been Submitted!'}
         </h1>
@@ -132,6 +138,11 @@ export default function AbstractSubmit() {
             className="w-full border border-black/15 rounded-md px-4 py-3 text-sm"
           >
             <option value="">{isSw ? 'Chagua Kategoria' : 'Select Category'}</option>
+            {categoryState === 'error' && (
+              <option disabled value="_unavailable">
+                {isSw ? 'Kategoria hazipatikani sasa' : 'Categories unavailable right now'}
+              </option>
+            )}
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}

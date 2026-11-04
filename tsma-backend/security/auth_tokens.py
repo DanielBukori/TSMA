@@ -12,6 +12,7 @@ from datetime import timedelta
 
 import jwt
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.utils import timezone
 
 from .models import SecurityAdminSession
@@ -21,10 +22,25 @@ PRE_2FA_TOKEN_LIFETIME_MINUTES = 5  # muda wa kujaza TOTP code baada ya password
 
 
 def _get_secret():
-    # Fallback kwa SECRET_KEY kuu ENDAPO SECURITY_ADMIN_SECRET_KEY
-    # haijawekwa — lakini kwa PRODUCTION halisi, weka key TOFAUTI kabisa
-    # kwenye .env (angalia .env.example).
-    return getattr(settings, "SECURITY_ADMIN_SECRET_KEY", None) or settings.SECRET_KEY
+    """
+    Funguo ya kutoshea tokens za dashibodi ya usalama.
+
+    USALAMA: funguo hii lazima IWE TOFAUTI na `SECRET_KEY` kuu — ndivyo mpaka
+    wa kompromisi (isolation) kati ya akaunti za kawaida na dashibodi ya
+    usalama unavyoshikilia. Kutorosha kwenda `SECRET_KEY` kungeruhusu token
+    iliyovamiwa kwa mfumo mmoja kufungua mfumo mwingine, kwa hiyo nje ya
+    maendeleo ya ndani (DEBUG) tunakataza kuendelea bila funguo yake.
+    """
+    key = getattr(settings, "SECURITY_ADMIN_SECRET_KEY", "")
+    if key:
+        return key
+    if settings.DEBUG:
+        return settings.SECRET_KEY
+    raise ImproperlyConfigured(
+        "SECURITY_ADMIN_SECRET_KEY haijawekwa kwenye .env — dashibodi ya "
+        "usalama imezuiwa. Weka funguo TOFAUTI KABISA na DJANGO_SECRET_KEY "
+        "(random, ndefu); angalia .env.example."
+    )
 
 
 def issue_pre_2fa_token(operator):

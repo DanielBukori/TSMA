@@ -46,7 +46,7 @@ from django.conf import settings
 from django.utils.dateparse import parse_datetime
 
 from payments.models import Gateway
-from .base import GatewayError, PaymentGatewayBase
+from .base import GatewayError, PaymentGatewayBase, WebhookNotApplicable
 
 # Snippe inakataa timestamp za webhook zilizopita zaidi ya dakika 5 (ulinzi
 # dhidi ya "replay attack") — tunafuata kigezo kile kile hapa upande wetu.
@@ -204,9 +204,9 @@ class SnippeGateway(PaymentGatewayBase):
         if not event_type.startswith("payment."):
             # payout.* (au tukio jingine lisilohusu malipo ya mwanachama/
             # conference) — si jukumu la webhook hii, halina athari kwa
-            # PaymentTransaction. Kataa kwa uwazi badala ya kujaribu
-            # kuichakata kimakosa.
-            raise GatewayError(
+            # PaymentTransaction. Saini imethibitishwa, kwa hiyo tukio hili
+            # ni la kawaida: hairudishi kosa (gateway itaacha kutuma tena).
+            raise WebhookNotApplicable(
                 f"Tukio '{event_type}' si 'payment.*' — halihusiani na PaymentTransaction, limepuuzwa."
             )
 

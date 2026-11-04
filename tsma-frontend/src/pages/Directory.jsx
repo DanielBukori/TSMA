@@ -131,8 +131,8 @@ export default function Directory() {
             {selected.is_public === false && (
               <p className="text-[11px] font-bold text-terracotta bg-terracotta/10 rounded-md px-3 py-2 mb-4">
                 {isSw
-                  ? '🔒 Profaili hii ni siri - unaiona kwa sababu ni yako au wewe ni admin.'
-                  : '🔒 This profile is private - you can see it because it is yours or you are an admin.'}
+                  ? 'Profaili hii ni siri - unaiona kwa sababu ni yako au wewe ni admin.'
+                  : 'This profile is private - you can see it because it is yours or you are an admin.'}
               </p>
             )}
 
@@ -171,7 +171,7 @@ export default function Directory() {
                 </ProfileSection>
               )}
               {selected.cv_file && (
-                <ProfileSection id="cv" openKey={openKey} setOpenKey={setOpenKey} title={selected.cv_public === false ? 'CV 🔒' : 'CV'}>
+                <ProfileSection id="cv" openKey={openKey} setOpenKey={setOpenKey} title="CV">
                   {selected.cv_public === false && (
                     <p className="text-[11px] text-terracotta font-bold mb-2">
                       {isSw ? 'Imefichwa kwa jamii - wewe/admin tu mnaiona.' : 'Hidden from the community - only you/admins see it.'}
@@ -186,7 +186,7 @@ export default function Directory() {
                 <ProfileSection id="contact" openKey={openKey} setOpenKey={setOpenKey} title={isSw ? 'Mawasiliano' : 'Contact'}>
                   {selected.public_email && selected.email_public === false && (
                     <p className="text-[11px] text-terracotta font-bold mb-2">
-                      {isSw ? '🔒 Barua pepe imefichwa kwa jamii - wewe/admin tu mnaiona.' : '🔒 Email hidden from the community - only you/admins see it.'}
+                      {isSw ? 'Barua pepe imefichwa kwa jamii - wewe/admin tu mnaiona.' : 'Email hidden from the community - only you/admins see it.'}
                     </p>
                   )}
                   <div className="space-y-2">

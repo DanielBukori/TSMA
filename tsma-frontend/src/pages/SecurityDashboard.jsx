@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import securityClient from '../api/securityClient.js'
+import Icon from '../components/Icon.jsx'
 
 const SESSION_MINUTES = 20 // lazima ilingane na TOKEN_LIFETIME_MINUTES ya backend
 const REFRESH_MS = 60_000
@@ -261,7 +262,9 @@ export default function SecurityDashboard() {
       <header className="bg-navy-deep text-white sticky top-0 z-30 shadow-md">
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-gold/20 flex items-center justify-center text-xl shrink-0">🛡️</div>
+            <div className="w-10 h-10 rounded-xl bg-gold/20 flex items-center justify-center text-xl shrink-0">
+              <Icon name="shield" className="w-5 h-5 text-gold" />
+            </div>
             <div className="min-w-0">
               <h1 className="font-serif font-bold text-base leading-tight">TSMA Security</h1>
               <p className="text-[11px] text-white/60 truncate">
@@ -277,7 +280,7 @@ export default function SecurityDashboard() {
                   sessionWarn ? 'bg-terracotta text-white animate-pulse' : 'bg-white/10 text-white/80'
                 }`}
               >
-                ⏱ {String(minutesLeft).padStart(2, '0')}:{String(secondsLeft).padStart(2, '0')}
+                {String(minutesLeft).padStart(2, '0')}:{String(secondsLeft).padStart(2, '0')}
               </span>
             )}
             <button
@@ -299,7 +302,7 @@ export default function SecurityDashboard() {
       <div className="max-w-6xl mx-auto px-4 md:px-8 pt-6">
         {sessionWarn && (
           <p className="sm:hidden bg-terracotta/10 text-terracotta text-xs font-bold rounded-md px-3 py-2 mb-4">
-            ⏱ Session inaisha baada ya dakika {minutesLeft}:{String(secondsLeft).padStart(2, '0')}
+            Session inaisha baada ya dakika {minutesLeft}:{String(secondsLeft).padStart(2, '0')}
           </p>
         )}
 
@@ -316,7 +319,15 @@ export default function SecurityDashboard() {
                   : 'bg-green/10 border-green/30'
             }`}
           >
-            <span className="text-2xl">{!summary ? '⏳' : needsAttention > 0 ? '⚠️' : '✅'}</span>
+            <span className="text-2xl">
+              {!summary ? (
+                <Icon name="dot" className="w-3 h-3 text-gold" strokeWidth={2} />
+              ) : needsAttention > 0 ? (
+                <Icon name="alert" className="w-6 h-6 text-gold-dark" />
+              ) : (
+                <Icon name="check" className="w-6 h-6 text-green" />
+              )}
+            </span>
             <div className="min-w-0">
               <p className="text-sm font-extrabold text-navy">
                 {!summary
@@ -339,9 +350,9 @@ export default function SecurityDashboard() {
 
         {/* ===== Kadi za muhtasari ===== */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-7">
-          <StatCard icon="📊" label="Matukio (Saa 24)" value={summary?.events_last_24h} loading={sections.summary.loading && !summary} />
+          <StatCard icon={<Icon name="chart" className="w-5 h-5 text-navy" />} label="Matukio (Saa 24)" value={summary?.events_last_24h} loading={sections.summary.loading && !summary} />
           <StatCard
-            icon="🚨"
+            icon={<Icon name="alert" className="w-5 h-5 text-terracotta" />}
             label="Hatari Hayajaangaliwa"
             value={summary?.critical_unreviewed}
             danger={summary?.critical_unreviewed > 0}
@@ -352,9 +363,9 @@ export default function SecurityDashboard() {
               setTab('events')
             }}
           />
-          <StatCard icon="⛔" label="IP Zilizozuiwa" value={summary?.active_blocks} loading={sections.summary.loading && !summary} onClick={() => setTab('ips')} />
+          <StatCard icon={<Icon name="close" className="w-5 h-5 text-navy" />} label="IP Zilizozuiwa" value={summary?.active_blocks} loading={sections.summary.loading && !summary} onClick={() => setTab('ips')} />
           <StatCard
-            icon="📝"
+            icon={<Icon name="edit" className="w-5 h-5 text-navy" />}
             label="Zinasubiri Idhini"
             value={summary?.pending_approvals}
             danger={summary?.pending_approvals > 0}
@@ -394,7 +405,7 @@ export default function SecurityDashboard() {
             {sections.pending.loading && !sections.pending.data ? (
               <Skeleton rows={2} />
             ) : pending.length === 0 && !sections.pending.error ? (
-              <Empty icon="🎉" title="Hakuna kinachosubiri idhini" hint="Mfumo ukipendekeza hatua ya kudumu (mfano kuzuia IP milele), itaonekana hapa." />
+              <Empty icon={<Icon name="check" className="w-8 h-8 text-green" />} title="Hakuna kinachosubiri idhini" hint="Mfumo ukipendekeza hatua ya kudumu (mfano kuzuia IP milele), itaonekana hapa." />
             ) : (
               <div className="space-y-3">
                 {!canDecide && (
@@ -459,7 +470,7 @@ export default function SecurityDashboard() {
             {sections.ips.loading && !sections.ips.data ? (
               <Skeleton rows={3} />
             ) : activeIps.length === 0 && !sections.ips.error ? (
-              <Empty icon="🟢" title="Hakuna IP iliyozuiwa sasa hivi" hint="IP zinazozuiwa kiotomatiki (mfano brute-force) zitaonekana hapa na zinajifungua zenyewe baada ya saa 1." />
+              <Empty icon={<Icon name="dot" className="w-8 h-8 text-green" strokeWidth={2} />} title="Hakuna IP iliyozuiwa sasa hivi" hint="IP zinazozuiwa kiotomatiki (mfano brute-force) zitaonekana hapa na zinajifungua zenyewe baada ya saa 1." />
             ) : (
               <div className="bg-white rounded-xl border border-black/10 divide-y divide-black/5">
                 {activeIps.map((ip) => (
@@ -474,7 +485,7 @@ export default function SecurityDashboard() {
                         >
                           {ip.is_permanent ? 'Ya Kudumu' : 'Ya Muda'}
                         </span>
-                        {ip.blocked_by_system && <span className="text-[10px] text-ink-muted">⚡ kiotomatiki</span>}
+                        {ip.blocked_by_system && <span className="text-[10px] text-ink-muted">kiotomatiki</span>}
                       </div>
                       <p className="text-xs text-ink-muted mt-1 truncate">{ip.reason}</p>
                       {!ip.is_permanent && ip.blocked_until && (
@@ -529,7 +540,7 @@ export default function SecurityDashboard() {
             {sections.events.loading && !sections.events.data ? (
               <Skeleton rows={4} />
             ) : events.length === 0 && !sections.events.error ? (
-              <Empty icon="🔍" title="Hakuna matukio yanayolingana" hint={search || severity || onlyUnreviewed ? 'Jaribu kuondoa vichujio.' : 'Hakuna tukio la usalama lililorekodiwa bado.'} />
+              <Empty icon={<Icon name="search" className="w-8 h-8 text-navy" />} title="Hakuna matukio yanayolingana" hint={search || severity || onlyUnreviewed ? 'Jaribu kuondoa vichujio.' : 'Hakuna tukio la usalama lililorekodiwa bado.'} />
             ) : (
               <div className="space-y-2.5">
                 {events.map((ev) => (
@@ -633,7 +644,7 @@ function EventCard({ ev, busy, onReview, onCopied }) {
           {ev.path && <span className="truncate max-w-full">{ev.path}</span>}
         </div>
         {ev.auto_action_taken && (
-          <p className="text-[11px] text-gold-dark font-bold mt-2">⚡ Hatua ya kiotomatiki: {ev.auto_action_taken}</p>
+          <p className="text-[11px] text-gold-dark font-bold mt-2">Hatua ya kiotomatiki: {ev.auto_action_taken}</p>
         )}
         <div className="flex items-center gap-3 mt-3">
           {ev.is_reviewed ? (

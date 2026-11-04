@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import Icon from '../components/Icon.jsx'
 
 export default function NotFound() {
   const { t } = useTranslation()
@@ -26,9 +27,9 @@ export default function NotFound() {
 
       <div className="text-center max-w-md">
         <div className="relative flex flex-col items-center mb-2">
-          <span className="tsma404-sparkle absolute -top-2 -left-6 text-2xl">✨</span>
-          <span className="tsma404-ball text-7xl">⚽</span>
-          <span className="tsma404-sparkle absolute -top-1 -right-6 text-xl" style={{ animationDelay: '0.6s' }}>✨</span>
+          <span className="tsma404-sparkle absolute -top-2 -left-6 text-2xl"><Icon name="dot" className="w-3 h-3 text-gold" strokeWidth={2} /></span>
+          <span className="tsma404-ball text-7xl"><Icon name="dot" className="w-16 h-16 text-navy" strokeWidth={2} /></span>
+          <span className="tsma404-sparkle absolute -top-1 -right-6 text-xl" style={{ animationDelay: '0.6s' }}><Icon name="dot" className="w-2.5 h-2.5 text-gold" strokeWidth={2} /></span>
           <div className="w-16 h-2.5 bg-navy/20 rounded-full tsma404-shadow mt-2" />
         </div>
 

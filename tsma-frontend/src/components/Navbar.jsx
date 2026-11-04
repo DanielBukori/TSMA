@@ -6,6 +6,7 @@ import UserAvatar, { useProfilePhoto } from './UserAvatar.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useSiteSettings } from '../context/SiteSettingsContext.jsx'
 import SectionLink from './SectionLink.jsx'
+import Icon from './Icon.jsx'
 import { useActiveSection } from '../utils/sectionScroll.js'
 import { SECTION_ROUTES, SINGLE_PAGE } from '../config/layout.js'
 
@@ -239,7 +240,7 @@ export default function Navbar() {
           onClick={() => setOpen(true)}
           className="xl:hidden text-navy text-xl leading-none w-9 h-9 flex items-center justify-center shrink-0"
         >
-          ☰
+          <Icon name="menu" className="w-5 h-5" />
         </button>
       </div>
 
@@ -273,7 +274,7 @@ export default function Navbar() {
             onClick={() => setOpen(false)}
             className="text-navy text-2xl leading-none w-9 h-9 flex items-center justify-center"
           >
-            ✕
+            <Icon name="close" className="w-5 h-5" />
           </button>
         </div>
 

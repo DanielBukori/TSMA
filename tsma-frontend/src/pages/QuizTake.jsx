@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
+import Icon from '../components/Icon.jsx'
 
 export default function QuizTake() {
   const { id } = useParams()
@@ -71,7 +72,7 @@ export default function QuizTake() {
   if (result) {
     return (
       <section className="max-w-lg mx-auto px-5 py-20 text-center">
-        <div className="text-5xl mb-4">{result.passed ? '🎉' : '📊'}</div>
+        <div className="text-5xl mb-4">{result.passed ? <Icon name="check" className="w-10 h-10 text-green" /> : <Icon name="chart" className="w-10 h-10 text-navy" />}</div>
         <h1 className="font-serif font-bold text-2xl text-navy mb-2">
           {result.passed
             ? isSw ? 'Hongera! Umefaulu!' : 'Congratulations! You Passed!'
@@ -84,7 +85,7 @@ export default function QuizTake() {
         {result.passed ? (
           <div className="bg-gold/10 border border-gold/30 rounded-xl p-6">
             <p className="text-sm font-semibold text-ink mb-1">
-              🏆 {isSw ? 'Cheti chako kimetengenezwa!' : 'Your certificate has been generated!'}
+              {isSw ? 'Cheti chako kimetengenezwa!' : 'Your certificate has been generated!'}
             </p>
             {result.certificate?.certificate_image ? (
               <>
@@ -97,7 +98,7 @@ export default function QuizTake() {
                   rel="noopener noreferrer"
                   className="inline-block bg-navy text-white font-extrabold text-sm px-6 py-3 rounded-md"
                 >
-                  ⬇️ {isSw ? 'Pakua Cheti' : 'Download Certificate'}
+                  <Icon name="download" className="w-4 h-4" /> {isSw ? 'Pakua Cheti' : 'Download Certificate'}
                 </a>
                 <p className="text-[11px] text-ink-muted mt-3">
                   {isSw

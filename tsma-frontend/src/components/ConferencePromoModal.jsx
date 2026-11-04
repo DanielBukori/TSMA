@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
+import Icon from './Icon.jsx'
 
 const SESSION_KEY = 'tsma_conf_promo_dismissed'
 const SHOW_DELAY_MS = 3500
@@ -60,12 +61,12 @@ export default function ConferencePromoModal() {
           aria-label="Funga"
           className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-surface/95 flex items-center justify-center text-navy text-sm"
         >
-          ✕
+          <Icon name="close" className="w-5 h-5" />
         </button>
 
         <div className="bg-navy-deep bg-track-lines text-white text-center py-8 px-6">
           <span className="inline-block bg-gold text-navy-deep text-[10px] font-extrabold px-3 py-1.5 rounded-full mb-3">
-            {isSw ? '🔥 USAJILI UMEFUNGULIWA' : '🔥 REGISTRATION OPEN'}
+            {isSw ? 'USAJILI UMEFUNGULIWA' : 'REGISTRATION OPEN'}
           </span>
           <h3 className="font-serif font-bold text-xl leading-tight">{conference.title}</h3>
           <p className="text-white/70 text-xs mt-2">

@@ -88,27 +88,42 @@ export default function Footer() {
 
         <div>
           <h4 className="text-white font-bold text-sm mb-4">{t('footer.contact')}</h4>
-          {/* Zinaonekana DAIMA - namba/email halisi zinachukua nafasi ya
-              placeholder mara ContactInfo itakapojazwa kwenye Admin. */}
+          {/* Lango la mawasiliano huonekana TU kama Admin ameliweza kwenye
+              ContactInfo. Hakuna namba/barua pepe ya kuandika kama mfano —
+              ile ingesoma kama taarifa halisi na kipeperushi cha namba
+              ("+255 7XX...") kiligeuza ukurasa huu kuwa data bandia. */}
           <ul className="space-y-3 text-sm">
-            <li>
-              <FooterLink href={info?.phone_call_link} className="flex items-center gap-2.5 hover:text-gold transition-colors">
-                <SocialIcon name="phone" className="w-4 h-4 shrink-0" />
-                <span>{info?.phone_number || '+255 7XX XXX XXX'}</span>
-              </FooterLink>
-            </li>
-            <li>
-              <FooterLink href={info?.whatsapp_link} external className="flex items-center gap-2.5 hover:text-gold transition-colors">
-                <SocialIcon name="whatsapp" className="w-4 h-4 shrink-0" />
-                <span>WhatsApp</span>
-              </FooterLink>
-            </li>
-            <li>
-              <FooterLink href={info?.email_mailto_link} className="flex items-center gap-2.5 hover:text-gold transition-colors">
-                <SocialIcon name="mail" className="w-4 h-4 shrink-0" />
-                <span>{info?.email || 'info@tsma.or.tz'}</span>
-              </FooterLink>
-            </li>
+            {info?.phone_number && (
+              <li>
+                <FooterLink href={info.phone_call_link} className="flex items-center gap-2.5 hover:text-gold transition-colors">
+                  <SocialIcon name="phone" className="w-4 h-4 shrink-0" />
+                  <span>{info.phone_number}</span>
+                </FooterLink>
+              </li>
+            )}
+            {info?.whatsapp_link && (
+              <li>
+                <FooterLink href={info.whatsapp_link} external className="flex items-center gap-2.5 hover:text-gold transition-colors">
+                  <SocialIcon name="whatsapp" className="w-4 h-4 shrink-0" />
+                  <span>WhatsApp</span>
+                </FooterLink>
+              </li>
+            )}
+            {info?.email && (
+              <li>
+                <FooterLink href={info.email_mailto_link} className="flex items-center gap-2.5 hover:text-gold transition-colors">
+                  <SocialIcon name="mail" className="w-4 h-4 shrink-0" />
+                  <span>{info.email}</span>
+                </FooterLink>
+              </li>
+            )}
+            {!info && <li className="text-white/45">{t('footer.contactLoading')}</li>}
+            {info &&
+              !info.phone_number &&
+              !info.whatsapp_link &&
+              !info.email && (
+                <li className="text-white/45">{t('footer.contactNotListed')}</li>
+              )}
           </ul>
         </div>
 

@@ -399,6 +399,18 @@ PAYPAL_RETURN_URL = env("PAYPAL_RETURN_URL", default=f"{FRONTEND_URL}/payment/pa
 PAYPAL_CANCEL_URL = env("PAYPAL_CANCEL_URL", default=f"{FRONTEND_URL}/payment/paypal-cancel")
 
 # ---------------------------------------------------------------------------
+# Snippe Payment Gateway (mobile money + payouts kwa waandishi)
+# ---------------------------------------------------------------------------
+# `payments/gateways/snippe.py` inasoma thamani hizi moja kwa moja; bila
+# kuundwa hapa gateway inashindwa kutangulizwa (AttributeError) — hata
+# webhook iliyosaini vyema isingekuwa na nafasi ya kuthibitishwa.
+SNIPPE_API_KEY = env("SNIPPE_API_KEY", default="")
+SNIPPE_WEBHOOK_SECRET = env("SNIPPE_WEBHOOK_SECRET", default="")
+SNIPPE_BASE_URL = env("SNIPPE_BASE_URL", default="https://api.snippe.sh")
+SNIPPE_API_VERSION = env("SNIPPE_API_VERSION", default="2026-01-25")
+SNIPPE_WEBHOOK_URL = env("SNIPPE_WEBHOOK_URL", default="")
+
+# ---------------------------------------------------------------------------
 # Zoom (Teaching Excellence — hiari, default 'manual')
 # ---------------------------------------------------------------------------
 

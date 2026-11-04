@@ -4,66 +4,36 @@ import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
-
-/**
- * Maudhui haya ya FALLBACK yanatumika tu endapo backend haipatikani bado
- * (mfano wakati wa kuendeleza frontend pekee). Mara backend ikiwa tayari,
- * ukurasa huu unavuta maudhui halisi kutoka /api/content/about/ — yale
- * yanayohaririwa na Admin kupitia Django Admin (SiteContent -> About).
- */
-const FALLBACK_CONTENT = {
-  history_title_sw: 'Historia na Mwelekeo Wetu',
-  history_title_en: 'Our Story and Direction',
-  history_body_sw:
-    'TSMA inalenga kuwa chama cha kitaaluma kinachokuza viwango vya kitaaluma, utafiti, elimu, uongozi, ubunifu, mitandao ya ushirikiano na maendeleo ya uwezo katika usimamizi wa michezo. Mwelekeo huu umeelezwa katika Rasimu ya Katiba ya TSMA. Taarifa mahususi za tarehe za kuanzishwa na matukio ya kihistoria zitaongezwa zitakapothibitishwa rasmi.',
-  history_body_en:
-    'TSMA aims to be a professional association that advances professional standards, research, education, leadership, innovation, networking and capacity development in sports management. This direction is set out in the TSMA Draft Constitution. Specific founding dates and historical events will be added when officially verified.',
-  vision_sw:
-    'Kuwa chama cha kitaaluma kinachoongoza katika kuendeleza ubora wa usimamizi wa michezo na maendeleo endelevu ya michezo nchini Tanzania na Afrika.',
-  vision_en:
-    'To be the leading professional body advancing excellence in sports management and sustainable sports development in Tanzania and Africa.',
-  mission_sw:
-    'Kukuza viwango vya kitaaluma, utafiti, elimu, uongozi, ubunifu, mitandao ya ushirikiano na maendeleo ya uwezo katika usimamizi wa michezo kwa ajili ya maendeleo ya michezo na jamii.',
-  mission_en:
-    'To promote professional standards, research, education, leadership, innovation, networking, and capacity development in sports management for the advancement of sport and society.',
-  values: [
-    { id: 1, icon: '🏅', title_sw: 'Weledi', title_en: 'Professionalism', description_sw: 'Kutekeleza majukumu kwa viwango vya kitaaluma.', description_en: 'Carrying out our work to professional standards.' },
-    { id: 2, icon: '🤝', title_sw: 'Uadilifu', title_en: 'Integrity', description_sw: 'Kuwa waaminifu na kushikilia misingi sahihi ya maadili.', description_en: 'Being honest and adhering to sound ethical principles.' },
-    { id: 3, icon: '🧭', title_sw: 'Uwajibikaji', title_en: 'Accountability', description_sw: 'Kuwajibika kwa maamuzi na matendo yetu.', description_en: 'Taking responsibility for our decisions and actions.' },
-    { id: 4, icon: '🔎', title_sw: 'Uwazi', title_en: 'Transparency', description_sw: 'Kufanya kazi kwa uwazi na kutoa taarifa kwa uwajibikaji.', description_en: 'Working openly and sharing information responsibly.' },
-    { id: 5, icon: '⭐', title_sw: 'Ubora', title_en: 'Excellence', description_sw: 'Kujitahidi kufikia viwango vya juu katika usimamizi wa michezo.', description_en: 'Striving for high standards in sports management.' },
-    { id: 6, icon: '🌍', title_sw: 'Ushirikishwaji', title_en: 'Inclusiveness', description_sw: 'Kupanua fursa za ushiriki na mchango wa wadau.', description_en: 'Creating opportunities for stakeholders to participate and contribute.' },
-    { id: 7, icon: '💡', title_sw: 'Ubunifu', title_en: 'Innovation', description_sw: 'Kukaribisha mawazo na mbinu mpya za kuboresha michezo.', description_en: 'Welcoming new ideas and approaches to improve sport.' },
-    { id: 8, icon: '🫱🏽‍🫲🏾', title_sw: 'Kazi ya Pamoja', title_en: 'Teamwork', description_sw: 'Kushirikiana kufikia malengo ya pamoja.', description_en: 'Working together to achieve shared goals.' },
-    { id: 9, icon: '🌈', title_sw: 'Kuheshimu Tofauti', title_en: 'Respect for Diversity', description_sw: 'Kuheshimu tofauti za watu na mitazamo yao.', description_en: 'Respecting differences among people and their perspectives.' },
-    { id: 10, icon: '⚖️', title_sw: 'Uongozi wa Kimaadili', title_en: 'Ethical Leadership', description_sw: 'Kuongoza kwa haki, maadili na mfano mwema.', description_en: 'Leading fairly, ethically and by positive example.' },
-    { id: 11, icon: '❤️', title_sw: 'Huduma kwa Jamii', title_en: 'Service to Society', description_sw: 'Kuchangia maendeleo ya michezo na ustawi wa jamii.', description_en: 'Contributing to the advancement of sport and the well-being of society.' },
-  ],
-  // Dates and milestones must come from the live backend; never invent timeline entries here.
-  milestones: [],
-}
+import EmptyState from '../components/EmptyState.jsx'
+import LoadingState from '../components/LoadingState.jsx'
 
 export default function About() {
   const { t, i18n } = useTranslation()
   const isSw = i18n.language?.startsWith('sw')
-  const [content, setContent] = useState(FALLBACK_CONTENT)
+  const [content, setContent] = useState(null)
+  const [state, setState] = useState('loading')
 
   useEffect(() => {
     let cancelled = false
+    setState('loading')
     apiClient
       .get('/content/about/')
       .then((res) => {
-        if (!cancelled && res.data) setContent(res.data)
+        if (cancelled) return
+        setContent(res.data ?? null)
+        setState('ready')
       })
       .catch(() => {
-        // Backend haipatikani bado — tunabaki na FALLBACK_CONTENT
+        if (!cancelled) setState('error')
       })
     return () => {
       cancelled = true
     }
   }, [])
 
-  const pick = (swKey, enKey) => (isSw ? content[swKey] : content[enKey])
+  const pick = (swKey, enKey) => (content ? ((isSw ? content[swKey] : content[enKey]) || '') : '')
+
+  const milestones = Array.isArray(content?.milestones) ? content.milestones : []
 
   return (
     <>
@@ -87,18 +57,30 @@ export default function About() {
       {/* ============ VISION & MISSION ============ */}
       <section className="max-w-5xl mx-auto px-5 md:px-8 py-16 md:py-20 grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="border border-black/10 rounded-xl p-8">
-          <div className="text-terracotta text-3xl mb-4">🔭</div>
           <h2 className="font-serif font-bold text-2xl text-navy mb-3">
             {isSw ? 'Dira Yetu' : 'Our Vision'}
           </h2>
-          <p className="text-ink-muted leading-relaxed">{pick('vision_sw', 'vision_en')}</p>
+          <ContentOrEmpty
+            isSw={isSw}
+            state={state}
+            text={pick('vision_sw', 'vision_en')}
+            emptySw="Dira ya TSMA bado haijawekwa na mhariri."
+            emptyEn="TSMA's vision has not been published yet."
+            className="text-ink-muted leading-relaxed"
+          />
         </div>
         <div className="border border-black/10 rounded-xl p-8">
-          <div className="text-terracotta text-3xl mb-4">🎯</div>
           <h2 className="font-serif font-bold text-2xl text-navy mb-3">
             {isSw ? 'Dhamira Yetu' : 'Our Mission'}
           </h2>
-          <p className="text-ink-muted leading-relaxed">{pick('mission_sw', 'mission_en')}</p>
+          <ContentOrEmpty
+            isSw={isSw}
+            state={state}
+            text={pick('mission_sw', 'mission_en')}
+            emptySw="Dhamira ya TSMA bado haijawekwa na mhariri."
+            emptyEn="TSMA's mission has not been published yet."
+            className="text-ink-muted leading-relaxed"
+          />
         </div>
       </section>
 
@@ -116,9 +98,8 @@ export default function About() {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-            {content.values.map((v) => (
+            {(content?.values || []).map((v) => (
               <div key={v.id} className="bg-surface rounded-xl p-6 text-center border border-black/5">
-                <div className="text-3xl mb-3">{v.icon}</div>
                 <h3 className="font-serif font-bold text-navy mb-1.5">
                   {isSw ? v.title_sw : v.title_en}
                 </h3>
@@ -141,32 +122,36 @@ export default function About() {
             {isSw ? 'SAFARI YETU' : 'OUR JOURNEY'}
           </div>
           <h2 className="font-serif font-bold text-2xl md:text-3xl text-navy">
-            {pick('history_title_sw', 'history_title_en')}
+            {pick('history_title_sw', 'history_title_en') || (isSw ? 'Historia Yetu' : 'Our Story')}
           </h2>
           <div className="lane-divider mx-auto mt-4" />
         </div>
 
-        <p className="text-ink leading-relaxed max-w-3xl mx-auto text-center mb-14">
-          {pick('history_body_sw', 'history_body_en')}
-        </p>
+        <div className="mb-14">
+          <ContentOrEmpty
+            isSw={isSw}
+            state={state}
+            text={pick('history_body_sw', 'history_body_en')}
+            emptySw="Historia ya TSMA bado haijaandikwa na mhariri."
+            emptyEn="TSMA's history has not been published yet."
+            className="text-ink leading-relaxed max-w-3xl mx-auto text-center"
+          />
+        </div>
 
         {/* Timeline */}
         <div className="relative max-w-2xl mx-auto">
-          <div className="absolute left-[27px] top-2 bottom-2 w-px bg-black/10" />
+          {milestones.length > 0 && <div className="absolute left-[27px] top-2 bottom-2 w-px bg-black/10" />}
           <div className="space-y-10">
-            {(Array.isArray(content.milestones) ? content.milestones : []).length === 0 ? (
-              <div className="rounded-xl border border-black/10 bg-cream/60 px-6 py-8 text-center">
-                <div className="text-3xl mb-3" aria-hidden="true">🗓️</div>
-                <h3 className="font-serif font-bold text-lg text-navy mb-2">
-                  {isSw ? 'Taarifa za historia zinakuja hivi karibuni' : 'Our timeline is coming soon'}
-                </h3>
-                <p className="text-sm text-ink-muted leading-relaxed max-w-xl mx-auto">
-                  {isSw
-                    ? 'Tarehe na matukio rasmi yataonekana hapa mara tu yatakapowekwa na kuthibitishwa kwenye mfumo.'
-                    : 'Official dates and milestones will appear here as soon as they are added and verified in our system.'}
-                </p>
-              </div>
-            ) : (Array.isArray(content.milestones) ? content.milestones : []).map((m) => (
+            {milestones.length === 0 ? (
+              <EmptyState
+                isSw={isSw}
+                tone={state === 'error' ? 'error' : 'empty'}
+                sw={state === 'error' ? 'Hakuna historia ya kuonyesha kwa sasa.' : 'Taarifa za historia bado hazijawekwa na mhariri.'}
+                en={state === 'error' ? 'No history to show right now.' : 'Timeline details have not been published yet.'}
+                hintSw={state === 'error' ? 'Muunganisho na seva haukufanyika. Fundi wa TSMA ataangalia; jaribu tena baadaye.' : 'Tarehe na matukio rasmi yataonekana hapa mara tu yatakapowekwa na kuthibitishwa kwenye mfumo.'}
+                hintEn={state === 'error' ? 'The connection to the server failed. The TSMA administrator will be notified; please try again later.' : 'Official dates and milestones will appear here as soon as they are added and verified in our system.'}
+              />
+            ) : (milestones.map((m) => (
               <div key={m.id} className="relative pl-16">
                 <div className="absolute left-0 top-0 w-14 h-14 rounded-full bg-navy text-gold font-serif font-black text-sm flex items-center justify-center border-4 border-cream">
                   {m.year}
@@ -180,7 +165,7 @@ export default function About() {
                   </p>
                 )}
               </div>
-            ))}
+            )))}
           </div>
         </div>
       </section>
@@ -204,5 +189,24 @@ export default function About() {
       </section>
 
     </>
+  )
+}
+
+/**
+ * Maandishi halisi kutoka API tu; ikiwa hayajawekwa (au seva haikujibu)
+ * tunaonyesha hali tupu/ikifisiri — sio maudhui yaliyoundwa.
+ */
+function ContentOrEmpty({ isSw, state, text, emptySw, emptyEn, className }) {
+  if (text) return <p className={className}>{text}</p>
+  const isError = state === 'error'
+  return (
+    <EmptyState
+      isSw={isSw}
+      tone={isError ? 'error' : 'empty'}
+      sw={isError ? 'Hakuna maudhui ya kuonyesha kwa sasa.' : emptySw}
+      en={isError ? 'No content to show right now.' : emptyEn}
+      hintSw={isError ? 'Muunganisho na seva haukufanyika. Fundi wa TSMA ataangalia; jaribu tena baadaye.' : 'Maudhui haya huongezwa na mhariri wa TSMA kupitia mfumo.'}
+      hintEn={isError ? 'The connection to the server failed. The TSMA administrator will be notified; please try again later.' : 'This content is added by the TSMA editor through the system.'}
+    />
   )
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import securityClient from '../api/securityClient.js'
 import PasswordInput from '../components/PasswordInput.jsx'
+import Icon from '../components/Icon.jsx'
 
 // Hatua: 'credentials' -> (ikihitaji) 'setup_totp' -> 'totp' -> imekamilika
 export default function SecurityLogin() {
@@ -83,7 +84,7 @@ export default function SecurityLogin() {
     <div className="min-h-[70vh] flex items-center justify-center px-5 py-16 bg-navy-deep">
       <div className="bg-white rounded-xl max-w-sm w-full p-8">
         <div className="text-center mb-6">
-          <span className="text-3xl">🛡️</span>
+          <span className="text-3xl"><Icon name="shield" className="w-8 h-8 text-navy" /></span>
           <h1 className="font-serif font-bold text-lg text-navy mt-2">Security Dashboard</h1>
           <p className="text-xs text-ink-muted">TSMA Guardian - Operator Login</p>
         </div>

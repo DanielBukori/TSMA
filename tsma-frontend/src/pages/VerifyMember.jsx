@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
+import Icon from '../components/Icon.jsx'
 
 // Ukurasa unaofunguka mtu anaposcan QR ya kadi ya uanachama:
 // /verify-member/<card_verification_code>  ->  GET /api/members/verify/<code>/
@@ -69,7 +70,7 @@ export default function VerifyMember() {
 
         {status === 'notfound' && (
           <div className="bg-terracotta/10 border border-terracotta/30 rounded-xl p-6 text-center">
-            <div className="text-4xl mb-2">❌</div>
+            <div className="text-4xl mb-2"><Icon name="close" className="w-9 h-9 text-terracotta mx-auto" /></div>
             <p className="text-sm font-bold text-terracotta">
               {isSw ? 'Kadi hii haipo kwenye mfumo wa TSMA.' : 'This card is not in the TSMA system.'}
             </p>
@@ -91,7 +92,7 @@ export default function VerifyMember() {
             }`}
           >
             <div className="text-center mb-4">
-              <div className="text-4xl mb-1">{isValid ? '✅' : '⚠️'}</div>
+              <div className="text-4xl mb-1">{isValid ? <Icon name="check" className="w-9 h-9 text-green mx-auto" /> : <Icon name="alert" className="w-9 h-9 text-terracotta mx-auto" />}</div>
               <p className={`text-base font-extrabold ${isValid ? 'text-green' : 'text-terracotta'}`}>
                 {isValid
                   ? isSw ? 'Mwanachama halali' : 'Valid member'

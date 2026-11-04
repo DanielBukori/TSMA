@@ -4,18 +4,16 @@ import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
-
-const FALLBACK_ALBUMS = [
-  { id: 1, slug: 'tsma-conference-2025', title: 'TSMA National Symposium 2025', cover_image: null, event_year: 2025, image_count: 24 },
-  { id: 2, slug: 'board-meeting-jan-2026', title: 'Mkutano wa Bodi - Januari 2026', cover_image: null, event_year: 2026, image_count: 12 },
-  { id: 3, slug: 'tsma-offices', title: 'Ofisi za TSMA', cover_image: null, event_year: 2026, image_count: 8 },
-]
+import EmptyState from '../components/EmptyState.jsx'
+import LoadingState from '../components/LoadingState.jsx'
+import Icon from '../components/Icon.jsx'
 
 export default function Gallery() {
   const { i18n } = useTranslation()
   const isSw = i18n.language?.startsWith('sw')
 
-  const [albums, setAlbums] = useState(FALLBACK_ALBUMS)
+  const [albums, setAlbums] = useState([])
+  const [state, setState] = useState('loading')
   const [year, setYear] = useState('')
 
   useEffect(() => {
@@ -23,13 +21,18 @@ export default function Gallery() {
     const params = {}
     if (year) params.year = year
 
+    setState('loading')
     apiClient
       .get('/gallery/', { params })
       .then((res) => {
         const results = res.data?.results || res.data
-        if (!cancelled && Array.isArray(results)) setAlbums(results)
+        if (cancelled) return
+        setAlbums(Array.isArray(results) ? results : [])
+        setState('ready')
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!cancelled) setState('error')
+      })
 
     return () => {
       cancelled = true
@@ -67,11 +70,34 @@ export default function Gallery() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {albums.map((album) => (
-            <AlbumCard key={album.id} album={album} isSw={isSw} />
-          ))}
-        </div>
+        {state === 'error' && (
+          <EmptyState
+            isSw={isSw}
+            sw="Hakuna picha za kuonyesha kwa sasa."
+            en="No photos to show right now."
+            hintSw="Muunganisho na seva haukufanyika. Fundi wa TSMA ataangalia; jaribu tena baadaye."
+            hintEn="The connection to the server failed. The TSMA administrator will be notified; please try again later."
+            tone="error"
+          />
+        )}
+
+        {state === 'ready' && albums.length === 0 && (
+          <EmptyState
+            isSw={isSw}
+            sw={year ? `Hakuna picha za ${year} bado.` : 'TSMA bado haijaweka picha za matukio.'}
+            en={year ? `No photos for ${year} yet.` : 'TSMA has not published event photos yet.'}
+            hintSw="Picha za mikutano na matukio huongezwa na mhariri wa tovuti."
+            hintEn="Photos of conferences and events are added by the site editor."
+          />
+        )}
+
+        {state === 'ready' && albums.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {albums.map((album) => (
+              <AlbumCard key={album.id} album={album} isSw={isSw} />
+            ))}
+          </div>
+        )}
       </section>
     </>
   )
@@ -105,7 +131,7 @@ function AlbumCard({ album, isSw }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-white/70 text-4xl">🖼️</span>
+            <Icon name="image" className="w-10 h-10 text-white/60" strokeWidth={1.4} />
           </div>
         )}
         <span className="absolute top-2.5 right-2.5 bg-black/50 backdrop-blur text-white text-[10px] font-bold px-2.5 py-1 rounded-full">

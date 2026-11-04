@@ -5,39 +5,31 @@ import BoardMemberCard from '../components/BoardMemberCard.jsx'
 import BoardProfileModal from '../components/BoardProfileModal.jsx'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
-
-/**
- * Fallback ya DEV pekee — inaonekana tu endapo backend haijaunganishwa.
- * Wajumbe HALISI wa Management wanaongezwa na Admin kupitia Django Admin
- * (Management -> Wajumbe) — "position" ni maandishi huru anayoandika
- * Admin mwenyewe, si orodha iliyofungwa kwenye code.
- */
-const FALLBACK_MEMBERS = [
-  { id: 1, full_name: 'Jina Litawekwa na Admin', position: 'Chair', photo: null },
-  { id: 2, full_name: 'Jina Litawekwa na Admin', position: 'Secretary General', photo: null },
-  { id: 3, full_name: 'Jina Litawekwa na Admin', position: 'Treasurer', photo: null },
-]
+import EmptyState from '../components/EmptyState.jsx'
+import LoadingState from '../components/LoadingState.jsx'
 
 export default function Management() {
   const { t, i18n } = useTranslation()
   const isSw = i18n.language?.startsWith('sw')
 
-  const [members, setMembers] = useState(FALLBACK_MEMBERS)
+  const [members, setMembers] = useState([])
+  const [state, setState] = useState('loading')
   const [selected, setSelected] = useState(null)
   const [modalLoading, setModalLoading] = useState(false)
 
   useEffect(() => {
     let cancelled = false
+    setState('loading')
     apiClient
       .get('/management/')
       .then((res) => {
         const results = res.data?.results || res.data
-        if (!cancelled && Array.isArray(results) && results.length > 0) {
-          setMembers(results)
-        }
+        if (cancelled) return
+        setMembers(Array.isArray(results) ? results : [])
+        setState('ready')
       })
       .catch(() => {
-        // Backend haipatikani bado — tunabaki na fallback ya placeholder
+        if (!cancelled) setState('error')
       })
     return () => {
       cancelled = true
@@ -51,8 +43,8 @@ export default function Management() {
       const res = await apiClient.get(`/management/${member.id}/`)
       setSelected(res.data)
     } catch {
-      // Ikiwa detail haipatikani (mfano fallback data), bado tunaonyesha
-      // taarifa za msingi tulizokuwa nazo kwenye orodha.
+      // Ikiwa wasifu kamili haupatikani, bado tunaonyesha
+      // taarifa za msingi tulizopata kwenye orodha.
     } finally {
       setModalLoading(false)
     }
@@ -74,11 +66,34 @@ export default function Management() {
       </PageBanner>
 
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-14 md:py-20">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {members.map((member) => (
-            <BoardMemberCard key={member.id} member={member} onOpen={openMember} />
-          ))}
-        </div>
+        {state === 'error' && (
+          <EmptyState
+            isSw={isSw}
+            sw="Hakuna majina ya wajumbe ya kuonyesha kwa sasa."
+            en="No management members to show right now."
+            hintSw="Muunganisho na seva haukufanyika. Fundi wa TSMA ataangalia; jaribu tena baadaye."
+            hintEn="The connection to the server failed. The TSMA administrator will be notified; please try again later."
+            tone="error"
+          />
+        )}
+
+        {state === 'ready' && members.length === 0 && (
+          <EmptyState
+            isSw={isSw}
+            sw="Wajumbe wa Management bado hawjatajwa na mhariri."
+            en="Management team members have not been published yet."
+            hintSw="Majina na picha za wajumbe huwekwa na mhariri wa tovuti."
+            hintEn="Team member names and photos are added by the site editor."
+          />
+        )}
+
+        {state === 'ready' && members.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {members.map((member) => (
+              <BoardMemberCard key={member.id} member={member} onOpen={openMember} />
+            ))}
+          </div>
+        )}
       </section>
 
       {selected && (

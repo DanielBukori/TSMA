@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
+import Icon from '../components/Icon.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function CourseDetail() {
@@ -129,7 +130,7 @@ export default function CourseDetail() {
               <div className="min-w-0 flex-1">
                 <h3 className="font-bold text-sm text-navy truncate">{session.title}</h3>
                 <p className="text-xs text-ink-muted mt-0.5">
-                  {session.session_type === 'live' ? '🔴 Live' : '▶️ Recorded'}
+                  {session.session_type === 'live' ? <><Icon name="dot" className="w-2.5 h-2.5 text-terracotta" strokeWidth={2} /> Live</> : 'Recorded'}
                   {session.instructor_name && ` · ${session.instructor_name}`}
                 </p>
               </div>
@@ -151,7 +152,7 @@ export default function CourseDetail() {
                     className="flex items-center justify-between gap-4 bg-gold/10 border border-gold/30 rounded-xl p-4 hover:shadow-md transition-shadow"
                   >
                     <div className="min-w-0">
-                      <h3 className="font-bold text-sm text-navy truncate">{quiz.passed ? '✅' : '📝'} {quiz.title}</h3>
+                      <h3 className="font-bold text-sm text-navy truncate">{quiz.passed ? <Icon name="check" className="w-4 h-4 text-green" /> : <Icon name="edit" className="w-4 h-4 text-navy" />} {quiz.title}</h3>
                       <p className="text-xs text-ink-muted mt-0.5">
                         {quiz.total_questions} {isSw ? 'maswali' : 'questions'} · {isSw ? 'kufaulu' : 'pass'} {quiz.passing_score_percent}%
                       </p>
@@ -160,7 +161,7 @@ export default function CourseDetail() {
                   </Link>
                 ) : (
                   <div key={quiz.id} className="bg-cream border border-black/10 rounded-xl p-4 text-sm text-ink-muted">
-                    🔒 {quiz.title} —{' '}
+                    <Icon name="lock" className="w-4 h-4" /> {quiz.title} —{' '}
                     {course.is_enrolled
                       ? isSw ? 'maliza vikao vyote vya kozi (jiunge/tazama kila kimoja) ili kufungua quiz hii.' : 'complete every session (join/watch each one) to unlock this quiz.'
                       : isSw ? 'jiunge na kozi kwanza.' : 'enroll in the course first.'}

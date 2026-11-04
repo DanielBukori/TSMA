@@ -19,7 +19,7 @@
   },
   "topbar": {
     "notice": " Registration for the 2026 Conference is open — limited spots",
-    "event": "🏆 TSMA CONFERENCE 2026 — Dar es Salaam, 12–13 November",
+    "event": "TSMA CONFERENCE 2026 — Dar es Salaam, 12–13 November",
     "eventCta": "Register Now"
   },
   "hero": {
@@ -95,6 +95,7 @@
     "followUs": "Follow Us",
     "rights": "All rights reserved.",
     "contactLoading": "Loading contact details...",
+    "contactNotListed": "Contact details have not been published yet.",
     "socialComingSoon": "Social media links coming soon."
   },
   "common": {
@@ -107,6 +108,6 @@
   "notFound": {
     "title": "Page Not Found",
     "message": "Whoops — that one went out of bounds! The page you're looking for doesn't exist or has moved.",
-    "backHome": "⚽ Back to Home"
+    "backHome": "Back to Home"
   }
 }

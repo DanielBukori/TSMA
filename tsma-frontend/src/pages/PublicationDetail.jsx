@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import GatewaySelect from '../components/GatewaySelect.jsx'
 import ManualPaymentCard from '../components/ManualPaymentCard.jsx'
+import Icon from '../components/Icon.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function PublicationDetail() {
@@ -133,7 +134,7 @@ export default function PublicationDetail() {
                 >
                   {downloadState === 'loading'
                     ? isSw ? 'Inapakua...' : 'Preparing download...'
-                    : `⬇ ${isSw ? 'Pakua Chapisho' : 'Download Publication'}`}
+                    : <><Icon name="download" className="w-4 h-4" /> {isSw ? 'Pakua Chapisho' : 'Download Publication'}</>}
                 </button>
                 {downloadState === 'error' && (
                   <p className="text-xs text-terracotta mt-3">
@@ -162,7 +163,7 @@ function AccessTag({ accessType, isSw }) {
 function LockedBlock({ pub, isSw, isAuthenticated }) {
   return (
     <div className="bg-terracotta/10 border border-terracotta/25 rounded-xl p-5 text-center">
-      <div className="text-2xl mb-2">🔒</div>
+      <div className="text-2xl mb-2"><Icon name="lock" className="w-7 h-7 text-navy mx-auto" /></div>
       <p className="text-sm font-semibold text-ink mb-4">
         {isSw
           ? 'Chapisho hili ni kwa wanachama pekee. Jiunge au ingia kwenye akaunti yako ya uanachama.'
@@ -321,7 +322,7 @@ function PurchaseBlock({ pub, isSw, isAuthenticated, onRefreshPublication }) {
   if (status === 'success') {
     return (
       <div className="text-center border border-green/30 bg-green/10 rounded-xl p-6">
-        <div className="text-3xl mb-2">✅</div>
+        <div className="text-3xl mb-2"><Icon name="check" className="w-8 h-8 text-green" /></div>
         <p className="text-sm font-semibold mb-4">{message}</p>
         <button
           type="button"
@@ -372,7 +373,7 @@ function PurchaseBlock({ pub, isSw, isAuthenticated, onRefreshPublication }) {
           onClick={() => setStatus('form')}
           className="w-full bg-gold hover:bg-gold-dark text-navy-deep font-extrabold text-sm py-3.5 rounded-md"
         >
-          🛒 {isSw ? 'Nunua Chapisho Hili' : 'Purchase This Publication'}
+          {isSw ? 'Nunua Chapisho Hili' : 'Purchase This Publication'}
         </button>
       ) : (
         <form onSubmit={handlePurchase} className="space-y-3">
@@ -395,10 +396,10 @@ function PurchaseBlock({ pub, isSw, isAuthenticated, onRefreshPublication }) {
           )}
           <div className={`grid grid-cols-2 gap-2 ${gateway?.code === 'manual' ? 'hidden' : ''}`}>
             <button type="button" onClick={() => setMethod('mobile_money')} className={`text-xs font-bold py-2.5 rounded-md border ${method === 'mobile_money' ? 'bg-navy text-white border-navy' : 'border-black/15'}`}>
-              📱 {isSw ? 'M-Pesa/Simu' : 'Mobile Money'}
+              <Icon name="phone" className="w-4 h-4" /> {isSw ? 'M-Pesa/Simu' : 'Mobile Money'}
             </button>
             <button type="button" onClick={() => setMethod('card')} className={`text-xs font-bold py-2.5 rounded-md border ${method === 'card' ? 'bg-navy text-white border-navy' : 'border-black/15'}`}>
-              💳 {isSw ? 'Kadi' : 'Card'}
+              <Icon name="card" className="w-4 h-4" /> {isSw ? 'Kadi' : 'Card'}
             </button>
           </div>
           {status === 'error' && <p className="text-xs text-terracotta">{message}</p>}

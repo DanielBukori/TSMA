@@ -5,45 +5,20 @@ import apiClient from '../api/client.js'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
 import ConferenceMemories from '../components/ConferenceMemories.jsx'
-
-const FALLBACK = {
-  upcoming: [
-    {
-      id: 1,
-      slug: 'tsma-conference-2026',
-      title: 'TSMA Flagship Conference 2026',
-      venue_name: 'Julius Nyerere International Convention Centre',
-      city: 'Dar es Salaam',
-      country: 'Tanzania',
-      start_date: '2026-11-12',
-      end_date: '2026-11-13',
-      theme: 'Building a Self-Financing Sports Economy',
-      description:
-        'Mkutano mkuu wa mwaka wa TSMA — wataalamu, wanachama, wadhamini na wawekezaji wa sekta ya michezo kutoka kote nchini.',
-    },
-  ],
-  past: [
-    {
-      id: 2,
-      slug: 'tsma-conference-2025',
-      title: 'TSMA National Symposium 2025',
-      venue_name: 'Mlimani City Conference Centre',
-      city: 'Dar es Salaam',
-      start_date: '2025-10-05',
-      end_date: '2025-10-06',
-    },
-  ],
-}
+import EmptyState from '../components/EmptyState.jsx'
+import LoadingState from '../components/LoadingState.jsx'
 
 export default function Conferences() {
   const { i18n } = useTranslation()
   const isSw = i18n.language?.startsWith('sw')
 
-  const [upcoming, setUpcoming] = useState(FALLBACK.upcoming)
-  const [past, setPast] = useState(FALLBACK.past)
+  const [upcoming, setUpcoming] = useState([])
+  const [past, setPast] = useState([])
+  const [state, setState] = useState('loading')
 
   useEffect(() => {
     let cancelled = false
+    setState('loading')
     Promise.allSettled([
       apiClient.get('/conferences/', { params: { status: 'upcoming' } }),
       apiClient.get('/conferences/', { params: { status: 'past' } }),
@@ -51,12 +26,13 @@ export default function Conferences() {
       if (cancelled) return
       if (upRes.status === 'fulfilled') {
         const results = upRes.value.data?.results || upRes.value.data
-        if (Array.isArray(results) && results.length > 0) setUpcoming(results)
+        if (Array.isArray(results)) setUpcoming(results)
       }
       if (pastRes.status === 'fulfilled') {
         const results = pastRes.value.data?.results || pastRes.value.data
         if (Array.isArray(results)) setPast(results)
       }
+      setState(upRes.status === 'fulfilled' || pastRes.status === 'fulfilled' ? 'ready' : 'error')
     })
     return () => {
       cancelled = true
@@ -81,8 +57,33 @@ export default function Conferences() {
 
       <ConferenceMemories />
 
+      {state === 'error' && (
+        <section className="max-w-5xl mx-auto px-5 md:px-8 py-12">
+          <EmptyState
+            isSw={isSw}
+            tone="error"
+            sw="Hakuna mikutano ya kuonyesha kwa sasa."
+            en="No conferences to show right now."
+            hintSw="Muunganisho na seva haukufanyika. Fundi wa TSMA ataangalia; jaribu tena baadaye."
+            hintEn="The connection to the server failed. The TSMA administrator will be notified; please try again later."
+          />
+        </section>
+      )}
+
+      {state === 'ready' && upcoming.length === 0 && past.length === 0 && (
+        <section className="max-w-5xl mx-auto px-5 md:px-8 py-12">
+          <EmptyState
+            isSw={isSw}
+            sw="TSMA bado haijaweka mikutano."
+            en="TSMA has not published any conferences yet."
+            hintSw="Mikutano mpya na faili za mikutano iliyopita huongezwa na mhariri wa tovuti."
+            hintEn="New and past conferences are added by the site editor."
+          />
+        </section>
+      )}
+
       {/* ============ FEATURED: mkutano wa mwaka huu, JUU SANA ============ */}
-      {featured && (
+      {state === 'ready' && featured && (
         <section className="max-w-5xl mx-auto px-5 md:px-8 -mt-8 relative z-10">
           <Link
             to={`/conferences/${featured.slug}`}
@@ -92,7 +93,7 @@ export default function Conferences() {
               <div className="absolute inset-0 bg-track-lines opacity-40" />
               <div className="relative z-10">
                 <span className="inline-block bg-gold text-navy-deep text-[11px] font-extrabold px-3 py-1.5 rounded-full mb-4 animate-fade-in">
-                  ⭐ {isSw ? 'MKUTANO WA MWAKA HUU' : "THIS YEAR'S FLAGSHIP"}
+                  {isSw ? 'MKUTANO WA MWAKA HUU' : "THIS YEAR'S FLAGSHIP"}
                 </span>
                 <h2 className="font-serif font-bold text-2xl md:text-4xl leading-tight max-w-2xl">
                   {featured.title}
@@ -133,7 +134,7 @@ export default function Conferences() {
       )}
 
       {/* ============ OTHER UPCOMING ============ */}
-      {otherUpcoming.length > 0 && (
+      {state === 'ready' && otherUpcoming.length > 0 && (
         <section className="max-w-5xl mx-auto px-5 md:px-8 py-14">
           <h2 className="font-serif font-bold text-xl text-navy mb-6">
             {isSw ? 'Mikutano Mingine Ijayo' : 'Other Upcoming Conferences'}
@@ -147,6 +148,7 @@ export default function Conferences() {
       )}
 
       {/* ============ PAST CONFERENCES ============ */}
+      {state === 'ready' && past.length > 0 && (
       <section className="bg-cream py-14 md:py-20">
         <div className="max-w-5xl mx-auto px-5 md:px-8">
           <h2 className="font-serif font-bold text-xl text-navy mb-6">
@@ -159,6 +161,7 @@ export default function Conferences() {
           </div>
         </div>
       </section>
+      )}
     </>
   )
 }

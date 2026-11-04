@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
+import Icon from './Icon.jsx'
 
 function getYouTubeId(raw) {
   try {
@@ -239,7 +240,7 @@ export default function ConferenceMemories() {
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-white/20 bg-white/[.025] px-6 py-12 text-center">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-2xl">{filter === 'photos' ? '▧' : filter === 'videos' ? '▶' : '✦'}</div>
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-2xl">{filter === 'photos' ? '▧' : filter === 'videos' ? '▶' : <Icon name="dot" className="w-6 h-6" />}</div>
                   <h5 className="mt-4 font-bold text-white">{sw ? 'Kumbukumbu zetu zinakuja hivi karibuni' : 'Conference memories coming soon'}</h5>
                   <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-white/45">{sw ? 'Tunajiandaa kukuletea picha na video za matukio muhimu ya TSMA. Tembelea tena hivi karibuni ili usikose kumbukumbu hizi za kipekee.' : 'We are preparing highlights and videos from TSMA’s memorable events. Visit again soon to explore the moments that bring our sporting community together.'}</p>
                 </div>

@@ -3,40 +3,43 @@ import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
-
-const FALLBACK_INFO = {
-  organization_name: 'TSMA',
-  phone_number: '+255700000000',
-  phone_call_link: 'tel:+255700000000',
-  whatsapp_number: '255700000000',
-  whatsapp_link: 'https://wa.me/255700000000',
-  email: 'info@tsma.or.tz',
-  email_mailto_link: 'mailto:info@tsma.or.tz',
-  physical_address: 'Barabara ya Uwanja wa Ndege, Dar es Salaam, Tanzania',
-  postal_address: 'S.L.P 12345, Dar es Salaam',
-  google_maps_link: '',
-  facebook_url: '#',
-  instagram_url: '#',
-  linkedin_url: '#',
-  youtube_url: '#',
-  TikTok_url: '#',
-  Twitter: '#', 
-
-}
+import EmptyState from '../components/EmptyState.jsx'
+import LoadingState from '../components/LoadingState.jsx'
+import Icon from '../components/Icon.jsx'
 
 export default function Contact() {
   const { i18n } = useTranslation()
   const isSw = i18n.language?.startsWith('sw')
 
-  const [info, setInfo] = useState(FALLBACK_INFO)
+  const [info, setInfo] = useState(null)
+  const [state, setState] = useState('loading')
   const [showMessageForm, setShowMessageForm] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
+    setState('loading')
     apiClient
       .get('/contact/info/')
-      .then((res) => setInfo(res.data))
-      .catch(() => {})
+      .then((res) => {
+        if (cancelled) return
+        setInfo(res.data ?? null)
+        setState('ready')
+      })
+      .catch(() => {
+        if (!cancelled) setState('error')
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
+
+  const hasContact = Boolean(
+    info &&
+      ((info.phone_call_link && info.phone_number) ||
+        (info.whatsapp_link && info.whatsapp_number) ||
+        (info.email_mailto_link && info.email) ||
+        info.physical_address)
+  )
 
   return (
     <>
@@ -56,54 +59,77 @@ export default function Contact() {
       <section className="max-w-5xl mx-auto px-5 md:px-8 py-14 md:py-20 grid grid-cols-1 lg:grid-cols-5 gap-10">
         {/* ============ CONTACT INFO ============ */}
         <div className="lg:col-span-2 space-y-4">
-          <ContactLink
-            href={info.phone_call_link}
-            icon="📞"
-            label={isSw ? 'Piga Simu' : 'Call Us'}
-            value={info.phone_number}
-          />
-          <ContactLink
-            href={info.whatsapp_link}
-            icon="💬"
-            label="WhatsApp"
-            value={info.whatsapp_number}
-            external
-          />
-          <ContactLink
-            href={info.email_mailto_link}
-            icon="✉️"
-            label={isSw ? 'Barua Pepe' : 'Email'}
-            value={info.email}
-          />
-
-          {info.physical_address && (
-            <div className="border border-black/10 rounded-xl p-5">
-              <div className="flex items-start gap-3">
-                <span className="text-xl">📍</span>
-                <div>
-                  <div className="text-xs font-bold text-ink-muted uppercase tracking-wide mb-1">
-                    {isSw ? 'Anwani' : 'Address'}
-                  </div>
-                  <p className="text-sm text-ink leading-relaxed">{info.physical_address}</p>
-                  {info.postal_address && (
-                    <p className="text-xs text-ink-muted mt-1">{info.postal_address}</p>
-                  )}
-                  {info.google_maps_link && (
-                    <a
-                      href={info.google_maps_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block mt-2 text-xs font-bold text-terracotta"
-                    >
-                      {isSw ? 'Fungua Ramani →' : 'Open Map →'}
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
+          {state === 'error' && (
+            <EmptyState
+              isSw={isSw}
+              sw="Hakuna taarifa za mawasiliano za kuonyesha kwa sasa."
+              en="No contact details to show right now."
+              hintSw="Muunganisho na seva haukufanyika. Fundi wa TSMA ataangalia; jaribu tena baadaye."
+              hintEn="The connection to the server failed. The TSMA administrator will be notified; please try again later."
+              tone="error"
+            />
           )}
 
+          {state === 'ready' && !hasContact && (
+            <EmptyState
+              isSw={isSw}
+              sw="Taarifa za mawasiliano bado hazijawekwa na mhariri."
+              en="Contact details have not been published yet."
+              hintSw="Namba za simu, barua pepe na anwani huongezwa na mhariri wa tovuti."
+              hintEn="Phone numbers, email and address are added by the site editor."
+            />
+          )}
 
+          {state === 'ready' && hasContact && (
+            <>
+              <ContactLink
+                href={info.phone_call_link}
+                icon="phone"
+                label={isSw ? 'Piga Simu' : 'Call Us'}
+                value={info.phone_number}
+              />
+              <ContactLink
+                href={info.whatsapp_link}
+                icon="chat"
+                label="WhatsApp"
+                value={info.whatsapp_number}
+                external
+              />
+              <ContactLink
+                href={info.email_mailto_link}
+                icon="mail"
+                label={isSw ? 'Barua Pepe' : 'Email'}
+                value={info.email}
+              />
+
+              {info.physical_address && (
+                <div className="border border-black/10 rounded-xl p-5">
+                  <div className="flex items-start gap-3">
+                    <Icon name="pin" className="w-5 h-5 mt-0.5 text-terracotta" />
+                    <div>
+                      <div className="text-xs font-bold text-ink-muted uppercase tracking-wide mb-1">
+                        {isSw ? 'Anwani' : 'Address'}
+                      </div>
+                      <p className="text-sm text-ink leading-relaxed">{info.physical_address}</p>
+                      {info.postal_address && (
+                        <p className="text-xs text-ink-muted mt-1">{info.postal_address}</p>
+                      )}
+                      {info.google_maps_link && (
+                        <a
+                          href={info.google_maps_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block mt-2 text-xs font-bold text-terracotta"
+                        >
+                          {isSw ? 'Fungua Ramani →' : 'Open Map →'}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {/* Message form opens only when a visitor asks to write to TSMA. */}
@@ -123,7 +149,7 @@ export default function Contact() {
 }
 
 function ContactLink({ href, icon, label, value, external }) {
-  if (!href) return null
+  if (!href || !value) return null
   return (
     <a
       href={href}
@@ -131,7 +157,7 @@ function ContactLink({ href, icon, label, value, external }) {
       rel={external ? 'noopener noreferrer' : undefined}
       className="flex items-center gap-4 border border-black/10 rounded-xl p-5 hover:border-terracotta/40 hover:shadow-md transition-all group"
     >
-      <span className="text-2xl">{icon}</span>
+      <Icon name={icon} className="w-6 h-6 text-terracotta" strokeWidth={1.6} />
       <div>
         <div className="text-xs font-bold text-ink-muted uppercase tracking-wide">{label}</div>
         <div className="text-sm font-bold text-navy group-hover:text-terracotta transition-colors">
@@ -165,7 +191,7 @@ function ContactForm({ isSw }) {
   if (status === 'success') {
     return (
       <div className="border border-green/30 bg-green/10 rounded-xl p-8 text-center">
-        <div className="text-3xl mb-3">✅</div>
+        <Icon name="check" className="w-8 h-8 text-green mb-3" strokeWidth={2} />
         <p className="text-sm font-semibold text-ink mb-4">
           {isSw ? 'Ujumbe wako umetumwa. Tutawasiliana nawe hivi karibuni.' : "Your message has been sent. We'll get back to you soon."}
         </p>

@@ -2,36 +2,29 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
-
-// Placeholder inayoonekana kabla ya API kujibu, au endapo backend
-// haijaunganishwa bado wakati wa maendeleo ya frontend pekee.
-const FALLBACK_NEWS = [
-  { id: 1, title: null, content: 'TSMA imeshiriki mkutano wa kimataifa wa usimamizi wa michezo.', images: [] },
-  { id: 2, title: null, content: 'Usajili wa mkutano wa 2026 sasa umefunguliwa kwa wanachama wote.', images: [] },
-  { id: 3, title: null, content: 'Tunapokea maombi ya uwasilishaji wa tafiti kwa mwaka huu.', images: [] },
-]
+import EmptyState from './EmptyState.jsx'
+import LoadingState from './LoadingState.jsx'
 
 export default function NewsPreview() {
-  const { t } = useTranslation()
-  const [items, setItems] = useState(FALLBACK_NEWS)
-  const [loading, setLoading] = useState(true)
+  const { t, i18n } = useTranslation()
+  const isSw = i18n.language?.startsWith('sw')
+  const [items, setItems] = useState([])
+  const [state, setState] = useState('loading')
 
   useEffect(() => {
     let cancelled = false
 
+    setState('loading')
     apiClient
       .get('/news/', { params: { limit: 3 } })
       .then((res) => {
         const results = res.data?.results || res.data
-        if (!cancelled && Array.isArray(results) && results.length > 0) {
-          setItems(results.slice(0, 3))
-        }
+        if (cancelled) return
+        setItems(Array.isArray(results) ? results.slice(0, 3) : [])
+        setState('ready')
       })
       .catch(() => {
-        // Backend haipatikani (au bado haijaunganishwa) — tunabaki na fallback
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) setState('error')
       })
 
     return () => {
@@ -58,7 +51,29 @@ export default function NewsPreview() {
         </Link>
       </div>
 
-      <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 ${loading ? 'opacity-60' : ''}`}>
+      {state === 'error' && (
+        <EmptyState
+          isSw={isSw}
+          tone="error"
+          sw="Hakuna habari za kuonyesha kwa sasa."
+          en="No news to show right now."
+          hintSw="Muunganisho na seva haukufanyika. Fundi wa TSMA ataangalia; jaribu tena baadaye."
+          hintEn="The connection to the server failed. The TSMA administrator will be notified; please try again later."
+        />
+      )}
+
+      {state === 'ready' && items.length === 0 && (
+        <EmptyState
+          isSw={isSw}
+          sw="TSMA bado haijaweka habari."
+          en="TSMA has not published any news yet."
+          hintSw="Habari mpya za TSMA huongezwa na mhariri wa tovuti."
+          hintEn="News updates are added by the site editor."
+        />
+      )}
+
+      {state === 'ready' && items.length > 0 && (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {items.map((item, idx) => (
           <article
             key={item.id}
@@ -86,6 +101,7 @@ export default function NewsPreview() {
           </article>
         ))}
       </div>
+      )}
     </section>
   )
 }

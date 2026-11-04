@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import { useAuth } from '../context/AuthContext.jsx'
+import Icon from '../components/Icon.jsx'
 
 export default function Dashboard() {
   const { i18n } = useTranslation()
@@ -145,7 +146,9 @@ export default function Dashboard() {
             <div className="grid sm:grid-cols-2 gap-4 mb-6">
               {teachingProgress.certificates.map((cert) => (
                 <div key={cert.id} className="group border border-gold/30 bg-white rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gold/10 text-2xl">🏆</span>
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gold/10 text-2xl">
+                    <Icon name="check" className="w-6 h-6 text-gold-dark" />
+                  </span>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-bold text-navy truncate">{cert.title_earned}</div>
                     <div className="text-xs text-ink-muted">{cert.certificate_number}</div>
@@ -223,7 +226,7 @@ function ConferenceRegistrationsSection({ registrations, isSw }) {
           {upcoming.map((reg) => (
             <div key={reg.id} className="border border-gold/30 bg-gold/5 rounded-xl p-4">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">🎫</span>
+                <span className="text-2xl"><Icon name="ticket" className="w-6 h-6" /></span>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-bold text-navy truncate">{reg.conference_title}</div>
                   <div className="text-xs text-ink-muted">{reg.ticket_type_name}</div>
@@ -495,11 +498,11 @@ function ProfessionalProfileSection({ isSw }) {
           <p className="text-xs text-ink">
             {form.is_public
               ? isSw
-                ? '🌍 Profaili yako imetolewa kwa jamii - inaonekana kwenye ukurasa wa Wataalamu.'
-                : '🌍 Your profile is released to the community - visible on the Professionals page.'
+                ? 'Profaili yako imetolewa kwa jamii - inaonekana kwenye ukurasa wa Wataalamu.'
+                : 'Your profile is released to the community - visible on the Professionals page.'
               : isSw
-                ? '🔒 Profaili yako ni siri - wewe na viongozi (admin) wa TSMA tu mnaiona.'
-                : '🔒 Your profile is private - only you and TSMA administrators can see it.'}
+                ? 'Profaili yako ni siri - wewe na viongozi (admin) wa TSMA tu mnaiona.'
+                : 'Your profile is private - only you and TSMA administrators can see it.'}
           </p>
           <button
             type="button"

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import Icon from './Icon.jsx'
 
 /**
  * Modal ya wasifu kamili — muundo kama unavyobofya profile ya mtu
@@ -40,7 +41,7 @@ export default function BoardProfileModal({ member, onClose }) {
             aria-label="Funga"
             className="w-9 h-9 rounded-full bg-cream flex items-center justify-center text-navy text-lg"
           >
-            ✕
+            <Icon name="close" className="w-5 h-5" />
           </button>
         </div>
 
@@ -79,13 +80,13 @@ export default function BoardProfileModal({ member, onClose }) {
             )}
             {member.email && (
               <a href={`mailto:${member.email}`} className="text-center">
-                <div className="font-serif font-bold text-navy text-lg">✉️</div>
+                <div className="font-serif font-bold text-navy text-lg"><Icon name="mail" className="w-5 h-5" /></div>
                 <div className="text-[11px] text-ink-muted uppercase tracking-wide">Email</div>
               </a>
             )}
             {member.linkedin_url && (
               <a href={member.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-center">
-                <div className="font-serif font-bold text-navy text-lg">🔗</div>
+                <div className="font-serif font-bold text-navy text-lg"><Icon name="link" className="w-5 h-5" /></div>
                 <div className="text-[11px] text-ink-muted uppercase tracking-wide">LinkedIn</div>
               </a>
             )}

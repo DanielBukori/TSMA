@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
 import GatewaySelect from '../components/GatewaySelect.jsx'
 import ManualPaymentCard from '../components/ManualPaymentCard.jsx'
+import Icon from '../components/Icon.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import PageBanner from '../components/PageBanner.jsx'
 import PageBannerText from '../components/PageBannerText.jsx'
@@ -227,7 +228,7 @@ function JoinForm({ tier, isSw, onClose }) {
   if (status === 'success') {
     return (
       <div className="mt-3 bg-green/10 border border-green/30 rounded-xl p-6 text-center">
-        <div className="text-3xl mb-2">✅</div>
+        <div className="text-3xl mb-2"><Icon name="check" className="w-8 h-8 text-green" /></div>
         <p className="text-sm text-ink font-semibold">{message}</p>
         <a href="/dashboard" className="inline-block mt-4 text-sm font-bold text-navy border-b-2 border-gold">
           {isSw ? 'Angalia Dashibodi Yangu →' : 'View My Dashboard →'}
@@ -339,7 +340,7 @@ function JoinForm({ tier, isSw, onClose }) {
                         : 'border-black/15 text-ink'
                     }`}
                   >
-                    📱 {isSw ? 'M-Pesa/Simu' : 'Mobile Money'}
+                    <Icon name="phone" className="w-4 h-4" /> {isSw ? 'M-Pesa/Simu' : 'Mobile Money'}
                   </button>
                   <button
                     type="button"
@@ -348,7 +349,7 @@ function JoinForm({ tier, isSw, onClose }) {
                       method === 'card' ? 'bg-navy text-white border-navy' : 'border-black/15 text-ink'
                     }`}
                   >
-                    💳 {isSw ? 'Kadi' : 'Card'}
+                    <Icon name="card" className="w-4 h-4" /> {isSw ? 'Kadi' : 'Card'}
                   </button>
                 </div>
               </div>

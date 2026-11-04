@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client.js'
+import Icon from '../components/Icon.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
 // Mtiririko: JIUNGE (live) au TAZAMA (rekodi) -> mfumo unarekodi ushiriki -> quiz inafunguka
@@ -104,7 +105,7 @@ export default function SessionDetail() {
   if (loadError?.code === 'membership_required') {
     return (
       <div className="max-w-md mx-auto px-5 py-24 text-center">
-        <div className="text-4xl mb-3">🔒</div>
+        <div className="text-4xl mb-3"><Icon name="lock" className="w-9 h-9 text-navy mx-auto" /></div>
         <p className="text-sm text-ink mb-5">
           {loadError.message ||
             (isSw
@@ -126,13 +127,20 @@ export default function SessionDetail() {
     : null
 
   const joinLabel = isLive
-    ? `🎥 ${isSw ? 'Jiunge na Kikao (Zoom/Meet)' : 'Join Session (Zoom/Meet)'}`
-    : `▶️ ${isSw ? 'Tazama Rekodi' : 'Watch Recording'}`
+    ? (isSw ? 'Jiunge na Kikao (Zoom/Meet)' : 'Join Session (Zoom/Meet)')
+    : (isSw ? 'Tazama Rekodi' : 'Watch Recording')
 
   return (
     <section className="max-w-2xl mx-auto px-5 md:px-8 py-14 md:py-20">
       <span className="inline-block bg-cream text-terracotta text-[11px] font-bold px-3 py-1.5 rounded-full mb-4">
-        {isLive ? `🔴 ${isSw ? 'MOJA KWA MOJA' : 'LIVE'}` : `▶️ ${isSw ? 'IMEREKODIWA' : 'RECORDED'}`}
+        {isLive ? (
+          <>
+            <Icon name="dot" className="w-2.5 h-2.5 text-terracotta" strokeWidth={2} />{' '}
+            {isSw ? 'MOJA KWA MOJA' : 'LIVE'}
+          </>
+        ) : (
+          isSw ? 'IMEREKODIWA' : 'RECORDED'
+        )}
       </span>
       <h1 className="font-serif font-bold text-2xl md:text-3xl text-navy">{session.title}</h1>
       {session.instructor_name && <p className="text-sm text-terracotta font-semibold mt-2">{session.instructor_name}</p>}
@@ -190,7 +198,7 @@ export default function SessionDetail() {
           <div className="mt-6">
             {session.is_attended ? (
               <span className="inline-flex items-center gap-2 text-green font-bold text-sm">
-                ✅ {isLive
+                <Icon name="check" className="w-4 h-4 text-green" /> {isLive
                   ? isSw ? 'Umeshiriki kikao hiki' : "You've joined this session"
                   : isSw ? 'Umeshatazama kikao hiki' : "You've watched this session"}
               </span>
@@ -220,7 +228,7 @@ export default function SessionDetail() {
                 >
                   <div className="min-w-0">
                     <h3 className="font-bold text-sm text-navy truncate">
-                      {quiz.passed ? '✅' : '📝'} {quiz.title}
+                      {quiz.passed ? <Icon name="check" className="w-4 h-4 text-green" /> : <Icon name="edit" className="w-4 h-4 text-navy" />} {quiz.title}
                     </h3>
                     <p className="text-xs text-ink-muted mt-0.5">
                       {quiz.total_questions} {isSw ? 'maswali' : 'questions'} · {isSw ? 'kufaulu' : 'pass'} {quiz.passing_score_percent}%
@@ -232,7 +240,7 @@ export default function SessionDetail() {
                 </Link>
               ) : (
                 <div key={quiz.id} className="bg-cream border border-black/10 rounded-xl p-4 text-sm text-ink-muted">
-                  🔒 {quiz.title} —{' '}
+                  <Icon name="lock" className="w-4 h-4" /> {quiz.title} —{' '}
                   {isSw
                     ? isLive ? 'jiunge na kikao kwanza ili kufungua quiz hii.' : 'tazama rekodi kwanza ili kufungua quiz hii.'
                     : isLive ? 'join the session first to unlock this quiz.' : 'watch the recording first to unlock this quiz.'}

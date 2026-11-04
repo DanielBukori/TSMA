@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import Icon from './Icon.jsx'
 
 // Ikitokea hitilafu ya ghafla ndani ya ukurasa, mgeni anaona ujumbe wa kueleweka
 // na kitufe cha kupakia upya - si skrini nyeupe.
@@ -18,7 +19,7 @@ export default class ErrorBoundary extends Component {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-5">
         <div className="max-w-md text-center">
-          <div className="text-4xl mb-3">⚠️</div>
+          <div className="text-4xl mb-3"><Icon name="alert" className="w-10 h-10" /></div>
           <h1 className="font-serif font-bold text-xl text-navy mb-2">Kuna hitilafu imetokea / Something went wrong</h1>
           <p className="text-sm text-ink-muted mb-6">
             Pakia ukurasa upya. Tatizo likiendelea, tafadhali tuambie. / Please reload the page.
