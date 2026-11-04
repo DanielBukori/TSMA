@@ -53,7 +53,7 @@ export default function ConferenceDetail() {
         <h1 className="font-serif font-bold text-3xl md:text-5xl max-w-3xl mx-auto">
           {conference.title}
         </h1>
-        {conference.theme && <p className="text-gold italic mt-3">"{conference.theme}"</p>}
+        {conference.theme && <p className="text-gold italic mt-3">“{conference.theme}”</p>}
         <p className="text-white/70 text-sm mt-5">
           {conference.venue_name}, {conference.city} · {conference.start_date} – {conference.end_date}
         </p>

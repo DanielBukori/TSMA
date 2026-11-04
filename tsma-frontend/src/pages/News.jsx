@@ -87,6 +87,10 @@ export default function News() {
 
       {/* ============ FEED ============ */}
       <section className="max-w-2xl mx-auto px-5 md:px-8 py-12 space-y-6">
+        {state === 'loading' && (
+          <LoadingState count={4} className="space-y-6" itemClassName="h-44 rounded-xl bg-black/[.06]" />
+        )}
+
         {state === 'error' && (
           <EmptyState
             isSw={isSw}

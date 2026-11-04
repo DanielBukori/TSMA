@@ -56,6 +56,14 @@ export default function Teaching() {
         />
       </PageBanner>
 
+      {state === 'loading' && (
+        <LoadingState
+          count={3}
+          className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto px-5 md:px-8 py-14"
+          itemClassName="h-56 rounded-xl bg-black/[.06]"
+        />
+      )}
+
       {state === 'error' && (
         <section className="max-w-5xl mx-auto px-5 md:px-8 py-12">
           <EmptyState

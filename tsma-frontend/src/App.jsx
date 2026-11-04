@@ -54,7 +54,6 @@ const SecurityDashboard = lazy(() => import('./pages/SecurityDashboard.jsx'))
 const EditorAccessLogin = lazy(() => import('./pages/EditorAccessLogin.jsx'))
 const EditorDashboard = lazy(() => import('./pages/EditorDashboard.jsx'))
 const EditorAccessGuard = lazy(() => import('./components/EditorAccessGuard.jsx'))
-import SecurityAccessGuard from './components/SecurityAccessGuard.jsx'
 const VerifyMember = lazy(() => import('./pages/VerifyMember.jsx'))
 const VerifyCertificate = lazy(() => import('./pages/VerifyCertificate.jsx'))
 

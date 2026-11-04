@@ -51,6 +51,14 @@ export default function NewsPreview() {
         </Link>
       </div>
 
+      {state === 'loading' && (
+        <LoadingState
+          count={3}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          itemClassName="h-44 rounded-xl bg-black/[.06]"
+        />
+      )}
+
       {state === 'error' && (
         <EmptyState
           isSw={isSw}

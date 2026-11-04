@@ -62,6 +62,8 @@ export default function Founders() {
       </PageBanner>
 
       <section className="max-w-4xl mx-auto px-5 md:px-8 py-14 md:py-20">
+        {state === 'loading' && <LoadingState count={6} className="grid grid-cols-2 md:grid-cols-3 gap-5" />}
+
         {state === 'error' && (
           <EmptyState
             isSw={isSw}

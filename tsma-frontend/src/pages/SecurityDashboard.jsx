@@ -138,10 +138,8 @@ export default function SecurityDashboard() {
   }, [loadSection, eventParams])
 
   useEffect(() => {
-    if (!localStorage.getItem('tsma_security_token')) {
-      navigate('/security/login')
-      return
-    }
+    // Kukagua token ya dashboard ni kazi ya SecurityAccessGuard (App.jsx) —
+    // hivyo hapa tunaweza kupakia data bila kusubiri ulinzi wa UI tena.
     loadAll()
     firstLoad.current = false
     // eslint-disable-next-line react-hooks/exhaustive-deps

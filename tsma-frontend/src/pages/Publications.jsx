@@ -123,6 +123,10 @@ export default function Publications() {
 
       {/* ============ GRID ============ */}
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-12 md:py-16">
+        {state === 'loading' && (
+          <LoadingState className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5" itemClassName="h-56 rounded-xl bg-black/[.06]" />
+        )}
+
         {state === 'error' && (
           <EmptyState
             isSw={isSw}

@@ -66,6 +66,8 @@ export default function Management() {
       </PageBanner>
 
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-14 md:py-20">
+        {state === 'loading' && <LoadingState />}
+
         {state === 'error' && (
           <EmptyState
             isSw={isSw}

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import SectionLink from './SectionLink.jsx'
 import { useTranslation } from 'react-i18next'
-import StatCounter from './StatCounter.jsx'
 import { useBackgroundImages } from '../context/BackgroundImagesContext.jsx'
 
 const SLIDE_DURATION = 6000 // ms
@@ -99,13 +98,9 @@ export default function HeroSlideshow() {
           </Link>
         </div>
 
-        {/* Stat counters (count-up animation on scroll into view) */}
-        <div className="mt-14 inline-flex flex-wrap justify-center gap-8 md:gap-16 bg-black/25 backdrop-blur-sm rounded-2xl px-6 md:px-10 py-6">
-          <StatCounter numberClass="text-white" value={50} suffix="+" label={t('stats.members')} />
-          <StatCounter numberClass="text-white" value={18} label={t('stats.regions')} />
-          <StatCounter numberClass="text-white" value={2} prefix="TZS " suffix="M" label={t('stats.award')} />
-          <StatCounter numberClass="text-white" value={2026} label={t('stats.nextConference')} noCount />
-        </div>
+        {/* Takwimu halisi za TSMA ziko kwenye InfoBox (/API/content/home-stats/)
+            — hapa hazionekani kwani thamani zilizandikwa waziwangasili kwa
+            mkono zingeonekana kama takwimu za kweli za chama. */}
       </div>
 
       <style>{`

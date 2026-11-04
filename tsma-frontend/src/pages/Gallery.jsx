@@ -70,6 +70,14 @@ export default function Gallery() {
           </div>
         )}
 
+        {state === 'loading' && (
+          <LoadingState
+            count={6}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            itemClassName="aspect-[4/3] rounded-xl bg-black/[.06]"
+          />
+        )}
+
         {state === 'error' && (
           <EmptyState
             isSw={isSw}

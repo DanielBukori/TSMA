@@ -57,6 +57,14 @@ export default function Conferences() {
 
       <ConferenceMemories />
 
+      {state === 'loading' && (
+        <LoadingState
+          count={3}
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto px-5 md:px-8 py-14"
+          itemClassName="h-56 rounded-xl bg-black/[.06]"
+        />
+      )}
+
       {state === 'error' && (
         <section className="max-w-5xl mx-auto px-5 md:px-8 py-12">
           <EmptyState
@@ -99,7 +107,7 @@ export default function Conferences() {
                   {featured.title}
                 </h2>
                 {featured.theme && (
-                  <p className="text-gold text-sm md:text-base mt-2 italic">"{featured.theme}"</p>
+                  <p className="text-gold text-sm md:text-base mt-2 italic">“{featured.theme}”</p>
                 )}
                 <p className="text-white/75 text-sm md:text-base mt-4 max-w-xl">
                   {featured.description}

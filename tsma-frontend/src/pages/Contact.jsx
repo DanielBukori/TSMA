@@ -59,6 +59,10 @@ export default function Contact() {
       <section className="max-w-5xl mx-auto px-5 md:px-8 py-14 md:py-20 grid grid-cols-1 lg:grid-cols-5 gap-10">
         {/* ============ CONTACT INFO ============ */}
         <div className="lg:col-span-2 space-y-4">
+          {state === 'loading' && (
+            <LoadingState count={3} className="space-y-4" itemClassName="h-24 rounded-xl bg-black/[.06]" />
+          )}
+
           {state === 'error' && (
             <EmptyState
               isSw={isSw}

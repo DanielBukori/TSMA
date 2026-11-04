@@ -97,18 +97,49 @@ export default function About() {
             <div className="lane-divider mx-auto mt-4" />
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-            {(content?.values || []).map((v) => (
-              <div key={v.id} className="bg-surface rounded-xl p-6 text-center border border-black/5">
-                <h3 className="font-serif font-bold text-navy mb-1.5">
-                  {isSw ? v.title_sw : v.title_en}
-                </h3>
-                <p className="text-xs text-ink-muted leading-relaxed">
-                  {isSw ? v.description_sw : v.description_en}
-                </p>
-              </div>
-            ))}
-          </div>
+          {state === 'loading' && (
+            <LoadingState
+              count={8}
+              className="grid grid-cols-2 lg:grid-cols-4 gap-5"
+              itemClassName="h-32 rounded-xl bg-black/[.06]"
+            />
+          )}
+
+          {state === 'error' && (
+            <EmptyState
+              isSw={isSw}
+              sw="Hakuna maudhui ya kuonyesha kwa sasa."
+              en="No content to show right now."
+              hintSw="Muunganisho na seva haukufanyika. Fundi wa TSMA ataangalia; jaribu tena baadaye."
+              hintEn="The connection to the server failed. The TSMA administrator will be notified; please try again later."
+              tone="error"
+            />
+          )}
+
+          {state === 'ready' && (content?.values || []).length === 0 && (
+            <EmptyState
+              isSw={isSw}
+              sw="Imani za TSMA bado hazijaorodheshwa na mhariri."
+              en="TSMA's values have not been listed yet."
+              hintSw="Maudhui haya huongezwa na mhariri wa TSMA kupitia mfumo."
+              hintEn="This content is added by the TSMA editor through the system."
+            />
+          )}
+
+          {state === 'ready' && (content?.values || []).length > 0 && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+              {(content?.values || []).map((v) => (
+                <div key={v.id} className="bg-surface rounded-xl p-6 text-center border border-black/5">
+                  <h3 className="font-serif font-bold text-navy mb-1.5">
+                    {isSw ? v.title_sw : v.title_en}
+                  </h3>
+                  <p className="text-xs text-ink-muted leading-relaxed">
+                    {isSw ? v.description_sw : v.description_en}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -142,7 +173,9 @@ export default function About() {
         <div className="relative max-w-2xl mx-auto">
           {milestones.length > 0 && <div className="absolute left-[27px] top-2 bottom-2 w-px bg-black/10" />}
           <div className="space-y-10">
-            {milestones.length === 0 ? (
+            {state === 'loading' ? (
+              <LoadingState count={3} className="space-y-10" itemClassName="h-20 rounded-xl bg-black/[.06]" />
+            ) : milestones.length === 0 ? (
               <EmptyState
                 isSw={isSw}
                 tone={state === 'error' ? 'error' : 'empty'}
@@ -198,6 +231,15 @@ export default function About() {
  */
 function ContentOrEmpty({ isSw, state, text, emptySw, emptyEn, className }) {
   if (text) return <p className={className}>{text}</p>
+  if (state === 'loading') {
+    return (
+      <div className={className} role="status" aria-live="polite">
+        <div className="mx-auto h-3 w-full max-w-xl rounded bg-black/[.08] animate-pulse" />
+        <div className="mx-auto mt-2 h-3 w-3/4 max-w-md rounded bg-black/[.08] animate-pulse" />
+        <span className="sr-only">Inapakua / Loading</span>
+      </div>
+    )
+  }
   const isError = state === 'error'
   return (
     <EmptyState
