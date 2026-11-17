@@ -10,5 +10,14 @@
       "framework": "vite"
     }
   },
-  "rewrites": []
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": { "service": "tsma-backend" }
+    },
+    {
+      "source": "/(.*)",
+      "destination": { "service": "tsma-frontend" }
+    }
+  ]
 }
