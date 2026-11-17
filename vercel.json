@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "tsma-backend": {
+      "root": "tsma-backend",
+      "framework": "django"
+    },
+    "tsma-frontend": {
+      "root": "tsma-frontend",
+      "framework": "vite"
+    }
+  },
+  "rewrites": []
+}
